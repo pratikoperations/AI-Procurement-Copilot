@@ -1,8 +1,8 @@
 # AI Procurement Copilot
 
 **Edition:** Portfolio Edition v1.0  
-**Current Build:** Build 0.6 — UX Refinement, Testing, Documentation, and Portfolio Polish  
-**Status:** In Development  
+**Current Build:** Build 0.7 — Release Candidate Preparation  
+**Status:** Release Candidate Validation Pending  
 **Repository Owner:** pratikoperations
 
 ## Objective
@@ -30,6 +30,7 @@ This is not a black-box AI award tool. It is a transparent, rule-guided, AI-read
 - AI-style explainability panel
 - Interview talking points
 - Automated regression test workflow
+- Downloadable Excel, CSV, TXT, and JSON decision packages
 
 ## Run Locally
 
@@ -52,7 +53,7 @@ Use the built-in synthetic demo or upload a CSV/Excel RFQ. A sample file is avai
 
 ## Output
 
-The app generates a transparent best-value sourcing recommendation, should-cost build-up, TCO analysis, risk/ESG/performance scores, allocation recommendation, scenario results, negotiation strategy, executive memo, supplier email, and interview explanation.
+The app generates a transparent best-value sourcing recommendation, should-cost build-up, TCO analysis, risk/ESG/performance scores, allocation recommendation, scenario results, negotiation strategy, executive memo, supplier email, interview explanation, and downloadable decision package.
 
 ## High-Level Architecture
 
@@ -65,6 +66,7 @@ AI Procurement Copilot
 ├── Business Rules Layer
 ├── AI Assistance Layer
 ├── Data Validation + Test Layer
+├── Export + Handoff Layer
 └── Documentation + Recovery Layer
 ```
 
@@ -76,6 +78,7 @@ AI Procurement Copilot
 - `QUALITY_ASSURANCE_PROTOCOL.md`
 - `docs/USER_GUIDE.md`
 - `docs/BASE_BUILD_PLAN_REFERENCE.md`
+- `docs/RELEASE_CANDIDATE_CHECKLIST.md`
 
 ## Version Strategy
 
