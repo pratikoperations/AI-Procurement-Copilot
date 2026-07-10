@@ -10,15 +10,15 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.5 — Executive Communication Layer
+Build 0.6 — UX Refinement, Testing, Documentation, and Portfolio Polish
 
 ## Build Status
 
-Completed — Runtime QA Pending
+Completed — Automated Workflow Result Pending
 
 ## Current Scope
 
-v1.0 focuses on the Packaging Procurement Engine with RFQ analysis, packaging should-cost, risk-adjusted TCO, supplier risk, ESG, performance, allocation, scenario testing, negotiation, executive memo, supplier email, AI explainability, and interview outputs.
+v1.0 includes packaging RFQ analysis, packaging should-cost, risk-adjusted TCO, supplier risk, ESG, performance, allocation, scenario testing, negotiation, executive memo, supplier email, AI explainability, interview outputs, validation, regression tests, and CI quality checks.
 
 ## Future Scope
 
@@ -27,11 +27,11 @@ v1.0 focuses on the Packaging Procurement Engine with RFQ analysis, packaging sh
 
 ## Latest Stable State
 
-Build 0.5 code and documentation are committed to GitHub. Static integration review is complete. Runtime Streamlit and regression testing remain pending.
+Build 0.6 code and documentation are committed to GitHub. Static integration review is complete. Automated workflow and local visual verification are pending confirmation.
 
 ## Next Planned Build
 
-Build 0.6 — UX Refinement, Runtime Testing, Documentation, and Portfolio Polish
+Build 0.7 — Defect Remediation, Visual Polish, Downloadable Outputs, and Release-Candidate Preparation
 
 ## Recovery Note
 
