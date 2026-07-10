@@ -1,5 +1,40 @@
 # Build History
 
+## Build 0.5 — Executive Communication Layer
+
+**Status:** Completed — Runtime QA Pending  
+**Objective:** Add executive communication outputs and formalize build quality assurance.
+
+### Completed
+
+- Added `QUALITY_ASSURANCE_PROTOCOL.md`.
+- Added `modules/executive_outputs.py`.
+- Implemented executive sourcing memo generator.
+- Implemented supplier clarification email generator.
+- Implemented AI-style explainability panel generator.
+- Implemented interview talking points generator.
+- Integrated all Build 0.5 outputs into `app.py`.
+- Updated build labels in `app.py` and `modules/config.py`.
+- Updated project status and changelog.
+
+### QA Result
+
+- Static integration review: Passed
+- Documentation completeness: Passed
+- GitHub recovery requirement: Passed
+- Runtime Streamlit launch test: Pending
+- Regression test with sample RFQ: Pending
+
+### Outcome
+
+Build 0.5 completes the executive communication layer and makes the project substantially interview-ready. Runtime testing and UX refinement are the next priority.
+
+### Next
+
+Build 0.6 — UX Refinement, Runtime Testing, Documentation, and Portfolio Polish.
+
+---
+
 ## Build 0.4 — Decision Intelligence, Allocation, Scenario Simulation, and Negotiation
 
 **Status:** Completed  
@@ -20,10 +55,6 @@
 ### Outcome
 
 Build 0.4 adds executive decision support beyond analytics. The app now explains best value vs lowest price, recommends allocation, stress-tests supplier decisions, and generates negotiation direction.
-
-### Next
-
-Build 0.5 — Executive Memo, Supplier Email, AI Explainability, and Interview Assets.
 
 ---
 
