@@ -1,20 +1,28 @@
 # =====================================================
 # AI PROCUREMENT COPILOT
 # Portfolio Edition v1.0
-# Build 0.3 — Packaging Procurement Engines
+# Build 0.4 — Decision Intelligence + Allocation + Negotiation
 # =====================================================
 
 import streamlit as st
 
+from modules.allocation import recommend_allocation
 from modules.config import APP_NAME, EDITION, STATUS
 from modules.data_loader import get_demo_suppliers, load_uploaded_rfq
 from modules.dashboard import (
+    render_allocation,
     render_executive_dashboard,
+    render_executive_value,
+    render_negotiation,
+    render_scenario_table,
     render_should_cost_section,
     render_supplier_snapshot,
     render_tco_breakdown,
 )
+from modules.negotiation import generate_negotiation_playbook, simulate_negotiation
+from modules.recommendation import best_value_decision, executive_value_breakdown, recommendation_confidence
 from modules.rfq import validate_rfq_columns
+from modules.scenario import run_scenario_table
 from modules.scoring import enrich_supplier_scores
 from modules.should_cost import calculate_packaging_should_cost, should_cost_dataframe
 from modules.sidebar import render_sidebar
@@ -34,7 +42,7 @@ st.title(APP_NAME)
 st.subheader(EDITION)
 
 st.info(
-    "Build 0.3 adds working packaging procurement engines: should-cost, advanced TCO, structured risk, ESG, performance, and weighted supplier scoring."
+    "Build 0.4 adds decision intelligence: lowest-price vs best-value logic, executive value breakdown, supplier allocation, scenario stress testing, and negotiation playbook."
 )
 
 st.markdown("---")
@@ -52,6 +60,9 @@ else:
     suppliers_df = get_demo_suppliers()
 
 scored_df = enrich_supplier_scores(suppliers_df, assumptions)
+recommended = scored_df.iloc[0]
+lowest = scored_df.sort_values("Quoted Unit Price USD").iloc[0]
+confidence = recommendation_confidence(scored_df)
 
 should_cost = calculate_packaging_should_cost(
     raw_material_shock=assumptions["raw_material_shock"],
@@ -63,13 +74,46 @@ should_cost_df = should_cost_dataframe(
     fx_rate=assumptions["fx_rate"],
 )
 
-render_executive_dashboard(scored_df, assumptions)
+decision = best_value_decision(scored_df)
+value_metrics = executive_value_breakdown(scored_df, assumptions["annual_volume"], should_cost["target_unit_cost_usd"])
+allocation_df = recommend_allocation(
+    scored_df,
+    annual_volume=assumptions["annual_volume"],
+    max_supplier_share=assumptions["max_supplier_share"],
+    min_backup_share=assumptions["min_backup_share"],
+    min_risk_score=assumptions["min_risk_score"],
+    min_esg_score=assumptions["min_esg_score"],
+)
+scenario_df = run_scenario_table(suppliers_df, assumptions)
+negotiation_result = simulate_negotiation(recommended, assumptions["annual_volume"])
+playbook_text = generate_negotiation_playbook(
+    recommended,
+    should_cost["target_unit_cost_usd"],
+    lowest["Supplier"],
+    lowest["Quoted Unit Price USD"],
+    negotiation_result["annual_saving_usd"],
+)
+
+render_executive_dashboard(scored_df, assumptions, confidence)
+st.markdown("---")
+
+st.header("Lowest Price vs Best Value Decision")
+st.write(decision["message"])
+
+st.markdown("---")
+render_executive_value(value_metrics, assumptions)
 st.markdown("---")
 render_supplier_snapshot(scored_df)
 st.markdown("---")
 render_should_cost_section(should_cost_df, should_cost["target_unit_cost_usd"], assumptions)
 st.markdown("---")
 render_tco_breakdown(scored_df, assumptions)
+st.markdown("---")
+render_allocation(allocation_df, assumptions)
+st.markdown("---")
+render_scenario_table(scenario_df, assumptions)
+st.markdown("---")
+render_negotiation(playbook_text, negotiation_result)
 
 st.markdown("---")
 st.header("Risk Assumptions")
@@ -78,6 +122,6 @@ st.write(
 )
 
 st.header("Build Status")
-st.write("**Current Build:** Build 0.3 — Packaging Procurement Engines")
+st.write("**Current Build:** Build 0.4 — Decision Intelligence, Allocation, Scenario Simulation, and Negotiation")
 st.write(f"**Status:** {STATUS}")
-st.write("**Next Build:** Build 0.4 — Decision Intelligence, Allocation, Scenario Simulation, and Negotiation")
+st.write("**Next Build:** Build 0.5 — Executive Memo, Supplier Email, AI Explainability, and Interview Assets")
