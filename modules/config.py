@@ -2,7 +2,7 @@
 
 APP_NAME = "AI Procurement Copilot"
 EDITION = "Portfolio Edition v1.0"
-BUILD = "Build 0.3 — Packaging Procurement Engines"
+BUILD = "Build 0.4 — Decision Intelligence, Allocation, Scenario Simulation, and Negotiation"
 STATUS = "In Development"
 
 DEFAULT_FX_RATE = 83
