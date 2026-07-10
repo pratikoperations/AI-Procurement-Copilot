@@ -2,6 +2,25 @@
 
 All meaningful project changes will be recorded here.
 
+## Build 0.6 — UX Refinement, Testing, Documentation, and Portfolio Polish
+
+### Added
+
+- Structured RFQ validation and scored-output validation.
+- Tabbed Streamlit workflow for decision summary, analysis, strategy, executive outputs, and interview guide.
+- Error handling for unreadable RFQ files and scoring failures.
+- Regression tests for demo data, should-cost logic, stress response, score ordering, and annual TCO consistency.
+- GitHub Actions quality-check workflow.
+- `docs/USER_GUIDE.md`.
+- Updated README with current capabilities, run instructions, inputs, and outputs.
+- Updated build labels and project status.
+
+### QA Notes
+
+- Static integration review completed.
+- Automated tests and compile checks are configured in GitHub Actions.
+- Workflow result and local visual review remain pending confirmation.
+
 ## Build 0.5 — Executive Communication Layer
 
 ### Added
