@@ -1,7 +1,7 @@
 # =====================================================
 # AI PROCUREMENT COPILOT
 # Portfolio Edition v1.0
-# Build 0.6 — UX Refinement, Testing, Documentation, Portfolio Polish
+# Build 0.7 — Release Candidate Preparation
 # =====================================================
 
 import streamlit as st
@@ -24,6 +24,12 @@ from modules.executive_outputs import (
     generate_explainability_panel,
     generate_interview_talking_points,
     generate_supplier_email,
+)
+from modules.exports import (
+    build_decision_package_json,
+    build_excel_workbook,
+    dataframe_to_csv_bytes,
+    text_to_bytes,
 )
 from modules.negotiation import generate_negotiation_playbook, simulate_negotiation
 from modules.recommendation import best_value_decision, executive_value_breakdown, recommendation_confidence
@@ -49,8 +55,8 @@ st.caption(
     "Transparent, rule-guided procurement decision intelligence for RFQ analysis, packaging should-cost, TCO, risk, ESG, allocation, negotiation, and executive recommendations."
 )
 
-st.info(
-    "Build 0.6 improves usability, adds structured data validation, strengthens regression readiness, and organizes the application into a clearer interview-demo workflow."
+st.success(
+    "Build 0.7 release-candidate preparation adds downloadable decision packages and a polished six-step interview workflow."
 )
 
 uploaded_file = None
@@ -138,16 +144,26 @@ supplier_email = generate_supplier_email(
 explainability_text = generate_explainability_panel(recommended)
 interview_talking_points = generate_interview_talking_points()
 
+excel_package = build_excel_workbook(scored_df, should_cost_df, allocation_df, scenario_df)
+json_package = build_decision_package_json(
+    recommended,
+    value_metrics,
+    allocation_df,
+    scenario_df,
+    negotiation_result,
+)
+
 render_executive_dashboard(scored_df, assumptions, confidence)
 st.markdown("---")
 
-summary_tab, analysis_tab, strategy_tab, executive_tab, interview_tab = st.tabs(
+summary_tab, analysis_tab, strategy_tab, executive_tab, downloads_tab, interview_tab = st.tabs(
     [
-        "Decision Summary",
-        "Cost & Risk Analysis",
-        "Scenarios & Negotiation",
-        "Executive Outputs",
-        "Interview Guide",
+        "1. Decision Summary",
+        "2. Cost & Risk",
+        "3. Scenarios & Negotiation",
+        "4. Executive Outputs",
+        "5. Downloads",
+        "6. Interview Guide",
     ]
 )
 
@@ -187,19 +203,67 @@ with executive_tab:
         "This recommendation is transparent, rule-guided, auditable, and procurement-controlled. It is not a black-box AI award decision."
     )
 
+with downloads_tab:
+    st.header("Download Decision Package")
+    st.write("Export the analysis for interview demonstration, review, or handoff.")
+
+    c1, c2, c3 = st.columns(3)
+    c1.download_button(
+        "Download Excel Analysis",
+        data=excel_package,
+        file_name="ai_procurement_copilot_analysis.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    c2.download_button(
+        "Download Executive Memo",
+        data=text_to_bytes(executive_memo),
+        file_name="executive_sourcing_memo.txt",
+        mime="text/plain",
+    )
+    c3.download_button(
+        "Download Supplier Email",
+        data=text_to_bytes(supplier_email),
+        file_name="supplier_clarification_email.txt",
+        mime="text/plain",
+    )
+
+    c4, c5, c6 = st.columns(3)
+    c4.download_button(
+        "Download Supplier Scores CSV",
+        data=dataframe_to_csv_bytes(scored_df),
+        file_name="supplier_scores.csv",
+        mime="text/csv",
+    )
+    c5.download_button(
+        "Download Allocation CSV",
+        data=dataframe_to_csv_bytes(allocation_df),
+        file_name="supplier_allocation.csv",
+        mime="text/csv",
+    )
+    c6.download_button(
+        "Download Decision JSON",
+        data=json_package,
+        file_name="procurement_decision_package.json",
+        mime="application/json",
+    )
+
 with interview_tab:
     st.header("Interview Talking Points")
     st.write(interview_talking_points)
 
-    st.subheader("Demo Flow")
+    st.subheader("Recommended 7-Minute Demo Flow")
     st.write(
-        "1. Select synthetic data or upload an RFQ. 2. Review best-value recommendation. 3. Explain should-cost and TCO. "
-        "4. Demonstrate risk, ESG, and performance logic. 5. Show allocation and scenario resilience. "
-        "6. Finish with negotiation and executive outputs."
+        "1. Explain the business problem. 2. Load the RFQ. 3. Show best value vs lowest price. "
+        "4. Explain should-cost and risk-adjusted TCO. 5. Show allocation and scenario resilience. "
+        "6. Demonstrate negotiation and executive outputs. 7. Close with explainability and business impact."
+    )
+
+    st.info(
+        "Interview positioning: this is a procurement decision-support product, not an autonomous award engine. Human judgment, governance, and auditability remain central."
     )
 
 st.markdown("---")
 st.caption(
-    "Build 0.6 — UX Refinement, Testing, Documentation, and Portfolio Polish | "
+    "Build 0.7 — Defect Remediation, Visual Polish, Downloadable Outputs, and Release-Candidate Preparation | "
     f"Application status: {STATUS}"
 )
