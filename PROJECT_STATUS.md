@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.4 — Decision Intelligence, Allocation, Scenario Simulation, and Negotiation
+Build 0.5 — Executive Communication Layer
 
 ## Current Status
 
-Build 0.4 Completed
+Build 0.5 Completed — Runtime QA Pending
 
 ## Canonical Source of Truth
 
@@ -22,7 +22,7 @@ GitHub repository: pratikoperations/AI-Procurement-Copilot
 
 ## Build Objective
 
-Implement decision intelligence capabilities from the V9.5 base plan: lowest-price vs best-value logic, executive value breakdown, constraint allocation, scenario stress testing, and negotiation planning.
+Complete the executive communication layer with executive sourcing memo, supplier clarification email, AI-style explainability, interview talking points, and a formal quality assurance protocol.
 
 ## Scope Locked for v1.0
 
@@ -32,6 +32,10 @@ Implement decision intelligence capabilities from the V9.5 base plan: lowest-pri
 - Synthetic demo data
 - RFQ upload support
 - TCO, risk, ESG, performance, allocation, negotiation, and executive recommendation modules
+- Executive memo
+- Supplier clarification email
+- AI explainability panel
+- Interview talking points
 
 ## Future Scope
 
@@ -40,8 +44,15 @@ Implement decision intelligence capabilities from the V9.5 base plan: lowest-pri
 
 ## Latest Completed Action
 
-Build 0.4 committed base build plan reference, allocation engine, scenario engine, negotiation engine, recommendation engine, dashboard decision sections, sidebar allocation controls, and app integration.
+Build 0.5 integrated executive communication outputs into the Streamlit app, added the formal Quality Assurance Protocol, updated build references, and preserved all changes in GitHub.
+
+## QA Status
+
+- Static integration review: Completed
+- Documentation review: Completed
+- Runtime Streamlit launch test: Pending local or hosted execution
+- Regression test with sample RFQ: Pending local or hosted execution
 
 ## Next Milestone
 
-Build 0.5 — Executive Memo, Supplier Email, AI Explainability, and Interview Assets
+Build 0.6 — UX Refinement, Runtime Testing, Documentation, and Portfolio Polish
