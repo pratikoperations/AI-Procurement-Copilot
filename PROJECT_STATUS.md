@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.5 — Executive Communication Layer
+Build 0.6 — UX Refinement, Testing, Documentation, and Portfolio Polish
 
 ## Current Status
 
-Build 0.5 Completed — Runtime QA Pending
+Build 0.6 Completed — Automated Workflow Result Pending
 
 ## Canonical Source of Truth
 
@@ -22,7 +22,7 @@ GitHub repository: pratikoperations/AI-Procurement-Copilot
 
 ## Build Objective
 
-Complete the executive communication layer with executive sourcing memo, supplier clarification email, AI-style explainability, interview talking points, and a formal quality assurance protocol.
+Improve usability, add structured RFQ and output validation, add regression tests and automated quality checks, strengthen documentation, and make the application easier to demonstrate in an interview.
 
 ## Scope Locked for v1.0
 
@@ -36,23 +36,21 @@ Complete the executive communication layer with executive sourcing memo, supplie
 - Supplier clarification email
 - AI explainability panel
 - Interview talking points
-
-## Future Scope
-
-- v1.1: Raw material procurement engine
-- v2.0: Multi-category procurement platform
+- Validation and regression test layer
 
 ## Latest Completed Action
 
-Build 0.5 integrated executive communication outputs into the Streamlit app, added the formal Quality Assurance Protocol, updated build references, and preserved all changes in GitHub.
+Build 0.6 added RFQ/output validation, a tabbed interview-demo workflow, regression tests, GitHub Actions quality checks, updated README, and a user guide.
 
 ## QA Status
 
 - Static integration review: Completed
-- Documentation review: Completed
-- Runtime Streamlit launch test: Pending local or hosted execution
-- Regression test with sample RFQ: Pending local or hosted execution
+- Validation layer: Added
+- Regression tests: Added
+- Automated GitHub workflow: Added; result pending
+- Local Streamlit visual review: Pending
+- Uploaded sample RFQ regression review: Pending
 
 ## Next Milestone
 
-Build 0.6 — UX Refinement, Runtime Testing, Documentation, and Portfolio Polish
+Build 0.7 — Defect Remediation, Visual Polish, Downloadable Outputs, and Release-Candidate Preparation
