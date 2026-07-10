@@ -2,6 +2,23 @@
 
 All meaningful project changes will be recorded here.
 
+## Build 0.7 — Defect Remediation, Visual Polish, Downloadable Outputs, and Release-Candidate Preparation
+
+### Added
+
+- `modules/exports.py` for CSV, TXT, JSON, and Excel decision-package exports.
+- Download center for supplier scores, allocation, executive memo, supplier email, Excel workbook, and JSON package.
+- Six-step interview-demo workflow.
+- Release-candidate application messaging and status.
+- `docs/RELEASE_CANDIDATE_CHECKLIST.md`.
+- Updated project status and version manifest.
+
+### QA Notes
+
+- Static integration review completed.
+- Export logic added and connected.
+- GitHub Actions result, local Streamlit visual review, sample upload, and download-button verification remain pending.
+
 ## Build 0.6 — UX Refinement, Testing, Documentation, and Portfolio Polish
 
 ### Added
