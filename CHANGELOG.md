@@ -2,6 +2,26 @@
 
 All meaningful project changes will be recorded here.
 
+## Build 0.4 — Decision Intelligence, Allocation, Scenario Simulation, and Negotiation
+
+### Added
+
+- Base build plan reference summary in `docs/BASE_BUILD_PLAN_REFERENCE.md`.
+- Lowest-price vs best-value decision logic.
+- Recommendation confidence calculation.
+- Executive value breakdown.
+- Constraint-style supplier allocation engine.
+- Scenario stress-testing engine.
+- Negotiation simulator.
+- Negotiation playbook generator.
+- Allocation controls in sidebar.
+- Dashboard sections for executive value, allocation, scenario testing, and negotiation.
+- App integration for Build 0.4 decision intelligence modules.
+
+### Notes
+
+Build 0.4 brings the app closer to the uploaded V9.5 base plan while keeping the code modular and recoverable.
+
 ## Build 0.3 — Packaging Procurement Engines
 
 ### Added
