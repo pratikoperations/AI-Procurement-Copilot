@@ -38,6 +38,13 @@ def render_sidebar():
     freight_shock = st.sidebar.slider("Freight Shock %", -20, 80, 0) / 100
     demand_change = st.sidebar.slider("Demand Change %", -50, 50, 0) / 100
 
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Allocation Constraints")
+    max_supplier_share = st.sidebar.slider("Max Supplier Share %", 50, 100, 75)
+    min_backup_share = st.sidebar.slider("Minimum Backup Share %", 0, 40, 25)
+    min_risk_score = st.sidebar.slider("Minimum Risk Score", 0, 100, 55)
+    min_esg_score = st.sidebar.slider("Minimum ESG Score", 0, 100, 50)
+
     return {
         "data_source": data_source,
         "category": category,
@@ -47,4 +54,8 @@ def render_sidebar():
         "raw_material_shock": raw_material_shock,
         "freight_shock": freight_shock,
         "demand_change": demand_change,
+        "max_supplier_share": max_supplier_share,
+        "min_backup_share": min_backup_share,
+        "min_risk_score": min_risk_score,
+        "min_esg_score": min_esg_score,
     }
