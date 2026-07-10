@@ -1,4 +1,4 @@
-Supplier,Quoted Unit Price USD,MOQ,Lead Time Days,Payment Terms,Incoterms,OTIF %,Quality PPM,Risk Category
-Apex Packaging Corp,0.42,10000,14,Net 30,DDP,94,850,Low
-Vertex Global Print,0.38,50000,30,Advance 50%,FOB,87,1600,Medium
-Matrix Logistics & Pack,0.45,5000,7,Net 60,DDP,97,500,Low
+Supplier,Quoted Unit Price USD,MOQ,Lead Time Days,Payment Terms,Incoterms,OTIF %,Quality PPM,Audit Score,Complaint Rate %,Capacity Buffer %,Recyclability,Certification,Carbon Score,EPR Readiness,PCR Content %,Risk Category
+Apex Packaging Corp,0.42,10000,14,Net 30,DDP,94,850,82,1.5,18,90,85,75,80,20,Low
+Vertex Global Print,0.38,50000,30,Advance 50%,FOB,87,1600,72,3.8,8,82,70,68,65,10,Medium
+Matrix Logistics & Pack,0.45,5000,7,Net 60,DDP,97,500,88,0.8,22,92,90,82,88,25,Low
