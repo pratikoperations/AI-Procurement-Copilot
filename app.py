@@ -1,7 +1,7 @@
 # =====================================================
 # AI PROCUREMENT COPILOT
 # Portfolio Edition v1.0
-# Build 0.5 — Executive Communication Layer
+# Build 0.6 — UX Refinement, Testing, Documentation, Portfolio Polish
 # =====================================================
 
 import streamlit as st
@@ -27,11 +27,11 @@ from modules.executive_outputs import (
 )
 from modules.negotiation import generate_negotiation_playbook, simulate_negotiation
 from modules.recommendation import best_value_decision, executive_value_breakdown, recommendation_confidence
-from modules.rfq import validate_rfq_columns
 from modules.scenario import run_scenario_table
 from modules.scoring import enrich_supplier_scores
 from modules.should_cost import calculate_packaging_should_cost, should_cost_dataframe
 from modules.sidebar import render_sidebar
+from modules.validation import validate_rfq_dataframe, validate_scored_output
 
 
 st.set_page_config(
@@ -41,32 +41,55 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-
 assumptions = render_sidebar()
 
 st.title(APP_NAME)
 st.subheader(EDITION)
-
-st.info(
-    "Build 0.5 adds the executive communication layer: executive sourcing memo, supplier clarification email, "
-    "AI-style explainability, and interview talking points."
+st.caption(
+    "Transparent, rule-guided procurement decision intelligence for RFQ analysis, packaging should-cost, TCO, risk, ESG, allocation, negotiation, and executive recommendations."
 )
 
-st.markdown("---")
+st.info(
+    "Build 0.6 improves usability, adds structured data validation, strengthens regression readiness, and organizes the application into a clearer interview-demo workflow."
+)
 
 uploaded_file = None
 if assumptions["data_source"] == "Upload RFQ CSV/Excel":
-    uploaded_file = st.file_uploader("Upload RFQ CSV or Excel file", type=["csv", "xlsx"])
+    uploaded_file = st.file_uploader(
+        "Upload RFQ CSV or Excel file",
+        type=["csv", "xlsx"],
+        help="Use the sample schema in sample_data/sample_packaging_rfq.csv.",
+    )
 
 if uploaded_file is not None:
-    suppliers_df = load_uploaded_rfq(uploaded_file)
-    missing_columns = validate_rfq_columns(suppliers_df)
-    if missing_columns:
-        st.warning(f"Uploaded file is missing expected columns: {', '.join(missing_columns)}")
+    try:
+        suppliers_df = load_uploaded_rfq(uploaded_file)
+    except Exception as exc:
+        st.error(f"The RFQ file could not be read: {exc}")
+        st.stop()
 else:
     suppliers_df = get_demo_suppliers()
 
-scored_df = enrich_supplier_scores(suppliers_df, assumptions)
+validation = validate_rfq_dataframe(suppliers_df)
+for warning in validation["warnings"]:
+    st.warning(warning)
+if not validation["is_valid"]:
+    for error in validation["errors"]:
+        st.error(error)
+    st.stop()
+
+try:
+    scored_df = enrich_supplier_scores(suppliers_df, assumptions)
+except Exception as exc:
+    st.error(f"Supplier scoring failed. Review the uploaded data and assumptions. Technical detail: {exc}")
+    st.stop()
+
+output_validation = validate_scored_output(scored_df)
+if not output_validation["is_valid"]:
+    for error in output_validation["errors"]:
+        st.error(error)
+    st.stop()
+
 recommended = scored_df.iloc[0]
 lowest = scored_df.sort_values("Quoted Unit Price USD").iloc[0]
 confidence = recommendation_confidence(scored_df)
@@ -75,9 +98,10 @@ should_cost = calculate_packaging_should_cost(
     raw_material_shock=assumptions["raw_material_shock"],
     freight_shock=assumptions["freight_shock"],
 )
+effective_volume = assumptions["annual_volume"] * (1 + assumptions["demand_change"])
 should_cost_df = should_cost_dataframe(
     should_cost,
-    annual_volume=assumptions["annual_volume"] * (1 + assumptions["demand_change"]),
+    annual_volume=effective_volume,
     fx_rate=assumptions["fx_rate"],
 )
 
@@ -117,50 +141,65 @@ interview_talking_points = generate_interview_talking_points()
 render_executive_dashboard(scored_df, assumptions, confidence)
 st.markdown("---")
 
-st.header("Lowest Price vs Best Value Decision")
-st.write(decision["message"])
+summary_tab, analysis_tab, strategy_tab, executive_tab, interview_tab = st.tabs(
+    [
+        "Decision Summary",
+        "Cost & Risk Analysis",
+        "Scenarios & Negotiation",
+        "Executive Outputs",
+        "Interview Guide",
+    ]
+)
+
+with summary_tab:
+    st.header("Lowest Price vs Best Value Decision")
+    st.write(decision["message"])
+    render_executive_value(value_metrics, assumptions)
+    render_supplier_snapshot(scored_df)
+
+with analysis_tab:
+    render_should_cost_section(should_cost_df, should_cost["target_unit_cost_usd"], assumptions)
+    render_tco_breakdown(scored_df, assumptions)
+
+    with st.expander("Visible Risk Assumptions"):
+        st.write(
+            "Risk scoring is rule-guided and auditable. Current factors include payment terms, incoterms, lead time, MOQ, OTIF, and quality PPM."
+        )
+        st.write(
+            "The risk-adjusted TCO model converts structured supplier risk into an expected monetary value penalty rather than hiding risk inside an unexplained total score."
+        )
+
+with strategy_tab:
+    render_allocation(allocation_df, assumptions)
+    render_scenario_table(scenario_df, assumptions)
+    render_negotiation(playbook_text, negotiation_result)
+
+with executive_tab:
+    st.header("Executive Sourcing Memo")
+    st.text_area("Generated executive sourcing memo", executive_memo, height=520)
+
+    st.header("Supplier Clarification Email")
+    st.text_area("Generated supplier clarification email", supplier_email, height=460)
+
+    st.header("AI-Style Explainability Panel")
+    st.write(explainability_text)
+    st.caption(
+        "This recommendation is transparent, rule-guided, auditable, and procurement-controlled. It is not a black-box AI award decision."
+    )
+
+with interview_tab:
+    st.header("Interview Talking Points")
+    st.write(interview_talking_points)
+
+    st.subheader("Demo Flow")
+    st.write(
+        "1. Select synthetic data or upload an RFQ. 2. Review best-value recommendation. 3. Explain should-cost and TCO. "
+        "4. Demonstrate risk, ESG, and performance logic. 5. Show allocation and scenario resilience. "
+        "6. Finish with negotiation and executive outputs."
+    )
 
 st.markdown("---")
-render_executive_value(value_metrics, assumptions)
-st.markdown("---")
-render_supplier_snapshot(scored_df)
-st.markdown("---")
-render_should_cost_section(should_cost_df, should_cost["target_unit_cost_usd"], assumptions)
-st.markdown("---")
-render_tco_breakdown(scored_df, assumptions)
-st.markdown("---")
-render_allocation(allocation_df, assumptions)
-st.markdown("---")
-render_scenario_table(scenario_df, assumptions)
-st.markdown("---")
-render_negotiation(playbook_text, negotiation_result)
-
-st.markdown("---")
-st.header("Executive Sourcing Memo")
-st.text_area("Generated executive sourcing memo", executive_memo, height=520)
-
-st.markdown("---")
-st.header("Supplier Clarification Email")
-st.text_area("Generated supplier clarification email", supplier_email, height=460)
-
-st.markdown("---")
-st.header("AI-Style Explainability Panel")
-st.write(explainability_text)
 st.caption(
-    "This recommendation is transparent, rule-guided, auditable, and procurement-controlled. It is not a black-box AI award decision."
+    "Build 0.6 — UX Refinement, Testing, Documentation, and Portfolio Polish | "
+    f"Application status: {STATUS}"
 )
-
-st.markdown("---")
-st.header("Interview Talking Points")
-st.write(interview_talking_points)
-
-st.markdown("---")
-st.header("Risk Assumptions")
-st.write(
-    "Risk scoring is rule-guided and auditable. Current factors include payment terms, incoterms, lead time, MOQ, OTIF, and quality PPM."
-)
-
-st.header("Build Status")
-st.write("**Current Build:** Build 0.5 — Executive Communication Layer")
-st.write(f"**Status:** {STATUS}")
-st.write("**Next Build:** Build 0.6 — UX Refinement, Testing, Documentation, and Portfolio Polish")
