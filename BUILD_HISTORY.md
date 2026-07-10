@@ -1,5 +1,32 @@
 # Build History
 
+## Build 0.4 — Decision Intelligence, Allocation, Scenario Simulation, and Negotiation
+
+**Status:** Completed  
+**Objective:** Implement decision intelligence modules from the V9.5 base build plan while preserving modular architecture.
+
+### Completed
+
+- Added `docs/BASE_BUILD_PLAN_REFERENCE.md` as the GitHub reference summary for the uploaded V9.5 base build plan.
+- Replaced allocation placeholder with constraint-style allocation engine.
+- Replaced negotiation placeholder with negotiation simulator and playbook generator.
+- Replaced recommendation placeholder with decision intelligence functions.
+- Added scenario stress-testing engine.
+- Added allocation controls to sidebar.
+- Enhanced dashboard with executive value, allocation, scenario, and negotiation sections.
+- Updated app to connect Build 0.4 modules.
+- Updated project status and changelog.
+
+### Outcome
+
+Build 0.4 adds executive decision support beyond analytics. The app now explains best value vs lowest price, recommends allocation, stress-tests supplier decisions, and generates negotiation direction.
+
+### Next
+
+Build 0.5 — Executive Memo, Supplier Email, AI Explainability, and Interview Assets.
+
+---
+
 ## Build 0.3 — Packaging Procurement Engines
 
 **Status:** Completed  
@@ -21,10 +48,6 @@
 ### Outcome
 
 Build 0.3 converts the project from a modular skeleton into a working procurement analytics application.
-
-### Next
-
-Build 0.4 — Decision Intelligence, Allocation, Scenario Simulation, and Negotiation.
 
 ---
 
