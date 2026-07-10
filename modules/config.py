@@ -2,7 +2,7 @@
 
 APP_NAME = "AI Procurement Copilot"
 EDITION = "Portfolio Edition v1.0"
-BUILD = "Build 0.2 — Streamlit Framework and Modular Application Skeleton"
+BUILD = "Build 0.3 — Packaging Procurement Engines"
 STATUS = "In Development"
 
 DEFAULT_FX_RATE = 83
