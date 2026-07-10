@@ -14,7 +14,7 @@ Build 0.1 — Repository Foundation
 
 ## Current Status
 
-Active Development
+Build 0.1 Completed
 
 ## Canonical Source of Truth
 
@@ -40,7 +40,7 @@ Create the foundation for an interview-ready, modular, explainable procurement d
 
 ## Latest Completed Action
 
-Repository created and Build 0.1 foundation files started.
+Build 0.1 repository foundation committed, including governance files, build plan, recovery manifest, version manifest, architecture, interview guide, requirements, app skeleton, and placeholder folders.
 
 ## Next Milestone
 
