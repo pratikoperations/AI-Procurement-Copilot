@@ -1,5 +1,42 @@
 # Build History
 
+## Build 0.6 — UX Refinement, Testing, Documentation, and Portfolio Polish
+
+**Status:** Completed — Automated Workflow Result Pending  
+**Objective:** Improve usability, validation, testability, documentation, and interview-demo readiness.
+
+### Completed
+
+- Added `modules/validation.py` for RFQ and scored-output validation.
+- Added structured error handling to `app.py`.
+- Reorganized the application into five workflow tabs.
+- Added `tests/test_procurement_engines.py`.
+- Added `pytest` to requirements.
+- Added GitHub Actions workflow for compile and regression checks.
+- Added `docs/USER_GUIDE.md`.
+- Updated README with current features, input/output guidance, and run commands.
+- Updated build labels, project status, and changelog.
+
+### QA Result
+
+- Static integration review: Passed
+- Validation controls: Added
+- Regression tests: Added
+- CI workflow: Added
+- GitHub recovery requirement: Passed
+- Automated workflow result: Pending confirmation
+- Local visual review: Pending
+
+### Outcome
+
+Build 0.6 materially improves reliability and presentation quality. The project now has repeatable validation, regression-test coverage, automated quality checks, a clearer demo workflow, and stronger operating documentation.
+
+### Next
+
+Build 0.7 — Defect Remediation, Visual Polish, Downloadable Outputs, and Release-Candidate Preparation.
+
+---
+
 ## Build 0.5 — Executive Communication Layer
 
 **Status:** Completed — Runtime QA Pending  
@@ -28,10 +65,6 @@
 ### Outcome
 
 Build 0.5 completes the executive communication layer and makes the project substantially interview-ready. Runtime testing and UX refinement are the next priority.
-
-### Next
-
-Build 0.6 — UX Refinement, Runtime Testing, Documentation, and Portfolio Polish.
 
 ---
 
