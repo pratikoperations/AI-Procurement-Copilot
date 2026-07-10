@@ -2,6 +2,25 @@
 
 All meaningful project changes will be recorded here.
 
+## Build 0.5 — Executive Communication Layer
+
+### Added
+
+- Formal `QUALITY_ASSURANCE_PROTOCOL.md`.
+- Executive sourcing memo generator.
+- Supplier clarification email generator.
+- AI-style explainability panel generator.
+- Interview talking points generator.
+- Streamlit UI integration for all Build 0.5 outputs.
+- Updated build labels in `app.py` and `modules/config.py`.
+- Project status updated for Build 0.5.
+
+### QA Notes
+
+- Static integration review completed.
+- Documentation updated.
+- Runtime Streamlit launch and regression testing remain pending local or hosted execution.
+
 ## Build 0.4 — Decision Intelligence, Allocation, Scenario Simulation, and Negotiation
 
 ### Added
