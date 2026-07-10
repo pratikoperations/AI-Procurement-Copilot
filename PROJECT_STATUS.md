@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.3 — Packaging Procurement Engines
+Build 0.4 — Decision Intelligence, Allocation, Scenario Simulation, and Negotiation
 
 ## Current Status
 
-Build 0.3 Completed
+Build 0.4 Completed
 
 ## Canonical Source of Truth
 
@@ -22,7 +22,7 @@ GitHub repository: pratikoperations/AI-Procurement-Copilot
 
 ## Build Objective
 
-Implement the first working packaging procurement engines: should-cost, advanced TCO, structured risk, ESG, supplier performance, and weighted scoring.
+Implement decision intelligence capabilities from the V9.5 base plan: lowest-price vs best-value logic, executive value breakdown, constraint allocation, scenario stress testing, and negotiation planning.
 
 ## Scope Locked for v1.0
 
@@ -40,8 +40,8 @@ Implement the first working packaging procurement engines: should-cost, advanced
 
 ## Latest Completed Action
 
-Build 0.3 committed working packaging should-cost, advanced TCO, structured risk, ESG, performance, and supplier scoring engines, connected them into the Streamlit app, and enriched sample RFQ data.
+Build 0.4 committed base build plan reference, allocation engine, scenario engine, negotiation engine, recommendation engine, dashboard decision sections, sidebar allocation controls, and app integration.
 
 ## Next Milestone
 
-Build 0.4 — Decision Intelligence, Allocation, Scenario Simulation, and Negotiation
+Build 0.5 — Executive Memo, Supplier Email, AI Explainability, and Interview Assets
