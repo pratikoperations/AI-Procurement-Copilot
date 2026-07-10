@@ -2,6 +2,24 @@
 
 All meaningful project changes will be recorded here.
 
+## Build 0.3 — Packaging Procurement Engines
+
+### Added
+
+- Working packaging should-cost engine with auditable component assumptions.
+- Should-cost dataframe with unit and annual USD/INR impact.
+- Structured supplier risk engine covering payment, incoterms, lead time, MOQ, service, and quality.
+- Advanced TCO engine covering scenario price, freight exposure, inventory cost, working capital, risk penalty, and lead-time buffer.
+- ESG scoring engine for recyclability, certification, carbon score, EPR readiness, and PCR content.
+- Supplier performance scoring engine for OTIF, quality PPM, audit score, complaint rate, and capacity buffer.
+- Weighted supplier scoring engine.
+- Dashboard sections for executive summary, supplier snapshot, should-cost, and TCO breakdown.
+- Enriched synthetic and sample RFQ data.
+
+### Notes
+
+Build 0.3 turns the app from a skeleton into a working procurement analytics engine. Decision intelligence, allocation, scenario stress testing, and negotiation are planned for Build 0.4.
+
 ## Build 0.2 — Streamlit Framework and Modular Application Skeleton
 
 ### Added
