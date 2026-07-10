@@ -1,7 +1,7 @@
 # =====================================================
 # AI PROCUREMENT COPILOT
 # Portfolio Edition v1.0
-# Build 0.4 — Decision Intelligence + Allocation + Negotiation
+# Build 0.5 — Executive Communication Layer
 # =====================================================
 
 import streamlit as st
@@ -18,6 +18,12 @@ from modules.dashboard import (
     render_should_cost_section,
     render_supplier_snapshot,
     render_tco_breakdown,
+)
+from modules.executive_outputs import (
+    generate_executive_memo,
+    generate_explainability_panel,
+    generate_interview_talking_points,
+    generate_supplier_email,
 )
 from modules.negotiation import generate_negotiation_playbook, simulate_negotiation
 from modules.recommendation import best_value_decision, executive_value_breakdown, recommendation_confidence
@@ -42,7 +48,8 @@ st.title(APP_NAME)
 st.subheader(EDITION)
 
 st.info(
-    "Build 0.4 adds decision intelligence: lowest-price vs best-value logic, executive value breakdown, supplier allocation, scenario stress testing, and negotiation playbook."
+    "Build 0.5 adds the executive communication layer: executive sourcing memo, supplier clarification email, "
+    "AI-style explainability, and interview talking points."
 )
 
 st.markdown("---")
@@ -75,7 +82,11 @@ should_cost_df = should_cost_dataframe(
 )
 
 decision = best_value_decision(scored_df)
-value_metrics = executive_value_breakdown(scored_df, assumptions["annual_volume"], should_cost["target_unit_cost_usd"])
+value_metrics = executive_value_breakdown(
+    scored_df,
+    assumptions["annual_volume"],
+    should_cost["target_unit_cost_usd"],
+)
 allocation_df = recommend_allocation(
     scored_df,
     annual_volume=assumptions["annual_volume"],
@@ -93,6 +104,15 @@ playbook_text = generate_negotiation_playbook(
     lowest["Quoted Unit Price USD"],
     negotiation_result["annual_saving_usd"],
 )
+
+executive_memo = generate_executive_memo(scored_df, allocation_df, value_metrics, confidence)
+supplier_email = generate_supplier_email(
+    recommended,
+    should_cost["target_unit_cost_usd"],
+    assumptions["annual_volume"],
+)
+explainability_text = generate_explainability_panel(recommended)
+interview_talking_points = generate_interview_talking_points()
 
 render_executive_dashboard(scored_df, assumptions, confidence)
 st.markdown("---")
@@ -116,12 +136,31 @@ st.markdown("---")
 render_negotiation(playbook_text, negotiation_result)
 
 st.markdown("---")
+st.header("Executive Sourcing Memo")
+st.text_area("Generated executive sourcing memo", executive_memo, height=520)
+
+st.markdown("---")
+st.header("Supplier Clarification Email")
+st.text_area("Generated supplier clarification email", supplier_email, height=460)
+
+st.markdown("---")
+st.header("AI-Style Explainability Panel")
+st.write(explainability_text)
+st.caption(
+    "This recommendation is transparent, rule-guided, auditable, and procurement-controlled. It is not a black-box AI award decision."
+)
+
+st.markdown("---")
+st.header("Interview Talking Points")
+st.write(interview_talking_points)
+
+st.markdown("---")
 st.header("Risk Assumptions")
 st.write(
     "Risk scoring is rule-guided and auditable. Current factors include payment terms, incoterms, lead time, MOQ, OTIF, and quality PPM."
 )
 
 st.header("Build Status")
-st.write("**Current Build:** Build 0.4 — Decision Intelligence, Allocation, Scenario Simulation, and Negotiation")
+st.write("**Current Build:** Build 0.5 — Executive Communication Layer")
 st.write(f"**Status:** {STATUS}")
-st.write("**Next Build:** Build 0.5 — Executive Memo, Supplier Email, AI Explainability, and Interview Assets")
+st.write("**Next Build:** Build 0.6 — UX Refinement, Testing, Documentation, and Portfolio Polish")
