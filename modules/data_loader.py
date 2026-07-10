@@ -1,10 +1,10 @@
-"""Data loading and synthetic demo data for Build 0.2."""
+"""Data loading and synthetic demo data."""
 
 import pandas as pd
 
 
 def get_demo_suppliers():
-    """Return starter synthetic RFQ data for the packaging procurement demo."""
+    """Return synthetic RFQ data for the packaging procurement demo."""
     return pd.DataFrame(
         [
             {
@@ -16,6 +16,14 @@ def get_demo_suppliers():
                 "Incoterms": "DDP",
                 "OTIF %": 94,
                 "Quality PPM": 850,
+                "Audit Score": 82,
+                "Complaint Rate %": 1.5,
+                "Capacity Buffer %": 18,
+                "Recyclability": 90,
+                "Certification": 85,
+                "Carbon Score": 75,
+                "EPR Readiness": 80,
+                "PCR Content %": 20,
                 "Risk Category": "Low",
             },
             {
@@ -27,6 +35,14 @@ def get_demo_suppliers():
                 "Incoterms": "FOB",
                 "OTIF %": 87,
                 "Quality PPM": 1600,
+                "Audit Score": 72,
+                "Complaint Rate %": 3.8,
+                "Capacity Buffer %": 8,
+                "Recyclability": 82,
+                "Certification": 70,
+                "Carbon Score": 68,
+                "EPR Readiness": 65,
+                "PCR Content %": 10,
                 "Risk Category": "Medium",
             },
             {
@@ -38,6 +54,14 @@ def get_demo_suppliers():
                 "Incoterms": "DDP",
                 "OTIF %": 97,
                 "Quality PPM": 500,
+                "Audit Score": 88,
+                "Complaint Rate %": 0.8,
+                "Capacity Buffer %": 22,
+                "Recyclability": 92,
+                "Certification": 90,
+                "Carbon Score": 82,
+                "EPR Readiness": 88,
+                "PCR Content %": 25,
                 "Risk Category": "Low",
             },
         ]
