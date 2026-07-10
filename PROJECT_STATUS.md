@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.2 — Streamlit Framework and Modular Application Skeleton
+Build 0.3 — Packaging Procurement Engines
 
 ## Current Status
 
-Build 0.2 Completed
+Build 0.3 Completed
 
 ## Canonical Source of Truth
 
@@ -22,7 +22,7 @@ GitHub repository: pratikoperations/AI-Procurement-Copilot
 
 ## Build Objective
 
-Create the modular Streamlit application framework that will support the packaging procurement engine in Build 0.3.
+Implement the first working packaging procurement engines: should-cost, advanced TCO, structured risk, ESG, supplier performance, and weighted scoring.
 
 ## Scope Locked for v1.0
 
@@ -40,8 +40,8 @@ Create the modular Streamlit application framework that will support the packagi
 
 ## Latest Completed Action
 
-Build 0.2 committed modular Streamlit skeleton, sidebar, dashboard, RFQ validation placeholder, utility modules, engine placeholders, and sample packaging RFQ data.
+Build 0.3 committed working packaging should-cost, advanced TCO, structured risk, ESG, performance, and supplier scoring engines, connected them into the Streamlit app, and enriched sample RFQ data.
 
 ## Next Milestone
 
-Build 0.3 — Packaging Procurement Engines
+Build 0.4 — Decision Intelligence, Allocation, Scenario Simulation, and Negotiation
