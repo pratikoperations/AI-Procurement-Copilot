@@ -2,40 +2,45 @@
 
 ## Current status
 
-**Build 0.9.6 implementation and CI validation are complete. Scores remain provisional until live deployment, Gemini, Perplexity and human review are complete.**
+**Build 0.9.6 was CI validated. Build 0.9.6.1 implementation is complete but its CI and live UX validation remain pending. Scores are provisional until hotfix, Gemini, Perplexity and human-review evidence is complete.**
 
 | Dimension | Target | Provisional score | Evidence / remaining action |
 |---|---:|---:|---|
 | Formula correctness | ≥9.0 | 8.8 | Formula register created; independent review pending |
-| Input validation | ≥9.0 | 9.4 | Critical field, range, currency, UOM and volume gates passed CI |
-| Category logic | ≥9.0 | 9.3 | Packaging and raw-material routes passed regression tests |
-| Recommendation safety | ≥9.0 | 9.4 | Eligibility gate and narrative withholding passed CI; live test pending |
-| Allocation feasibility | 10.0 | 9.7 | 100% and capacity checks passed CI; manual stress review pending |
-| External-file robustness | ≥8.5 | 9.0 | Fourteen synthetic files and file tests passed CI; real anonymized files pending |
-| Data-confidence transparency | ≥9.0 | 9.4 | Supplied, defaulted, inferred and missing-critical percentages visible and tested |
-| Explainability | ≥9.0 | 9.4 | Rules, assumptions, gates and withheld outcomes visible |
-| Supplier intelligence integrity | ≥9.0 | 9.0 | Default penalty passed CI; external and human review pending |
-| Documentation | ≥9.0 | 9.3 | Registers, matrix, model-risk and QA documentation complete |
-| Regression coverage | ≥9.0 | 9.4 | Quality Checks #150–#208 confirmed green |
-| Live deployment stability | ≥9.0 | 8.5 | Manual Streamlit validation pending |
+| Input validation | ≥9.0 | 9.4 | Critical field, range, currency, UOM and volume gates passed Build 0.9.6 CI |
+| Category logic | ≥9.0 | 9.3 | Packaging and raw-material routes passed Build 0.9.6 tests; hotfix retest pending |
+| Recommendation safety | ≥9.0 | 9.4 | Eligibility and narrative withholding passed CI; live test pending |
+| Allocation feasibility | 10.0 | 9.7 | Capacity checks passed CI; manual stress review pending |
+| External-file robustness | ≥8.5 | 9.0 | Synthetic file tests passed Build 0.9.6 CI; real anonymized files pending |
+| Data-confidence transparency | ≥9.0 | 9.4 | Supplied, defaulted, inferred and missing-critical percentages visible |
+| Explainability | ≥9.0 | 9.5 | Executive-readable evidence, status and governance presentation implemented |
+| Supplier intelligence integrity | ≥9.0 | 9.2 | Financial, ESG and innovation evidence caps implemented; CI/live retest pending |
+| Executive UX | ≥9.0 | 9.2 | Raw structured output removed; cards, charts and matrices added; live mobile review pending |
+| Documentation | ≥9.0 | 9.4 | UX standard, UI audit, hotfix record and defects updated |
+| Regression coverage | ≥9.0 | 9.4 | UI and evidence-governance tests added; Build 0.9.6.1 CI pending |
+| Live deployment stability | ≥9.0 | 8.7 | Prior deployment starts; hotfix redeployment validation pending |
 
 **Provisional average:** 9.2/10
 
 ## Confirmed evidence
 
-- GitHub Quality Checks #150–#208: Green, confirmed by project owner
-- All internally identified Build 0.9.6 Critical and Major defects: Closed and CI retested
-- Safety, adversarial and synthetic external-file tests: Passing in CI
+- GitHub Quality Checks #150–#208: Green for Build 0.9.6, confirmed by project owner
+- Build 0.9.6 safety, adversarial and synthetic-file tests: Passed
+- Build 0.9.6.1 code and documentation: Committed
+- VAL-006 to VAL-009: Corrective implementation completed
 
 ## Remaining release blockers
 
-- Streamlit deployment and both category workflows must be manually validated.
+- Build 0.9.6.1 GitHub Actions must be green.
+- Streamlit smoke test must pass after redeployment.
+- Packaging and Raw Material Supplier Intelligence must be visually validated on mobile.
+- VAL-006 to VAL-009 must be marked closed after retest.
 - Gemini review must be completed and dispositioned.
 - Perplexity method review must be completed and dispositioned.
-- Human procurement review must be completed or formally waived with written reason.
-- External reviews must confirm no new open Critical defect or unmitigated Major defect.
-- Allocation feasibility must reach the required final 10/10 after live/manual evidence.
+- Human procurement review must be completed or formally waived.
+- No new Critical or unmitigated Major defect may remain.
+- Allocation feasibility must reach final 10/10 after live/manual evidence.
 
 ## Approval
 
-Portfolio Edition v1.0 is **not yet approved**. The scorecard becomes final only after live evidence and reviewer dispositions are recorded.
+Portfolio Edition v1.0 is **not yet approved**. The scorecard becomes final only after hotfix CI, live evidence and reviewer dispositions are recorded.
