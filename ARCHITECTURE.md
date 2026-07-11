@@ -2,7 +2,7 @@
 
 ## Architecture Principle
 
-AI Procurement Copilot is a modular, category-aware procurement and supplier decision-support platform with explicit safety, data-confidence, evidence-quality and human-approval gates.
+AI Procurement Copilot is a modular, category-aware procurement and supplier decision-support platform with explicit currency, unit, evidence-quality, validation, export, and human-approval governance.
 
 ## High-Level Layers
 
@@ -14,106 +14,87 @@ AI Procurement Copilot
 │   ├── Packaging Engine
 │   └── Raw Material Engine
 ├── Intelligent RFQ Engine
+├── Currency and Unit Governance
 ├── Category-Specific Cost / Risk / TCO
 ├── Procurement Intelligence Engine
 ├── Supplier Intelligence Platform
-├── Evidence Governance Layer
-│   ├── Financial Completeness
-│   ├── ESG Completeness
-│   └── Innovation Completeness
+├── Evidence-Governed Recommendation Layer
 ├── Validation Assurance Layer
-│   ├── Data Confidence
-│   ├── Business Rule Validator
-│   ├── Recommendation Eligibility
-│   └── Safe Executive Output
-├── Explainability and Executive Outputs
-├── Tests, CI and External Validation Assets
-├── Export and Handoff Layer
+├── Category-Aware Communication Layer
+├── Business-Readable Export Layer
+├── Machine-Readable Audit Layer
+├── Tests, CI and Validation Assets
 └── Documentation and Recovery Layer
 ```
 
-## Presentation Layer
+## Currency and Unit Governance
 
-Streamlit exposes category, commodity, RFQ, scenario, allocation, Procurement Intelligence, Supplier Intelligence and Validation Assurance workflows. Synthetic data is distinguished from uploaded unverified data.
+`modules/currency_unit_governance.py` preserves Original Currency and Original Unit Price, creates Normalized Currency and Normalized Unit Price, records FX Rate Used, and defines Unit of Measure and Comparison Basis. Unsupported currency conversion is blocked rather than silently assumed.
 
-`modules/ui_components.py` provides reusable cards, status indicators, score bars, matrices, evidence lists, action plans, risk alerts, governance notes and responsive charts. Raw structured payloads are not rendered in the interface.
+PET Resin uses kg in the current portfolio edition. Packaging uses piece where appropriate.
 
 ## Category Engines
 
-### Packaging Procurement — Active
+### Packaging Procurement
 
-Uses packaging-specific should-cost, TCO, risk, ESG, service, MOQ, lead-time, payment, incoterm and continuity logic.
+Uses packaging-specific should-cost, TCO, risk, MOQ, service, payment, incoterm, quality, recyclability, PCR, EPR and continuity logic.
 
-### Raw Material Procurement — Active
+### Raw Material Procurement
 
 Uses commodity index, producer premium, freight, duty, FX, inventory, working capital, volatility, import dependency, concentration, substitution, capacity, quality and continuity logic.
 
-## Intelligent RFQ Engine
+## Supplier Intelligence and Evidence Governance
 
-Normalizes supplier files through header mapping, unit normalization, duplicate checks, numeric diagnostics, quality scoring and blocking validation.
+Financial, ESG and Innovation outputs use governed displayed scores. Recommendation roles use those displayed scores and evidence status, not raw indicators alone.
 
-## Procurement Intelligence Engine
+The engine may return `No Qualified Supplier` for Most Innovative, Most Sustainable, Best Strategic Partner or Best Long-Term Supplier when evidence or governance conditions are insufficient.
 
-Includes executive decision, strategy, allocation, negotiation, risk, scenarios, explainability and executive narrative.
+Exit Candidate precedence prevents the same supplier from simultaneously receiving Development Candidate, Best Strategic Partner or Best Long-Term Supplier roles.
 
-## Supplier Intelligence Platform
+## Validation Assurance
 
-Includes Supplier 360, performance, financial indicators, ESG maturity, innovation maturity, SRM classification, supplier comparison and explainable recommendation rankings.
+- Data confidence measures supplied, defaulted, missing-critical and inferred data.
+- Business rules validate price, volume, percentage, currency, UOM, capacity and allocation.
+- Recommendation eligibility returns Eligible, Eligible With Conditions, Human Review Required, Insufficient Data or Blocked.
+- Safe executive outputs withhold final-award language when validation fails.
 
-## Evidence Governance Layer
+## Category-Aware Communication
 
-### Financial
+Supplier emails and executive memos are generated using category, commodity, unit and eligibility status. Packaging and Raw Material communications use different commercial topics. PET Resin communication uses kg and resin-specific terminology.
 
-Low-completeness financial data cannot produce a verified strong conclusion. The displayed score is capped, assessment status is explicit and due diligence is mandatory when evidence is weak.
+## Export Architecture
 
-### ESG
+### Business-readable
 
-ESG completeness governs the displayed score and maturity ceiling. Insufficient evidence cannot produce Leading or Advanced maturity.
+- Supplier Scores Report
+- Supplier Comparison Report
+- Excel Analysis
+- Executive Sourcing Memo
+- Supplier Clarification Email
+- Executive Supplier Narrative
+- Supplier 360 Readable Report
 
-### Innovation
+### Machine-readable audit
 
-Innovation completeness governs the displayed score and maturity ceiling. Insufficient evidence cannot produce a maturity above Basic.
+- Decision audit data
+- Supplier 360 audit data
+- Raw supplier-score audit sheet inside Excel
 
-Raw indicator scores remain available internally for auditability, while displayed scores reflect evidence quality.
-
-## Validation Assurance Layer
-
-- `modules/data_confidence.py` measures supplied, defaulted, missing-critical and inferred data.
-- `modules/business_rule_validator.py` validates price, volume, percentages, currency, UOM, capacity, allocation and contradictory statuses.
-- `modules/recommendation_eligibility.py` returns Eligible, Eligible With Conditions, Human Review Required, Insufficient Data or Blocked.
-- `modules/validation_assurance.py` withholds polished final-award language when validation does not permit it.
-
-## Export Layer
-
-Readable reports, CSV and Excel files support business review. Machine-readable audit data remains download-only and is not displayed on-screen.
-
-## Validation Assets
-
-- Formula and assumption registers
-- Decision-rule and input-output traceability
-- Known model limitations
-- Expected-result matrix
-- Defect register
-- Release-readiness scorecard
-- Model-risk statement
-- Synthetic file cases
-- Adversarial and external-file tests
-- UI-output and evidence-governance tests
-- Gemini, Perplexity and human-review templates
+Readable exports use business headings and governed scores. Audit outputs may retain technical fields for traceability.
 
 ## Governance Priorities
 
 1. Recommendation safety
-2. Evidence integrity
-3. Allocation feasibility
-4. Explainability
-5. Procurement credibility
-6. Executive readability
+2. Currency and unit integrity
+3. Evidence integrity
+4. Cross-output consistency
+5. Allocation feasibility
+6. Explainability
 7. Category separation
-8. Human approval
-9. Testability and independent validation
+8. Executive readability
+9. Human approval
 10. GitHub recoverability
 
 ## Release Rule
 
-Portfolio Edition v1.0 is not approved until Build 0.9.6.1 CI and live validation pass, independent AI reviews and human review are completed or formally waived, defects are closed and final release-readiness evidence is approved.
+Portfolio Edition v1.0 is not approved until Build 1.0 RC1.2 CI, Streamlit smoke testing, manual download inspection, defect closure, and independent review or formal waiver are complete.
