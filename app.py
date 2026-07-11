@@ -36,6 +36,7 @@ from modules.strategy_engine import recommend_strategy
 from modules.supplier_comparison import build_supplier_intelligence
 from modules.supplier_intelligence_ui import render_supplier_intelligence
 from modules.validation import validate_rfq_dataframe, validate_scored_output
+from modules.validation_assurance import run_validation_assurance, safe_executive_text
 
 st.set_page_config(page_title=APP_NAME, page_icon="🤖", layout="wide", initial_sidebar_state="expanded")
 
@@ -45,8 +46,8 @@ assumptions["category_profile"] = profile
 
 st.title(APP_NAME)
 st.subheader(EDITION)
-st.caption("Transparent, category-aware procurement decision intelligence for RFQ analysis, should-cost, TCO, risk, supplier intelligence, ESG, allocation, negotiation, and executive recommendations.")
-st.success(f"{BUILD} — Supplier Intelligence Platform is active.")
+st.caption("Transparent, category-aware procurement decision intelligence with validation gates for RFQ analysis, should-cost, TCO, risk, supplier intelligence, ESG, allocation, negotiation, and executive recommendations.")
+st.success(f"{BUILD} — independent validation and safety controls are active.")
 
 with st.expander("Selected Category Intelligence", expanded=True):
     c1, c2, c3 = st.columns(3)
@@ -120,19 +121,65 @@ intelligence_decision = generate_decision(scored_df, optimized_allocation["alloc
 negotiation_intelligence = build_negotiation_intelligence(scored_df, assumptions["annual_volume"], should_cost["target_unit_cost_usd"])
 selected_scenario = st.sidebar.selectbox("Procurement Intelligence Scenario", list(SCENARIOS.keys()), index=0)
 intelligence_scenario_result = run_intelligence_scenario(suppliers_df, assumptions, selected_scenario)
-executive_narrative = generate_executive_narrative(
+provisional_executive_narrative = generate_executive_narrative(
     intelligence_decision, strategy_result, optimized_allocation, risk_result,
     value_metrics["estimated_ebitda_opportunity_usd"],
 )
 
 supplier_intelligence = build_supplier_intelligence(scored_df, assumptions["category"], assumptions["commodity"])
-executive_memo = generate_executive_memo(scored_df, allocation_df, value_metrics, confidence)
+assurance = run_validation_assurance(
+    suppliers_df,
+    scored_df,
+    optimized_allocation["allocation_df"],
+    supplier_intelligence["profiles"],
+    assumptions,
+    validation,
+)
+data_confidence = assurance["data_confidence"]
+business_rules = assurance["business_rules"]
+eligibility = assurance["eligibility"]
+
+raw_executive_memo = generate_executive_memo(scored_df, allocation_df, value_metrics, confidence)
+executive_memo = safe_executive_text(eligibility, raw_executive_memo, raw_executive_memo)
+executive_narrative = safe_executive_text(eligibility, provisional_executive_narrative, provisional_executive_narrative)
+supplier_narrative = safe_executive_text(
+    eligibility,
+    supplier_intelligence["executive_narrative"],
+    supplier_intelligence["executive_narrative"],
+)
+supplier_intelligence["executive_narrative"] = supplier_narrative
 supplier_email = generate_supplier_email(recommended, should_cost["target_unit_cost_usd"], assumptions["annual_volume"])
 explainability_text = generate_explainability_panel(recommended)
 interview_talking_points = generate_interview_talking_points()
 excel_package = build_excel_workbook(scored_df, should_cost_df, allocation_df, scenario_df)
 json_package = build_decision_package_json(recommended, value_metrics, allocation_df, scenario_df, negotiation_result)
 supplier_profiles_json = json.dumps(supplier_intelligence["profiles"], indent=2, default=str).encode("utf-8")
+
+with st.expander("Validation Assurance Gate", expanded=True):
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Eligibility", eligibility["status"])
+    c2.metric("Data Confidence", f"{data_confidence['data_confidence_score']}/100")
+    c3.metric("Confidence Category", data_confidence["confidence_category"])
+    c4.metric("Business Rules", business_rules["status"])
+    st.caption(data_confidence["source_label"])
+    st.write(data_confidence["explanation"])
+    st.write(f"**Supplied data:** {data_confidence['actual_supplied_data_percentage']}% | **Defaulted:** {data_confidence['defaulted_data_percentage']}% | **Missing critical:** {data_confidence['missing_critical_data_percentage']}% | **Inferred:** {data_confidence['inferred_data_percentage']}%")
+    if business_rules["blocking_issues"]:
+        for issue in business_rules["blocking_issues"]:
+            st.error(issue)
+    if business_rules["non_blocking_issues"]:
+        for issue in business_rules["non_blocking_issues"]:
+            st.warning(issue)
+    if eligibility["status"] in {"Blocked", "Insufficient Data"}:
+        st.error(eligibility["reason"])
+    elif eligibility["status"] == "Human Review Required":
+        st.warning("PROVISIONAL RECOMMENDATION — HUMAN REVIEW REQUIRED")
+    elif eligibility["status"] == "Eligible With Conditions":
+        st.warning("Recommendation is eligible only with the listed conditions.")
+    else:
+        st.success("Eligibility checks passed; human approval remains mandatory.")
+    for action in eligibility["required_remediation"]:
+        st.write(f"- {action}")
 
 render_executive_dashboard(scored_df, assumptions, confidence)
 st.markdown("---")
@@ -145,8 +192,13 @@ tabs = st.tabs([
 
 with tabs[0]:
     st.header("Lowest Price vs Best Value Decision")
-    st.write(decision["message"])
-    render_executive_value(value_metrics, assumptions)
+    if eligibility["final_award_language_allowed"]:
+        st.write(decision["message"])
+        render_executive_value(value_metrics, assumptions)
+    else:
+        st.error(f"Final award recommendation withheld: {eligibility['reason']}")
+        for issue in eligibility["failed_checks"]:
+            st.write(f"- {issue}")
     render_supplier_snapshot(scored_df)
 
 with tabs[1]:
@@ -165,13 +217,19 @@ with tabs[2]:
     render_negotiation(playbook_text, negotiation_result)
 
 with tabs[3]:
-    render_procurement_intelligence(
-        intelligence_decision, strategy_result, optimized_allocation,
-        negotiation_intelligence, risk_result, intelligence_scenario_result,
-        executive_narrative,
-    )
+    if eligibility["recommendation_allowed"]:
+        render_procurement_intelligence(
+            intelligence_decision, strategy_result, optimized_allocation,
+            negotiation_intelligence, risk_result, intelligence_scenario_result,
+            executive_narrative,
+        )
+    else:
+        st.error("Procurement award recommendation is blocked until validation issues are corrected.")
+        st.text_area("Validation outcome", executive_narrative, height=380)
 
 with tabs[4]:
+    if eligibility["status"] != "Eligible":
+        st.warning(f"Supplier Intelligence is analytical and provisional. Eligibility status: {eligibility['status']}.")
     render_supplier_intelligence(supplier_intelligence)
 
 with tabs[5]:
@@ -196,12 +254,12 @@ with tabs[6]:
     c7, c8, c9 = st.columns(3)
     c7.download_button("Download Supplier Comparison CSV", dataframe_to_csv_bytes(supplier_intelligence["comparison_df"]), "supplier_comparison.csv", "text/csv")
     c8.download_button("Download Supplier 360 JSON", supplier_profiles_json, "supplier_360_profiles.json", "application/json")
-    c9.download_button("Download Supplier Narrative", text_to_bytes(supplier_intelligence["executive_narrative"]), "executive_supplier_narrative.txt", "text/plain")
+    c9.download_button("Download Supplier Narrative", text_to_bytes(supplier_narrative), "executive_supplier_narrative.txt", "text/plain")
 
 with tabs[7]:
     st.header("Interview Talking Points")
     st.write(interview_talking_points)
-    st.info("Positioning: a category-aware procurement and Supplier 360 decision-support product with transparent, auditable human governance.")
+    st.info("Positioning: a category-aware procurement and Supplier 360 decision-support product with visible data-confidence, business-rule, and human-approval gates.")
 
 st.markdown("---")
 st.caption(f"{BUILD} | Application status: {STATUS}")
