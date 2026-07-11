@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.9.5 — Supplier Intelligence Platform
+Build 0.9.6 — Independent Validation and Real-World Stress Testing
 
 ## Current Status
 
-Build 0.9.5 Completed — CI and Live Supplier Intelligence Validation Pending
+Build 0.9.6 Implementation Completed — CI, Live Validation, Independent Reviews and Human Review Pending
 
 ## Canonical Source of Truth
 
@@ -22,38 +22,56 @@ GitHub repository: pratikoperations/AI-Procurement-Copilot
 
 ## Build Objective
 
-Transform scored supplier records into explainable Supplier 360 profiles covering performance, financial health indicators, ESG, innovation, SRM classification, recommendations, comparison, and executive narrative.
+Validate logic, data quality, recommendation safety, allocation feasibility and external-file robustness before Portfolio Edition v1.0 release consideration.
 
-## Completed Scope
+## Implemented Scope
 
-- Supplier 360 engine
-- Extended supplier performance engine
-- Supplier financial health indicators
-- Supplier ESG intelligence
-- Supplier innovation intelligence
-- SRM classification engine
-- Explainable recommendation rankings
-- Supplier comparison and orchestration
-- Executive supplier narrative
-- Supplier Intelligence dashboard tab
-- Supplier comparison CSV, Supplier 360 JSON, and narrative TXT exports
-- Packaging and Raw Material compatibility
-- Regression tests and QA documentation
+- Formula, assumption, decision-rule and traceability registers
+- Data-confidence engine
+- Recommendation eligibility gate
+- Business-rule validator
+- Safe executive-narrative withholding
+- Currency, UOM, percentage, price, volume and capacity controls
+- Adversarial and boundary tests
+- Fourteen synthetic external-file validation datasets
+- Real-world file regression tests
+- Expected-result matrix
+- Independent Gemini and Perplexity review prompts
+- Human review template and findings register
+- Validation defect register
+- Release-readiness scorecard
+- Model-risk statement
+- Validation and external-file reports
 
 ## Category Status
 
-- Packaging Procurement: Active
-- Raw Material Procurement: Active
+- Packaging Procurement: Active and under Build 0.9.6 validation
+- Raw Material Procurement: Active and under Build 0.9.6 validation
 
-## QA Status
+## Validation Status
 
-- Build 0.9.4: CI validated
-- Supplier Intelligence regression tests: Added
-- Deterministic recommendation coverage: Added
-- Score-range checks: Added
-- GitHub Actions result: Pending
-- Live Supplier Intelligence tab review: Pending
+- Internal safety-control implementation: Complete
+- Internal audit registers: Complete
+- Regression and adversarial tests: Added; CI pending
+- Synthetic external-file library: Complete
+- Live Streamlit validation: Pending
+- Gemini independent review: Pending
+- Perplexity methodology review: Pending
+- Human procurement review: Pending / not waived
+- Provisional release-readiness score: 9.1/10
+- Portfolio Edition v1.0 approval: Not granted
+
+## Open Release Gates
+
+1. Latest GitHub Actions green
+2. Packaging and Raw Material live workflows validated
+3. Gemini findings completed and dispositioned
+4. Perplexity findings completed and dispositioned
+5. Human review completed or formally waived
+6. No open Critical defects
+7. No unmitigated Major defects
+8. Final score at least 9.0/10
 
 ## Next Milestone
 
-Portfolio Edition v1.0 release preparation — only after Build 0.9.5 CI and live validation
+Complete Build 0.9.6 validation evidence. Do not begin Build 1.0 until all release gates close.
