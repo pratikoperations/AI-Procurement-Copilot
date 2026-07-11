@@ -1,52 +1,46 @@
 # AI Procurement Copilot
 
 **Edition:** Portfolio Edition v1.0  
-**Current Build:** Build 0.9.3 — Procurement Intelligence Engine  
-**Status:** CI and Live Dashboard Validation Pending  
+**Current Build:** Build 0.9.4 — Category-Specific Cost and Risk Engines  
+**Status:** CI and Live Multi-Category Validation Pending  
 **Repository Owner:** pratikoperations
 
 ## Objective
 
-AI Procurement Copilot is an interview-ready procurement decision intelligence project demonstrating senior-level procurement transformation, packaging sourcing, explainable AI, RFQ analysis, should-cost modeling, TCO optimization, supplier risk assessment, ESG evaluation, negotiation planning, and executive sourcing recommendation capability.
+AI Procurement Copilot is an interview-ready procurement decision intelligence project demonstrating strategic sourcing, category-specific should-cost, TCO optimization, supplier risk, ESG, negotiation, allocation, scenario analysis, explainability, and executive recommendation capability.
 
 ## Build Philosophy
 
-This is not a black-box AI award tool. It is a transparent, rule-guided, AI-ready procurement decision platform where business rules, assumptions, scoring logic, and recommendations remain visible and auditable.
+This is not a black-box AI award tool. Business rules, assumptions, category logic, scoring, and recommendations remain visible and auditable.
 
 ## Implemented Capabilities
 
 - Synthetic demo data and CSV/Excel RFQ upload
-- Intelligent RFQ header recognition and canonical mapping
-- Unit normalization and RFQ quality diagnostics
-- Multi-category architecture with active Packaging Procurement and Raw Material foundation preview
-- Packaging should-cost engine
-- Risk-adjusted TCO model
-- Structured supplier risk model
+- Intelligent RFQ header recognition, canonical mapping, unit normalization, and quality diagnostics
+- Active Packaging Procurement and Raw Material Procurement engines
+- Packaging-specific should-cost, TCO, and supplier risk
+- Raw-material commodity-index should-cost
+- Raw-material duty, freight, FX, inventory, working-capital, volatility, and risk-adjusted TCO
+- Commodity volatility, import dependency, concentration, substitution, capacity, quality, currency, logistics, and commercial risk
+- Category-specific scoring weights and decision routing
 - ESG and supplier performance scoring
-- Lowest-price vs best-value decision
-- Deterministic executive decision engine
-- Procurement strategy recommendation
-- Supplier allocation optimizer
-- Negotiation intelligence
-- Procurement risk intelligence
+- Lowest-price versus best-value decision
+- Executive decision, sourcing strategy, supplier allocation, negotiation intelligence, and risk intelligence
 - Scenario simulation and recommendation recomputation
-- AI Explainability 2.0
-- Board-ready executive decision narrative
-- Executive sourcing memo and supplier clarification email
-- Core, export, category, RFQ, and procurement-intelligence regression tests
-- Automated Streamlit smoke testing
+- AI Explainability 2.0 and board-ready decision narrative
+- Executive memo and supplier clarification email
+- Automated regression tests, CI, and Streamlit smoke testing
 - Downloadable Excel, CSV, TXT, and JSON decision packages
-- Resume, LinkedIn, demo-script, and screenshot portfolio assets
-- Reproducible Python 3.11 deployment baseline
+- Public Streamlit deployment baseline on Python 3.11
 
-## Deployment Baseline
+## Supported Raw Materials
 
-- Python 3.11 via `runtime.txt`
-- Streamlit 1.59.1
-- Pandas 2.2.3
-- NumPy 2.1.3
-- Plotly 5.24.1
-- OpenPyXL 3.1.5
+- PET Resin
+- Polyethylene
+- Polypropylene
+- Aluminium Foil
+- Steel
+- Copper
 
 ## Run Locally
 
@@ -63,35 +57,32 @@ python -m pytest
 
 ## Input
 
-Use the built-in synthetic demo or upload a CSV/Excel RFQ. The Intelligent RFQ Engine recognizes common alternatives such as Vendor Name, Unit Rate, Minimum Order Quantity, Delivery Days, Credit Terms, Delivery Terms, and UOM.
-
-Sample file:
-
-`sample_data/sample_packaging_rfq.csv`
+Use built-in packaging or raw-material demo data, or upload a CSV/Excel RFQ. The Intelligent RFQ Engine recognizes common supplier-template alternatives such as Vendor Name, Unit Rate, Minimum Order Quantity, Delivery Days, Credit Terms, Delivery Terms, and UOM.
 
 ## Output
 
-The app generates:
+The application generates:
 
+- Category-specific should-cost and TCO
 - Best-value supplier recommendation
-- Award confidence
-- Sourcing strategy
-- Optimized allocation
-- Negotiation priorities
-- Risk severity and mitigation
+- Award confidence and rejected-supplier rationale
+- Sourcing strategy and optimized allocation
+- Negotiation priorities and savings opportunities
+- Risk severity, evidence, and mitigation
 - Scenario-adjusted recommendation
-- Explainability and rejected-supplier rationale
 - Executive decision narrative
 - Downloadable decision package
 
-## High-Level Architecture
+## Architecture
 
 ```text
 AI Procurement Copilot
-├── Presentation Layer: Streamlit
+├── Streamlit Presentation Layer
 ├── Category Engine Router
+│   ├── Packaging Cost / Risk / TCO
+│   └── Raw Material Cost / Risk / TCO
 ├── Intelligent RFQ Engine
-├── Procurement Scoring and TCO Layer
+├── Category-Aware Scoring Layer
 ├── Procurement Intelligence Engine
 │   ├── Decision Engine
 │   ├── Strategy Engine
@@ -99,35 +90,29 @@ AI Procurement Copilot
 │   ├── Negotiation Intelligence
 │   ├── Risk Intelligence
 │   └── Scenario Engine
-├── Explainability and Executive Output Layer
-├── Data Validation + Test Layer
-├── Export + Handoff Layer
-└── Documentation + Recovery Layer
+├── Explainability and Executive Outputs
+├── Validation, Tests, and CI
+└── Export and Recovery Layer
 ```
 
 ## Documentation
 
 - `PROJECT_STATUS.md`
-- `PROJECT_BUILD_PLAN.md`
 - `ARCHITECTURE.md`
 - `QUALITY_ASSURANCE_PROTOCOL.md`
 - `docs/CATEGORY_ENGINE.md`
 - `docs/INTELLIGENT_RFQ_ENGINE.md`
 - `docs/PROCUREMENT_INTELLIGENCE_ENGINE.md`
-- `docs/BUILD_0.9.3_QA_REPORT.md`
+- `docs/CATEGORY_SPECIFIC_COST_AND_RISK.md`
+- `docs/BUILD_0.9.4_QA_REPORT.md`
 - `docs/USER_GUIDE.md`
-- `docs/BASE_BUILD_PLAN_REFERENCE.md`
-- `docs/RELEASE_CANDIDATE_CHECKLIST.md`
 - `docs/PORTFOLIO_ASSETS.md`
 - `docs/DEMO_SCRIPT.md`
-- `assets/screenshots/README.md`
 
 ## Version Strategy
 
-- **v1.0:** Packaging Procurement Engine
-- **v1.1:** Raw Material Procurement Engine
-- **v2.0:** Multi-category Procurement Platform
+The final Portfolio Edition v1.0 release scope will be frozen in Build 0.9.5 after multi-category validation. Future work remains planned for deeper category libraries and a broader multi-category platform.
 
 ## Operating Standard
 
-GitHub is the canonical source of truth. Every meaningful milestone must be committed with project status, changelog, build history, version manifest, QA report, and recovery documentation updated.
+GitHub is the canonical source of truth. Every meaningful milestone updates project status, changelog, build history, version manifest, QA report, and recovery documentation.
