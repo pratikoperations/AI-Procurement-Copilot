@@ -4,66 +4,57 @@ This file records major project decisions and their rationale.
 
 ## DEC-001 — Use GitHub as Canonical Source of Truth
 
-**Decision:** GitHub will be the master storage location for all project files, source code, documentation, build plans, logs, and recovery instructions.
+**Decision:** GitHub is the master storage location for all project files, source code, documentation, build plans, logs, and recovery instructions.
 
-**Why:** Prevents loss of work if chat context is lost. Enables version history, recovery, and professional project governance.
+**Why:** Prevents loss of work if chat context is lost and enables professional version governance.
 
-## DEC-002 — Build as Portfolio Edition v1.0
+## DEC-002 — Build Procurement Copilot as Portfolio Edition v1.0
 
-**Decision:** The first public release will be named Portfolio Edition v1.0.
+**Decision:** The first public release of AI Procurement Copilot is Portfolio Edition v1.0.
 
-**Why:** This is clearer and more credible than continuing internal version labels such as V9.5.
+## DEC-003 — Transparent Rule-Guided AI Architecture
 
-## DEC-003 — Category-Engine Expansion
+**Decision:** Calculations, qualification, scoring, and award logic remain deterministic, visible, and auditable. AI supports extraction, retrieval, drafting, explanation, and summarization—not autonomous award or technical approval.
 
-**Decision:** Packaging Procurement and Raw Material Procurement operate through the same category-engine architecture. New categories must reuse shared procurement logic while preserving category-specific cost, risk, and technical rules.
+## DEC-004 — Modular Software Products
 
-**Why:** Prevents duplicated products and allows controlled platform expansion.
+**Decision:** Both projects use modular architecture rather than single-use scripts.
 
-## DEC-004 — Transparent Rule-Guided AI-Ready Architecture
+## DEC-005 — Separate Project Repositories
 
-**Decision:** Award and calculation logic will remain deterministic, visible, and auditable. AI will support extraction, drafting, explanation, retrieval, and summarization, not autonomous award or technical approval decisions.
+**Decision:** AI Procurement Copilot and Packaging Value Engineering & Decision Intelligence will use separate GitHub repositories and separate file systems.
 
-**Why:** Procurement and packaging decisions require governance, explainability, accountability, and human control.
+- Existing: `pratikoperations/AI-Procurement-Copilot`
+- Recommended new repository: `pratikoperations/Packaging-Value-Engineering-Decision-Intelligence`
 
-## DEC-005 — Modular Architecture
+**Why:** This prevents same-name file confusion, accidental overwrites, mixed versions, incorrect commits, ambiguous recovery state, and cross-project QA contamination.
 
-**Decision:** Build as a modular software product, not a single-use Streamlit script.
+## DEC-006 — Integrate Through Versioned Contracts
 
-**Why:** Modular design improves maintainability, extensibility, interview credibility, and future conversion to other interfaces.
+**Decision:** The projects connect through versioned JSON/CSV decision packages or APIs. They do not share writable folders or directly modify each other's source records.
 
-## DEC-006 — Packaging Value Engineering Is a Copilot Module
+**Why:** Explicit contracts preserve independence while supporting an end-to-end business workflow.
 
-**Decision:** Packaging Value Engineering & Decision Intelligence will be built inside `pratikoperations/AI-Procurement-Copilot`. It will not use a separate product or repository.
+## DEC-007 — Independent Governance
 
-**Why:** The Procurement Copilot owns horizontal sourcing, supplier, TCO, negotiation, allocation, and savings workflows. Packaging Value Engineering provides the specialist technical-commercial decision layer. A unified platform reduces duplication and creates a stronger end-to-end story.
+**Decision:** Each repository maintains its own `README`, project status, activity log, build history, changelog, decision log, version manifest, recovery manifest, tests, QA evidence, CI, and releases.
 
-## DEC-007 — Scope-Gated Development
+## DEC-008 — Scope-Gated PVE Development
 
-**Decision:** The project will support five controlled scopes: Lean Interview Module, Robust Interview Version, Complete Integrated Portfolio Version, Production Pilot, and Enterprise Scale-Up.
+**Decision:** PVE supports five controlled scopes: Lean Interview Project, Robust Interview Project, Complete Portfolio Project, Production Pilot, and Enterprise Scale-Up.
 
-**Why:** Scope gates prevent interview work from becoming premature enterprise engineering and allow investment to follow validated value.
+## DEC-009 — Build 0.9.5 Must Be Closed First
 
-## DEC-008 — Build 0.9.5 Must Be Closed Before Expansion
+**Decision:** PVE implementation begins only after AI Procurement Copilot Build 0.9.5 CI and live validation are completed and Portfolio Edition v1.0 is hardened.
 
-**Decision:** No Packaging Value Engineering implementation begins until Build 0.9.5 CI and live Supplier Intelligence validation are completed and Portfolio Edition v1.0 is hardened.
+## DEC-010 — Commit and Quality Check Every Meaningful Update
 
-**Why:** Completing and validating the existing platform produces higher value than starting overlapping functionality on an unstable base.
+**Decision:** Every meaningful update must be tested, documented, committed to the correct repository, pushed, re-verified from GitHub, and accompanied by project-local QA evidence.
 
-## DEC-009 — Commit and Quality Check Every Meaningful Update
+## DEC-011 — Technical Qualification Precedes Commercial Ranking
 
-**Decision:** Every meaningful update must be tested, documented, committed, pushed, re-verified from GitHub, and accompanied by QA evidence. Chat-only or uncommitted work is not complete.
+**Decision:** Packaging options must be technically qualified or explicitly conditionally qualified before Procurement Copilot uses them in supplier ranking and allocation.
 
-**Why:** This keeps GitHub authoritative and makes the project recoverable even if chat context is lost.
+## DEC-012 — Savings Require Realization Evidence
 
-## DEC-010 — Technical Qualification Precedes Commercial Ranking
-
-**Decision:** Packaging and supplier alternatives must pass technical qualification or be explicitly conditionally qualified before commercial ranking and allocation.
-
-**Why:** Prevents low-price recommendations that are technically unsafe or insufficiently validated.
-
-## DEC-011 — Savings Require Realization Evidence
-
-**Decision:** Identified or approved savings are not treated as delivered until implementation date, actual price, actual volume, one-time costs, and relevant validation evidence are recorded.
-
-**Why:** This connects recommendations to measurable business outcomes and reduces savings leakage.
+**Decision:** Identified or approved savings are not treated as delivered until implementation, actual price, actual volume, one-time costs, and validation evidence are recorded.
