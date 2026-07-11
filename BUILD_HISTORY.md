@@ -1,156 +1,122 @@
 # Build History
 
+## Build 0.8.1 — Deployment Stabilization
+
+**Status:** Completed — Cloud Redeployment Validation Pending  
+**Objective:** Resolve Streamlit Community Cloud instability and make deployment reproducible.
+
+### Completed
+
+- Added `runtime.txt` with Python 3.11.
+- Pinned Streamlit, Pandas, NumPy, Plotly, OpenPyXL, Pydantic, and Pytest versions.
+- Replaced deprecated `use_container_width` usage with `width="stretch"`.
+- Aligned deployment expectations with the Python 3.11 GitHub Actions environment.
+- Updated project status, changelog, and application configuration.
+
+### Incident Summary
+
+Streamlit Community Cloud installed the app on Python 3.14.6 and later terminated the process with a native segmentation fault. Dependency installation and application startup completed before the crash, and no Python traceback indicated a procurement-engine error.
+
+### QA Result
+
+- Root-cause classification: Environment/runtime compatibility issue
+- Code-level procurement defect: Not identified
+- New GitHub Actions run: Pending confirmation
+- Streamlit Cloud reboot/redeployment: Pending
+
+### Outcome
+
+Build 0.8.1 creates a controlled Python 3.11 deployment environment and removes deprecated Streamlit calls that were generating repeated runtime warnings.
+
+### Next
+
+Validate green CI and successful Streamlit Community Cloud deployment, then complete the Portfolio Edition v1.0 release freeze.
+
+---
+
 ## Build 0.8 — Portfolio Edition v1.0 Release Candidate
 
-**Status:** Completed — Final Workflow Confirmation and Manual Visual Review Pending  
+**Status:** Completed — CI Validated  
 **Objective:** Add final automated validation, prepare portfolio assets, and promote the project to release-candidate status.
 
 ### Completed
 
-- Added export regression tests for CSV, TXT, JSON, and Excel outputs.
-- Added automated Streamlit health smoke test.
-- Extended GitHub Actions to run compile, regression, export, and Streamlit checks.
-- Added resume and LinkedIn portfolio assets.
-- Added seven-minute interview demo script.
-- Added screenshot capture guide.
-- Updated application and config to Build 0.8 Release Candidate.
-- Added Build 0.8 QA report.
-- Updated project status and changelog.
-
-### QA Result
-
-- Core CI before Build 0.8: Passed
-- Export regression tests: Added; latest result pending
-- Streamlit smoke test: Added; latest result pending
-- Static integration: Passed
-- Manual visual review: Pending
-- Manual sample upload and download review: Pending
+- Added export regression tests and Streamlit health smoke testing.
+- Added portfolio, demo, and screenshot guidance.
+- Promoted application to release-candidate status.
 
 ### Outcome
 
-Build 0.8 promotes the project to Portfolio Edition v1.0 Release Candidate and closes the remaining automated-test coverage gaps. Final release freeze depends on green Build 0.8 Quality Checks and manual visual validation.
-
-### Next
-
-Portfolio Edition v1.0 Release Freeze.
+Build 0.8 closed automated-test coverage gaps and achieved green CI before cloud deployment testing.
 
 ---
 
-## Build 0.7 — Defect Remediation, Visual Polish, Downloadable Outputs, and Release-Candidate Preparation
+## Build 0.7 — Downloadable Outputs and Release-Candidate Preparation
 
-**Status:** Completed — CI Validated  
-**Objective:** Improve handoff readiness, export capability, interview flow, and release-candidate governance.
+**Status:** Completed — CI Validated
 
 ### Completed
 
-- Added export module and downloadable Excel, CSV, TXT, and JSON outputs.
+- Added Excel, CSV, TXT, and JSON exports.
 - Added six-step interview workflow.
-- Added release-candidate checklist.
 - Remediated pytest import-path defect.
 
-### QA Result
-
-- GitHub Actions: Passed
-- Regression tests: Passed
-- Import and compile checks: Passed
-
-### Outcome
-
-Build 0.7 prepared the project for formal release-candidate validation.
-
 ---
 
-## Build 0.6 — UX Refinement, Testing, Documentation, and Portfolio Polish
+## Build 0.6 — UX, Validation, Testing, and Documentation
 
-**Status:** Completed  
-**Objective:** Improve usability, validation, testability, documentation, and interview-demo readiness.
+**Status:** Completed
 
 ### Completed
 
-- Added RFQ and output validation.
-- Added structured error handling.
-- Reorganized the app into five workflow tabs.
-- Added procurement engine regression tests.
-- Added pytest and GitHub Actions checks.
-- Added user guide and refreshed README.
-
-### Outcome
-
-Build 0.6 added repeatable validation, regression coverage, automated quality checks, and a clearer demo workflow.
+- Added RFQ/output validation, regression tests, GitHub Actions, user guide, and tabbed workflow.
 
 ---
 
 ## Build 0.5 — Executive Communication Layer
 
-**Status:** Completed  
-**Objective:** Add executive communication outputs and formalize build quality assurance.
+**Status:** Completed
 
 ### Completed
 
-- Added Quality Assurance Protocol.
-- Added executive memo, supplier email, explainability, and interview output generators.
-- Integrated all outputs into Streamlit.
-
-### Outcome
-
-Build 0.5 completed the executive communication layer.
+- Added executive memo, supplier email, explainability, interview outputs, and QA protocol.
 
 ---
 
-## Build 0.4 — Decision Intelligence, Allocation, Scenario Simulation, and Negotiation
+## Build 0.4 — Decision Intelligence
 
-**Status:** Completed  
-**Objective:** Implement decision intelligence modules from the V9.5 base build plan.
+**Status:** Completed
 
 ### Completed
 
-- Added best-value logic, confidence, executive value, allocation, scenario testing, and negotiation.
-
-### Outcome
-
-Build 0.4 added executive decision support beyond analytics.
+- Added best-value logic, allocation, scenarios, negotiation, confidence, and executive value.
 
 ---
 
 ## Build 0.3 — Packaging Procurement Engines
 
-**Status:** Completed  
-**Objective:** Implement working packaging procurement engines.
+**Status:** Completed
 
 ### Completed
 
 - Added should-cost, TCO, risk, ESG, performance, and supplier scoring engines.
 
-### Outcome
-
-Build 0.3 converted the project into a working procurement analytics application.
-
 ---
 
-## Build 0.2 — Streamlit Framework and Modular Application Skeleton
+## Build 0.2 — Modular Streamlit Framework
 
-**Status:** Completed  
-**Objective:** Create a modular Streamlit framework.
+**Status:** Completed
 
 ### Completed
 
-- Added modular app structure, data loader, dashboard, sidebar, utility modules, placeholders, and sample RFQ.
-
-### Outcome
-
-Build 0.2 created a runnable modular skeleton.
+- Added modular app structure, sidebar, dashboard, loaders, utilities, and sample RFQ.
 
 ---
 
 ## Build 0.1 — Repository Foundation
 
-**Status:** Completed  
-**Objective:** Establish repository foundation, governance, recovery, and initial skeleton.
+**Status:** Completed
 
 ### Completed
 
-- Created repository documentation, operating standards, build plan, architecture, requirements, app skeleton, and placeholder folders.
-
-### Outcome
-
-Build 0.1 created a recoverable GitHub foundation.
+- Created repository governance, recovery, architecture, build plan, documentation, and initial app skeleton.
