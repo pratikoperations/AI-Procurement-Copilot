@@ -2,75 +2,78 @@
 
 All meaningful project changes are recorded here.
 
-## Build 1.0 RC1.2.2 — Export Score Consistency and Scenario Integrity Hotfix
+## Version 1.0.0 — Stable Portfolio Edition
 
-### Fixed
+### Released
+
+- First stable release of AI Procurement Copilot.
+- Packaging Procurement and Raw Material Procurement engines.
+- Category-aware should-cost, TCO, risk, scoring, allocation, negotiation, and scenario analysis.
+- Procurement Intelligence and Supplier Intelligence.
+- Supplier 360 with performance, financial, ESG, innovation, and SRM indicators.
+- Data-confidence, recommendation-eligibility, and business-rule governance.
+- Category-aware executive memo, supplier email, and supplier narrative.
+- Business-readable CSV, TXT, and Excel reports.
+- Separate machine-readable decision and Supplier 360 audit exports.
+- Mobile-ready Streamlit interface.
+- Regression, adversarial, external-file, UI, scenario, export, and governance tests.
+
+### Release Validation
+
+- GitHub Actions passed.
+- Streamlit smoke test passed.
+- Packaging and PET Resin live workflows passed.
+- Multi-Scenario Stress Test passed after RC1.2.3 schema alignment.
+- Readable reports and Excel workbook were directly inspected.
+- No open Major or Critical defect remained at approval.
+
+### Known Limitations
+
+- Financial, ESG, and innovation outputs remain evidence-dependent and may be capped when data is incomplete.
+- Human procurement approval and due diligence remain mandatory.
+- Time-aware procurement analytics is deferred to Version 1.1.
+
+## Build 1.0 RC1.2.3 — Scenario Engine Column Alignment Critical Hotfix
+
+- Aligned the dashboard renderer with governed scenario headings.
+- Removed the live `Annual TCO USD` KeyError.
+- Preserved compatibility with governed and legacy scenario schemas.
+- Added Packaging and Raw Material scenario-schema tests.
+
+## Build 1.0 RC1.2.2 — Export Score Consistency and Scenario Integrity Hotfix
 
 - Differentiated RFQ Performance and ESG scores from governed Supplier Intelligence scores.
 - Added governed Supplier 360 Performance, Financial, ESG, Innovation, and Supplier 360 fields to readable score reports.
 - Corrected Freight +50% scenario behavior for DDP and other delivered-price suppliers.
-- Preserved zero incremental freight in base-case DDP pricing while stressing embedded freight only during explicit freight shocks.
 - Replaced Risk Score with Risk Resilience Score in readable scenario exports.
-- Replaced Advanced TCO Unit USD with category-aware Risk-Adjusted TCO per unit labels.
-- Added Packaging and Raw Material freight-scenario regression coverage.
-
-### Validation Notes
-
-- No new business feature was introduced.
-- No score weighting or recommendation philosophy changed.
-- Feature freeze remains active.
-- GitHub Actions, Streamlit smoke testing, and manual export retest remain pending.
+- Added category-aware Risk-Adjusted TCO labels.
 
 ## Build 1.0 RC1.2.1 — Supplier 360 Display Formatting Hotfix
 
-### Fixed
-
-- Corrected Approved Categories and Commodity Coverage rendering in Supplier 360 profiles.
-- Strings are now displayed directly instead of being split character by character.
-- Lists, tuples, and sets are joined as readable comma-separated values.
-- Applied the same safe display formatting to reusable key-value profile components.
-- Added regression coverage for scalar and collection display behavior.
+- Corrected Approved Categories and Commodity Coverage rendering.
+- Added safe scalar and collection display formatting.
 
 ## Build 1.0 RC1.2 — Export Integrity and Category-Aware Communication Hotfix
 
-### Added
-
-- Currency and unit governance with original and normalized quotation fields.
-- Category-aware supplier communication for Packaging and Raw Material procurement.
-- Eligibility-aware executive memo and supplier email wording.
-- Governed recommendation roles using displayed scores and evidence sufficiency.
-- Classification precedence between Exit Candidate and Development Candidate.
-- Business-readable supplier score and comparison reports.
-- Export consistency, communication, currency, recommendation, and precedence tests.
-- Download content audit and governance documentation.
-
-### Changed
-
-- Corrected Raw Material synthetic demo currency and unit metadata.
-- Standardized PET Resin to kg.
-- Renamed visible risk terminology to Risk Resilience Score.
-- Separated business-readable downloads from machine-readable audit data.
-- Prevented unsupported Most Innovative, Most Sustainable, Best Strategic Partner, and Best Long-Term Supplier claims.
-- Added no-qualified-supplier outcomes when evidence is insufficient.
+- Added explicit currency and unit governance.
+- Added category-aware and eligibility-aware communications.
+- Governed recommendation roles using evidence sufficiency.
+- Separated readable exports from machine-readable audit data.
 
 ## Build 1.0 RC1.1 — Final Executive Polish
 
-- Replaced technical chart legends with executive labels.
-- Standardized score and TCO axis titles.
-- Replaced generic deterministic-comparison wording with recommendation-specific business explanations.
-- Corrected Raw Material should-cost heading.
+- Replaced technical chart labels and recommendation wording.
+- Standardized category headings and executive terminology.
 
 ## Build 0.9.6.1 — Executive-Readable Supplier Intelligence UX Hotfix
 
-- Replaced raw structured Supplier Intelligence output with executive-readable cards, charts, matrices, evidence lists and action plans.
-- Added evidence-governance caps for Financial, ESG and Innovation outputs.
-- CI and live mobile validation passed.
+- Replaced raw structured output with executive-readable Supplier Intelligence.
+- Added Financial, ESG, and Innovation evidence-governance safeguards.
 
 ## Build 0.9.6 — Independent Validation and Real-World Stress Testing
 
-- Added data-confidence, recommendation eligibility, business-rule validation, adversarial tests, external-file validation, defect governance and release controls.
-- Quality Checks #150–#208 confirmed green.
+- Added data-confidence, eligibility, business-rule validation, adversarial tests, external-file validation and release governance.
 
 ## Earlier Builds
 
-Completed repository foundation, packaging and raw-material engines, executive outputs, CI, deployment stabilization, multi-category architecture, Intelligent RFQ, Procurement Intelligence, and Supplier Intelligence.
+Completed repository foundation, category engines, executive outputs, Procurement Intelligence, Supplier Intelligence, CI, deployment, and validation governance.
