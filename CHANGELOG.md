@@ -2,37 +2,39 @@
 
 All meaningful project changes are recorded here.
 
-## Build 0.9.6 — Independent Validation and Real-World Stress Testing
+## Build 0.9.6.1 — Executive-Readable Supplier Intelligence UX Hotfix
 
 ### Added
 
-- Data-confidence engine measuring supplied, defaulted, inferred and missing-critical data.
-- Recommendation eligibility gate with Eligible, Eligible With Conditions, Human Review Required, Insufficient Data and Blocked states.
-- Business-rule validator for price, volume, percentages, capacity, allocation, currency, UOM and contradictory statuses.
-- Safe executive-output withholding when validation does not permit final award language.
-- Formula, assumption, decision-rule and traceability registers.
-- Known model limitations and model-risk statement.
-- Adversarial, boundary, eligibility, data-confidence, rule and real-world file tests.
-- Fourteen synthetic packaging, raw-material and edge-case validation files.
-- Expected-result matrix and validation defect register.
-- Gemini, Perplexity and human-review framework.
-- Release-readiness scorecard and validation reports.
+- Reusable executive UI components for cards, matrices, charts, evidence, actions and governance notes.
+- Readable Performance, Financial, ESG, Innovation and SRM views.
+- Financial evidence-completeness governance and displayed-score caps.
+- ESG evidence-completeness governance and maturity caps.
+- Innovation evidence-completeness governance and maturity caps.
+- Readable Supplier 360 report download.
+- UI output audit and regression tests.
 
 ### Changed
 
-- `app.py` now displays data confidence, eligibility and business-rule status before recommendation outputs.
-- Blocked or insufficient-data cases no longer display polished final-award language.
-- Demo data and uploaded unverified data are visibly distinguished.
+- Removed visible raw structured output from Supplier Intelligence.
+- Replaced developer-style payloads with executive-readable content.
+- Renamed machine-readable downloads to audit-data labels.
+- Supplier comparison now uses governed displayed scores and evidence statuses.
 
 ### Validation Notes
 
-- Internal implementation is complete.
-- Latest CI, live Streamlit validation, Gemini review, Perplexity review and human review remain pending.
-- Portfolio Edition v1.0 is not yet approved.
+- VAL-006 to VAL-009 recorded.
+- Implementation completed.
+- GitHub Actions, Streamlit smoke test and live Packaging/Raw Material validation remain pending.
+
+## Build 0.9.6 — Independent Validation and Real-World Stress Testing
+
+- Added data-confidence, recommendation eligibility, business-rule validation, adversarial tests, external-file validation, defect governance and release controls.
+- Quality Checks #150–#208 confirmed green.
 
 ## Build 0.9.5 — Supplier Intelligence Platform
 
-- Added Supplier 360, extended performance, financial indicators, ESG, innovation, SRM, recommendations, comparison, narrative, exports and tests.
+- Added Supplier 360, performance, financial indicators, ESG, innovation, SRM, recommendations, comparison, narrative, exports and tests.
 - CI validated.
 
 ## Build 0.9.4 — Category-Specific Cost and Risk Engines
