@@ -5,6 +5,7 @@ import streamlit as st
 
 from modules.ui_components import (
     build_readable_supplier_report,
+    format_display_value,
     humanize_label,
     render_action_plan,
     render_comparison_matrix,
@@ -208,11 +209,17 @@ def render_supplier_intelligence(intelligence):
 
     st.subheader("Supplier 360 profile")
     render_key_value_matrix("Supplier identity", {"Supplier name": profile.get("supplier_name"), "Supplier type": profile.get("supplier_type"), "Country": profile.get("country"), "Manufacturing location": profile.get("manufacturing_location"), "Manufacturing footprint": profile.get("manufacturing_footprint")})
-    render_key_value_matrix("Commercial position", {"Spend classification": profile.get("spend_classification"), "Preferred supplier status": profile.get("preferred_supplier_status"), "Contract status": profile.get("contract_status"), "Approved categories": ", ".join(map(str, profile.get("approved_categories", []))), "Commodity coverage": ", ".join(map(str, profile.get("commodity_coverage", [])))})
+    render_key_value_matrix("Commercial position", {
+        "Spend classification": profile.get("spend_classification"),
+        "Preferred supplier status": profile.get("preferred_supplier_status"),
+        "Contract status": profile.get("contract_status"),
+        "Approved categories": format_display_value(profile.get("approved_categories")),
+        "Commodity coverage": format_display_value(profile.get("commodity_coverage")),
+    })
     render_key_value_matrix("Capacity and continuity", {"Annual capacity": profile.get("annual_capacity"), "Capacity utilization": f"{profile.get('capacity_utilization', 0)}%", "Supplier dependency": profile.get("supplier_dependency"), "Business continuity status": profile.get("business_continuity_status"), "Qualification status": profile.get("qualification_status"), "Audit status": profile.get("audit_status")})
     render_key_value_matrix("Relationship governance", {"Relationship owner": profile.get("relationship_owner"), "Strategic importance": profile.get("strategic_importance"), "SRM classification": srm.get("srm_classification"), "Review cadence": srm.get("review_frequency")})
     if profile.get("defaults_used"):
-        render_risk_alert("Defaulted or unavailable fields", ", ".join(humanize_label(item) for item in profile.get("defaults_used", [])))
+        render_risk_alert("Defaulted or unavailable fields", format_display_value([humanize_label(item) for item in profile.get("defaults_used", [])]))
 
     tabs = st.tabs(["Performance", "Financial", "ESG", "Innovation", "SRM"])
     with tabs[0]: _render_performance(performance)
