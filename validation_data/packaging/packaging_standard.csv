@@ -1,0 +1,4 @@
+Supplier,Quoted Unit Price USD,MOQ,Lead Time Days,Payment Terms,Incoterms,Currency,Unit,OTIF %,Quality PPM,Audit Score,Complaint Rate %,Capacity Buffer %,Supplier Capacity,Recyclability,Certification,Carbon Score,EPR Readiness,PCR Content %
+Pack Alpha,0.42,10000,14,Net 30,DDP,USD,piece,95,600,86,1.0,20,400000,90,85,78,82,20
+Pack Beta,0.39,25000,28,Net 45,FOB,USD,piece,88,1400,74,3.0,10,500000,82,75,68,70,10
+Pack Gamma,0.45,5000,10,Net 60,DDP,USD,piece,97,450,90,0.6,25,350000,94,92,84,88,25
