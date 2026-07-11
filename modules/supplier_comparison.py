@@ -19,8 +19,12 @@ def build_supplier_intelligence(scored_df, category, commodity):
         profile["payment_terms"] = str(row.get("Payment Terms", "Not provided"))
         profile["capacity"] = float(row.get("Supplier Capacity", profile["annual_capacity"]))
         profile["original_currency"] = str(row.get("Original Currency", row.get("Currency", "USD")))
+        profile["original_unit_price"] = float(row.get("Original Unit Price", row.get("Quoted Unit Price USD", 0)))
         profile["normalized_currency"] = str(row.get("Normalized Currency", "USD"))
+        profile["normalized_unit_price"] = float(row.get("Normalized Unit Price", row.get("Quoted Unit Price USD", 0)))
+        profile["fx_rate_used"] = row.get("FX Rate Used", 1.0)
         profile["unit_of_measure"] = str(row.get("Unit of Measure", row.get("Unit", "Not provided")))
+        profile["comparison_basis"] = str(row.get("Comparison Basis", f"{profile['normalized_currency']} per {profile['unit_of_measure']}"))
 
     recommendations = generate_supplier_recommendations(profiles)
     status_map = {}
@@ -36,7 +40,13 @@ def build_supplier_intelligence(scored_df, category, commodity):
         innovation = profile["innovation"]
         rows.append({
             "Supplier": profile["supplier_name"],
-            "Quoted Price (USD)": profile["quoted_price"],
+            "Original Currency": profile["original_currency"],
+            "Original Unit Price": profile["original_unit_price"],
+            "Normalized Currency": profile["normalized_currency"],
+            "Normalized Unit Price": profile["normalized_unit_price"],
+            "FX Rate Used": profile["fx_rate_used"],
+            "Unit of Measure": profile["unit_of_measure"],
+            "Comparison Basis": profile["comparison_basis"],
             "Risk-Adjusted TCO (USD)": profile["adjusted_tco"],
             "Risk Resilience Score": profile["risk_score"],
             "Performance Score": profile["performance"]["overall_supplier_performance_score"],
@@ -52,8 +62,6 @@ def build_supplier_intelligence(scored_df, category, commodity):
             "Lead Time Days": profile["lead_time"],
             "MOQ": profile["moq"],
             "Payment Terms": profile["payment_terms"],
-            "Unit of Measure": profile["unit_of_measure"],
-            "Normalized Currency": profile["normalized_currency"],
             "SRM Classification": profile["srm"]["srm_classification"],
             "Supplier 360 Score": profile["overall_supplier360_score"],
             "Recommendation Status": "; ".join(status_map.get(profile["supplier_name"], ["Qualified for comparison"])),
