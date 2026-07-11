@@ -10,48 +10,46 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.9.3 — Procurement Intelligence Engine
+Build 0.9.3.1 — Category Profile Integration Hotfix
 
 ## Current Status
 
-Build 0.9.3 Completed — CI Validated, Live Dashboard Validation Pending
+Hotfix Implemented — CI and Live Deployment Validation Pending
 
 ## Canonical Source of Truth
 
 GitHub repository: pratikoperations/AI-Procurement-Copilot
 
-## Build Objective
+## Hotfix Objective
 
-Transform supplier analytics into deterministic, explainable procurement recommendations covering strategy, allocation, negotiation, risk, scenarios, and executive decision narrative.
+Eliminate the deployed Streamlit startup failure caused by an unguarded `category_profile` lookup while preserving all Build 0.9.3 capabilities.
 
 ## Completed Scope
 
-- Executive decision engine
-- AI Explainability 2.0
-- Procurement strategy engine
-- Supplier allocation optimizer
-- Negotiation intelligence
-- Procurement risk intelligence
-- Scenario simulation
-- Executive decision narrative
-- Procurement Intelligence dashboard tab
-- Regression tests
-- Procurement intelligence documentation
+- Added reusable default category profile
+- Added category-profile completion and fallback helper
+- Guaranteed `category_profile` in the sidebar return contract
+- Added defensive fallback in `app.py`
+- Added regression tests for normal, partial, and missing profiles
+- Added hotfix documentation
 
-## Category Status
+## Preserved Scope
 
-- Packaging Procurement: Active
-- Raw Material Procurement: Foundation Preview
+- Procurement Intelligence Engine
+- Packaging workflow
+- Raw Material foundation preview
+- Intelligent RFQ Engine
+- Decision, strategy, allocation, negotiation, risk, scenario, and explainability modules
 
 ## QA Status
 
-- Existing packaging workflow preserved by integration design
-- Deterministic decision tests added and passed
-- Strategy, allocation, negotiation, risk, and scenario tests passed
-- GitHub Actions result: Green
-- Build 0.9.3 regression suite: Passed
-- Live Procurement Intelligence tab review: Pending
+- Root cause identified: unguarded sidebar/app integration contract
+- Code remediation: Complete
+- Regression coverage: Added
+- GitHub Actions result: Pending
+- Streamlit smoke test: Pending latest workflow
+- Live deployment validation: Pending
 
 ## Next Milestone
 
-Build 0.9.4 — Category-Specific Cost and Risk Engines
+Build 0.9.4 — only after this hotfix is CI validated and the deployed app opens successfully
