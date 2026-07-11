@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 1.0 RC1.2.2 — Export Score Consistency and Scenario Integrity Hotfix
+Build 1.0 RC1.2.3 — Scenario Engine Column Alignment Critical Hotfix
 
 ## Current Status
 
-Hotfix implementation completed. GitHub Actions, Streamlit smoke testing, and manual export retest remain pending.
+Critical runtime hotfix implementation completed. GitHub Actions, Streamlit smoke testing, and live scenario retest remain pending.
 
 ## Canonical Source of Truth
 
@@ -22,41 +22,42 @@ GitHub repository: pratikoperations/AI-Procurement-Copilot
 
 ## Release Freeze
 
-Feature development remains frozen. RC1.2.2 addresses validated release defects only.
+Feature development remains frozen. RC1.2.3 addresses only the validated scenario-rendering defect.
 
-## RC1.2.2 Scope Completed
+## RC1.2.3 Scope Completed
 
-- Differentiated RFQ scores from governed Supplier Intelligence scores in readable exports
-- Added Supplier 360 Performance, governed Financial, ESG, Innovation, and Supplier 360 fields to readable score reports
-- Corrected Freight +50% scenario behavior for delivered-price suppliers
-- Preserved zero incremental freight in base-case DDP pricing
-- Added embedded freight pass-through only during explicit freight stress
-- Standardized scenario terminology to Risk Resilience Score
-- Added category-aware TCO headings such as Risk-Adjusted TCO per kg (USD)
-- Added regression tests for Raw Material and Packaging freight scenarios
+- Aligned the dashboard scenario renderer with the governed RC1.2.2 scenario schema
+- Added a reusable column resolver instead of directly hard-coding one annual-TCO heading
+- Preferred `Annual TCO (USD)` while retaining backward compatibility with `Annual TCO USD` and `annual_tco_usd`
+- Updated INR conversion and Plotly chart logic to use the resolved annual-TCO column
+- Preserved category-aware TCO labels for kg and piece
+- Preserved RC1.2.2 freight scenario calculations
+- Added Packaging and Raw Material scenario-schema regression tests
 
 ## Validation Status
 
-- Builds 0.1–1.0 RC1.2.1: completed as recorded
-- Build 1.0 RC1.2.2: implementation completed
+- Builds 0.1–1.0 RC1.2.2: completed as recorded
+- Build 1.0 RC1.2.3: implementation completed
 - GitHub Actions: pending
 - Streamlit smoke test: pending
-- Packaging manual retest: pending
-- PET Resin manual retest: pending
+- PET Resin Multi-Scenario Stress Test retest: pending
+- Packaging Multi-Scenario Stress Test retest: pending
 - Excel and CSV retest: pending
 - Portfolio Edition v1.0 approval: not granted
 
 ## Open Release Gates
 
-1. Confirm GitHub Actions are green
-2. Confirm live Streamlit deployment loads RC1.2.2
-3. Verify Freight +50% increases PET Resin and Packaging unit and annual TCO
-4. Verify Supplier Scores Report clearly differentiates RFQ and governed scores
-5. Verify scenario sheet uses Risk Resilience Score and category-aware TCO labels
-6. Open and inspect all readable and machine-readable downloads
-7. Complete or formally waive independent reviews
-8. Approve final release-readiness score
-9. Create the `v1.0.0` tag only after all gates are complete
+1. Confirm the latest GitHub Actions workflow is green
+2. Confirm the live Streamlit deployment loads Build 1.0 RC1.2.3
+3. Confirm Raw Material Multi-Scenario Stress Test renders without `KeyError`
+4. Confirm Packaging Multi-Scenario Stress Test renders without `KeyError`
+5. Verify Freight +50% increases PET Resin and Packaging unit and annual TCO
+6. Verify Supplier Scores Report clearly differentiates RFQ and governed scores
+7. Verify scenario sheet uses Risk Resilience Score and category-aware TCO labels
+8. Open and inspect all readable and machine-readable downloads
+9. Complete or formally waive independent reviews
+10. Approve final release-readiness score
+11. Create the `v1.0.0` tag only after all gates are complete
 
 ## Post-v1.0 Approved Backlog
 
@@ -68,4 +69,4 @@ Reference: `docs/FUTURE_TIME_AWARE_ANALYTICS.md`
 
 ## Next Milestone
 
-Validate Build 1.0 RC1.2.2. Do not tag v1.0.0 and do not resume feature development.
+Validate Build 1.0 RC1.2.3. Do not tag v1.0.0 and do not resume feature development.
