@@ -14,7 +14,7 @@ Build 0.9.6 — Independent Validation and Real-World Stress Testing
 
 ## Current Status
 
-Build 0.9.6 Implementation Completed — CI, Live Validation, Independent Reviews and Human Review Pending
+Build 0.9.6 Implemented and CI Validated — Live Validation, Independent Reviews and Human Review Pending
 
 ## Canonical Source of Truth
 
@@ -45,33 +45,34 @@ Validate logic, data quality, recommendation safety, allocation feasibility and 
 
 ## Category Status
 
-- Packaging Procurement: Active and under Build 0.9.6 validation
-- Raw Material Procurement: Active and under Build 0.9.6 validation
+- Packaging Procurement: Active and CI validated under Build 0.9.6
+- Raw Material Procurement: Active and CI validated under Build 0.9.6
 
 ## Validation Status
 
 - Internal safety-control implementation: Complete
 - Internal audit registers: Complete
-- Regression and adversarial tests: Added; CI pending
+- Regression, adversarial and file tests: CI validated
+- GitHub Quality Checks #150–#208: Confirmed green by project owner
 - Synthetic external-file library: Complete
+- Internal validation defects VAL-001 to VAL-005: Fixed and CI retested
 - Live Streamlit validation: Pending
 - Gemini independent review: Pending
 - Perplexity methodology review: Pending
 - Human procurement review: Pending / not waived
-- Provisional release-readiness score: 9.1/10
+- Provisional release-readiness score: 9.2/10
 - Portfolio Edition v1.0 approval: Not granted
 
 ## Open Release Gates
 
-1. Latest GitHub Actions green
-2. Packaging and Raw Material live workflows validated
-3. Gemini findings completed and dispositioned
-4. Perplexity findings completed and dispositioned
-5. Human review completed or formally waived
-6. No open Critical defects
-7. No unmitigated Major defects
-8. Final score at least 9.0/10
+1. Packaging and Raw Material live workflows validated
+2. Gemini findings completed and dispositioned
+3. Perplexity findings completed and dispositioned
+4. Human review completed or formally waived
+5. Final confirmation that no open Critical defects remain after external review
+6. Final confirmation that no unmitigated Major defects remain
+7. Final score at least 9.0/10
 
 ## Next Milestone
 
-Complete Build 0.9.6 validation evidence. Do not begin Build 1.0 until all release gates close.
+Complete live application validation, then execute independent Gemini and Perplexity reviews. Do not begin Build 1.0 until all release gates close.
