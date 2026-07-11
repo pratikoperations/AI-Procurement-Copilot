@@ -2,6 +2,25 @@
 
 All meaningful project changes are recorded here.
 
+## Build 1.0 RC1.2.2 — Export Score Consistency and Scenario Integrity Hotfix
+
+### Fixed
+
+- Differentiated RFQ Performance and ESG scores from governed Supplier Intelligence scores.
+- Added governed Supplier 360 Performance, Financial, ESG, Innovation, and Supplier 360 fields to readable score reports.
+- Corrected Freight +50% scenario behavior for DDP and other delivered-price suppliers.
+- Preserved zero incremental freight in base-case DDP pricing while stressing embedded freight only during explicit freight shocks.
+- Replaced Risk Score with Risk Resilience Score in readable scenario exports.
+- Replaced Advanced TCO Unit USD with category-aware Risk-Adjusted TCO per unit labels.
+- Added Packaging and Raw Material freight-scenario regression coverage.
+
+### Validation Notes
+
+- No new business feature was introduced.
+- No score weighting or recommendation philosophy changed.
+- Feature freeze remains active.
+- GitHub Actions, Streamlit smoke testing, and manual export retest remain pending.
+
 ## Build 1.0 RC1.2.1 — Supplier 360 Display Formatting Hotfix
 
 ### Fixed
@@ -11,12 +30,6 @@ All meaningful project changes are recorded here.
 - Lists, tuples, and sets are joined as readable comma-separated values.
 - Applied the same safe display formatting to reusable key-value profile components.
 - Added regression coverage for scalar and collection display behavior.
-
-### Validation Notes
-
-- No business logic, scoring, recommendation, or architecture changes.
-- Release freeze remains active.
-- GitHub Actions and live Streamlit retest remain pending.
 
 ## Build 1.0 RC1.2 — Export Integrity and Category-Aware Communication Hotfix
 
@@ -39,13 +52,6 @@ All meaningful project changes are recorded here.
 - Separated business-readable downloads from machine-readable audit data.
 - Prevented unsupported Most Innovative, Most Sustainable, Best Strategic Partner, and Best Long-Term Supplier claims.
 - Added no-qualified-supplier outcomes when evidence is insufficient.
-
-### Validation Notes
-
-- Feature freeze remains active.
-- RC1-DEF-005 through RC1-DEF-011 corrective implementation completed.
-- GitHub Actions and Streamlit smoke testing passed after regression correction.
-- Final manual download inspection remains in progress.
 
 ## Build 1.0 RC1.1 — Final Executive Polish
 
