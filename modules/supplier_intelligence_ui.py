@@ -30,14 +30,19 @@ def _readable_recommendations(recommendations):
     rename_map.update({
         "Recommendation": "Recommendation Role",
         "Supplier": "Recommended Supplier",
+        "Explanation": "Business Rationale",
         "Rationale": "Business Rationale",
+        "Trade-Off": "Main Trade-Off",
         "Trade Off": "Main Trade-Off",
-        "Trade-off": "Main Trade-Off",
+        "Qualification Condition": "Qualification Condition",
+        "Evidence Status": "Evidence Status",
+        "Human Review Status": "Human Review Status",
     })
     frame = frame.rename(columns=rename_map)
     preferred = [
         "Recommendation Role", "Recommended Supplier", "Business Rationale",
-        "Main Strength", "Main Trade-Off", "Confidence", "Human Review Status",
+        "Evidence Status", "Confidence", "Human Review Status",
+        "Main Trade-Off", "Qualification Condition",
     ]
     available = [column for column in preferred if column in frame.columns]
     remaining = [column for column in frame.columns if column not in available and "score basis" not in column.lower()]
@@ -45,15 +50,14 @@ def _readable_recommendations(recommendations):
 
 
 def _readable_comparison(comparison):
-    frame = comparison.copy()
-    rename = {
+    return comparison.copy().rename(columns={
         "Quoted Price USD": "Quoted Price (USD)",
         "Risk-Adjusted TCO USD": "Risk-Adjusted TCO (USD)",
+        "Risk Score": "Risk Resilience Score",
         "Financial Health Score": "Financial Indicator",
         "ESG Score": "ESG Maturity Score",
         "Innovation Score": "Innovation Maturity Score",
-    }
-    return frame.rename(columns=rename)
+    })
 
 
 def _render_performance(performance):
@@ -83,11 +87,7 @@ def _render_performance(performance):
 
 def _render_financial(financial):
     render_status_badge("Assessment status", financial.get("assessment_status", "Not assessed"), financial.get("confidence_warning"))
-    render_data_completeness_card(
-        financial.get("data_completeness_score", 0),
-        financial.get("assessment_status", "Not assessed"),
-        financial.get("evidence_quality", "Not assessed"),
-    )
+    render_data_completeness_card(financial.get("data_completeness_score", 0), financial.get("assessment_status", "Not assessed"), financial.get("evidence_quality", "Not assessed"))
     render_score_matrix({"Displayed financial indicator": financial.get("displayed_financial_score", financial.get("financial_stability_score", 0))})
     render_key_value_matrix("Risk indicators", {
         "Financial risk category": financial.get("financial_risk_category", "Not assessed"),
@@ -98,11 +98,7 @@ def _render_financial(financial):
     })
     render_evidence_list(financial.get("evidence", []))
     render_action_plan(financial.get("due_diligence_actions", []), owner="Finance, procurement and risk", cadence="Before award approval")
-    render_risk_alert(
-        "Mandatory financial disclaimer",
-        financial.get("disclaimer", "Financial outputs are indicators only and require due diligence."),
-        "warning",
-    )
+    render_risk_alert("Mandatory financial disclaimer", financial.get("disclaimer", "Financial outputs are indicators only and require due diligence."), "warning")
 
 
 def _render_esg(esg):
@@ -115,11 +111,7 @@ def _render_esg(esg):
         "Governance": esg.get("governance_score", 0),
     })
     render_status_badge("ESG maturity level", esg.get("esg_maturity_level", "Not assessed"))
-    render_dimension_chart("ESG dimension scores", {
-        "Environmental": esg.get("environmental_score", 0),
-        "Social": esg.get("social_score", 0),
-        "Governance": esg.get("governance_score", 0),
-    })
+    render_dimension_chart("ESG dimension scores", {"Environmental": esg.get("environmental_score", 0), "Social": esg.get("social_score", 0), "Governance": esg.get("governance_score", 0)})
     c1, c2 = st.columns(2)
     with c1:
         render_strengths_panel(esg.get("esg_strengths", []))
@@ -144,15 +136,7 @@ def _render_innovation(innovation):
         render_strengths_panel(innovation.get("innovation_strengths", []))
     with c2:
         render_gaps_panel(innovation.get("innovation_gaps", []))
-    opportunities = []
-    for index, item in enumerate(innovation.get("collaboration_opportunities", []), start=1):
-        opportunities.append({
-            "Priority": index,
-            "Opportunity": item,
-            "Business value": "Validate through a joint business case",
-            "Effort": "Medium",
-            "Suggested next step": "Assign an owner and define a measurable pilot",
-        })
+    opportunities = [{"Priority": i, "Opportunity": item, "Business value": "Validate through a joint business case", "Effort": "Medium", "Suggested next step": "Assign an owner and define a measurable pilot"} for i, item in enumerate(innovation.get("collaboration_opportunities", []), 1)]
     if opportunities:
         render_comparison_matrix(pd.DataFrame(opportunities), "Collaboration opportunities")
     render_executive_summary_card("Recommended innovation agenda", innovation.get("recommended_innovation_agenda", "No agenda generated."))
@@ -219,52 +203,23 @@ def render_supplier_intelligence(intelligence):
         "ESG": esg.get("displayed_esg_score", esg.get("esg_maturity_score", 0)),
         "Innovation": innovation.get("displayed_innovation_score", innovation.get("innovation_score", 0)),
         "Strategic fit": srm.get("strategic_index", 0),
-        "Risk strength": profile.get("risk_score", 0),
+        "Risk resilience": profile.get("risk_score", 0),
     })
 
     st.subheader("Supplier 360 profile")
-    render_key_value_matrix("Supplier identity", {
-        "Supplier name": profile.get("supplier_name"),
-        "Supplier type": profile.get("supplier_type"),
-        "Country": profile.get("country"),
-        "Manufacturing location": profile.get("manufacturing_location"),
-        "Manufacturing footprint": profile.get("manufacturing_footprint"),
-    })
-    render_key_value_matrix("Commercial position", {
-        "Spend classification": profile.get("spend_classification"),
-        "Preferred supplier status": profile.get("preferred_supplier_status"),
-        "Contract status": profile.get("contract_status"),
-        "Approved categories": ", ".join(map(str, profile.get("approved_categories", []))),
-        "Commodity coverage": ", ".join(map(str, profile.get("commodity_coverage", []))),
-    })
-    render_key_value_matrix("Capacity and continuity", {
-        "Annual capacity": profile.get("annual_capacity"),
-        "Capacity utilization": f"{profile.get('capacity_utilization', 0)}%",
-        "Supplier dependency": profile.get("supplier_dependency"),
-        "Business continuity status": profile.get("business_continuity_status"),
-        "Qualification status": profile.get("qualification_status"),
-        "Audit status": profile.get("audit_status"),
-    })
-    render_key_value_matrix("Relationship governance", {
-        "Relationship owner": profile.get("relationship_owner"),
-        "Strategic importance": profile.get("strategic_importance"),
-        "SRM classification": srm.get("srm_classification"),
-        "Review cadence": srm.get("review_frequency"),
-    })
+    render_key_value_matrix("Supplier identity", {"Supplier name": profile.get("supplier_name"), "Supplier type": profile.get("supplier_type"), "Country": profile.get("country"), "Manufacturing location": profile.get("manufacturing_location"), "Manufacturing footprint": profile.get("manufacturing_footprint")})
+    render_key_value_matrix("Commercial position", {"Spend classification": profile.get("spend_classification"), "Preferred supplier status": profile.get("preferred_supplier_status"), "Contract status": profile.get("contract_status"), "Approved categories": ", ".join(map(str, profile.get("approved_categories", []))), "Commodity coverage": ", ".join(map(str, profile.get("commodity_coverage", [])))})
+    render_key_value_matrix("Capacity and continuity", {"Annual capacity": profile.get("annual_capacity"), "Capacity utilization": f"{profile.get('capacity_utilization', 0)}%", "Supplier dependency": profile.get("supplier_dependency"), "Business continuity status": profile.get("business_continuity_status"), "Qualification status": profile.get("qualification_status"), "Audit status": profile.get("audit_status")})
+    render_key_value_matrix("Relationship governance", {"Relationship owner": profile.get("relationship_owner"), "Strategic importance": profile.get("strategic_importance"), "SRM classification": srm.get("srm_classification"), "Review cadence": srm.get("review_frequency")})
     if profile.get("defaults_used"):
         render_risk_alert("Defaulted or unavailable fields", ", ".join(humanize_label(item) for item in profile.get("defaults_used", [])))
 
     tabs = st.tabs(["Performance", "Financial", "ESG", "Innovation", "SRM"])
-    with tabs[0]:
-        _render_performance(performance)
-    with tabs[1]:
-        _render_financial(financial)
-    with tabs[2]:
-        _render_esg(esg)
-    with tabs[3]:
-        _render_innovation(innovation)
-    with tabs[4]:
-        _render_srm(srm)
+    with tabs[0]: _render_performance(performance)
+    with tabs[1]: _render_financial(financial)
+    with tabs[2]: _render_esg(esg)
+    with tabs[3]: _render_innovation(innovation)
+    with tabs[4]: _render_srm(srm)
 
     render_executive_summary_card("Executive supplier narrative", intelligence["executive_narrative"])
     readable_report = build_readable_supplier_report(profile)
