@@ -1,7 +1,6 @@
 """Supplier Intelligence orchestration and executive-readable comparison."""
 
 import pandas as pd
-
 from modules.supplier360_engine import build_supplier360_profiles
 from modules.supplier_recommendation_engine import generate_executive_supplier_narrative, generate_supplier_recommendations
 
@@ -9,6 +8,8 @@ from modules.supplier_recommendation_engine import generate_executive_supplier_n
 def build_supplier_intelligence(scored_df, category, commodity):
     profiles = build_supplier360_profiles(scored_df, category, commodity)
     source_rows = {row["Supplier"]: row for _, row in scored_df.iterrows()}
+    governed_score_map = {}
+
     for profile in profiles:
         row = source_rows[profile["supplier_name"]]
         profile["quoted_price"] = float(row.get("Quoted Unit Price USD", 0))
@@ -25,6 +26,25 @@ def build_supplier_intelligence(scored_df, category, commodity):
         profile["fx_rate_used"] = row.get("FX Rate Used", 1.0)
         profile["unit_of_measure"] = str(row.get("Unit of Measure", row.get("Unit", "Not provided")))
         profile["comparison_basis"] = str(row.get("Comparison Basis", f"{profile['normalized_currency']} per {profile['unit_of_measure']}"))
+
+        governed_score_map[profile["supplier_name"]] = {
+            "supplier360_performance_score": profile["performance"].get("overall_supplier_performance_score", 0),
+            "governed_financial_indicator": profile["financial"].get("displayed_financial_score", profile["financial"].get("financial_stability_score", 0)),
+            "governed_esg_maturity_score": profile["esg"].get("displayed_esg_score", profile["esg"].get("esg_maturity_score", 0)),
+            "governed_innovation_maturity_score": profile["innovation"].get("displayed_innovation_score", profile["innovation"].get("innovation_score", 0)),
+            "supplier360_score": profile.get("overall_supplier360_score", 0),
+        }
+
+    # Make governed Supplier Intelligence scores available to downstream readable exports.
+    # Raw RFQ engine scores remain unchanged for auditability.
+    for column in [
+        "supplier360_performance_score",
+        "governed_financial_indicator",
+        "governed_esg_maturity_score",
+        "governed_innovation_maturity_score",
+        "supplier360_score",
+    ]:
+        scored_df[column] = scored_df["Supplier"].map(lambda supplier: governed_score_map.get(supplier, {}).get(column, 0))
 
     recommendations = generate_supplier_recommendations(profiles)
     status_map = {}
