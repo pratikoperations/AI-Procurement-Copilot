@@ -1,0 +1,3 @@
+Supplier,Quoted Unit Price USD,MOQ,Lead Time Days,Payment Terms,Incoterms,Currency,Unit,Quality PPM,Complaint Rate %,Supplier Capacity
+Negative Price,-1.00,100,10,Net 30,DDP,USD,kg,500,1,1000
+Negative Metrics,1.05,-100,-5,Net 30,DDP,USD,kg,-50,-1,-500
