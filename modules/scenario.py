@@ -17,6 +17,10 @@ def run_scenario_table(base_df, assumptions):
     ]
 
     rows = []
+    unit = str(assumptions.get("category_profile", {}).get("unit", assumptions.get("unit", "unit")))
+    if assumptions.get("category") == "Raw Material Procurement":
+        unit = str(assumptions.get("category_profile", {}).get("unit", "kg"))
+
     for scenario in scenarios:
         scenario_assumptions = assumptions.copy()
         scenario_assumptions.update(
@@ -33,9 +37,9 @@ def run_scenario_table(base_df, assumptions):
                 "Scenario": scenario["Scenario"],
                 "Winning Supplier": winner["Supplier"],
                 "Winning Score": winner["total_score"],
-                "Advanced TCO Unit USD": winner["adjusted_tco_unit_usd"],
-                "Annual TCO USD": winner["annual_tco_usd"],
-                "Risk Score": winner["risk_score"],
+                f"Risk-Adjusted TCO per {unit} (USD)": winner["adjusted_tco_unit_usd"],
+                "Annual TCO (USD)": winner["annual_tco_usd"],
+                "Risk Resilience Score": winner["risk_score"],
                 "Failure Probability": winner["failure_probability"],
                 "Confidence": recommendation_confidence(scored),
             }
