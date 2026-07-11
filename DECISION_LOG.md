@@ -14,20 +14,56 @@ This file records major project decisions and their rationale.
 
 **Why:** This is clearer and more credible than continuing internal version labels such as V9.5.
 
-## DEC-003 — Packaging First, Raw Materials Later
+## DEC-003 — Category-Engine Expansion
 
-**Decision:** v1.0 will implement the Packaging Procurement Engine first. v1.1 will add a Raw Material Procurement Engine.
+**Decision:** Packaging Procurement and Raw Material Procurement operate through the same category-engine architecture. New categories must reuse shared procurement logic while preserving category-specific cost, risk, and technical rules.
 
-**Why:** Packaging is the strongest domain-fit for the first build. Raw materials should be added through the same category-engine architecture after the platform foundation is stable.
+**Why:** Prevents duplicated products and allows controlled platform expansion.
 
 ## DEC-004 — Transparent Rule-Guided AI-Ready Architecture
 
-**Decision:** Award logic will remain deterministic, visible, and auditable. AI will support extraction, drafting, explanation, and summarization, not autonomous award decisions.
+**Decision:** Award and calculation logic will remain deterministic, visible, and auditable. AI will support extraction, drafting, explanation, retrieval, and summarization, not autonomous award or technical approval decisions.
 
-**Why:** Procurement decisions require governance, explainability, accountability, and human control.
+**Why:** Procurement and packaging decisions require governance, explainability, accountability, and human control.
 
 ## DEC-005 — Modular Architecture
 
 **Decision:** Build as a modular software product, not a single-use Streamlit script.
 
 **Why:** Modular design improves maintainability, extensibility, interview credibility, and future conversion to other interfaces.
+
+## DEC-006 — Packaging Value Engineering Is a Copilot Module
+
+**Decision:** Packaging Value Engineering & Decision Intelligence will be built inside `pratikoperations/AI-Procurement-Copilot`. It will not use a separate product or repository.
+
+**Why:** The Procurement Copilot owns horizontal sourcing, supplier, TCO, negotiation, allocation, and savings workflows. Packaging Value Engineering provides the specialist technical-commercial decision layer. A unified platform reduces duplication and creates a stronger end-to-end story.
+
+## DEC-007 — Scope-Gated Development
+
+**Decision:** The project will support five controlled scopes: Lean Interview Module, Robust Interview Version, Complete Integrated Portfolio Version, Production Pilot, and Enterprise Scale-Up.
+
+**Why:** Scope gates prevent interview work from becoming premature enterprise engineering and allow investment to follow validated value.
+
+## DEC-008 — Build 0.9.5 Must Be Closed Before Expansion
+
+**Decision:** No Packaging Value Engineering implementation begins until Build 0.9.5 CI and live Supplier Intelligence validation are completed and Portfolio Edition v1.0 is hardened.
+
+**Why:** Completing and validating the existing platform produces higher value than starting overlapping functionality on an unstable base.
+
+## DEC-009 — Commit and Quality Check Every Meaningful Update
+
+**Decision:** Every meaningful update must be tested, documented, committed, pushed, re-verified from GitHub, and accompanied by QA evidence. Chat-only or uncommitted work is not complete.
+
+**Why:** This keeps GitHub authoritative and makes the project recoverable even if chat context is lost.
+
+## DEC-010 — Technical Qualification Precedes Commercial Ranking
+
+**Decision:** Packaging and supplier alternatives must pass technical qualification or be explicitly conditionally qualified before commercial ranking and allocation.
+
+**Why:** Prevents low-price recommendations that are technically unsafe or insufficiently validated.
+
+## DEC-011 — Savings Require Realization Evidence
+
+**Decision:** Identified or approved savings are not treated as delivered until implementation date, actual price, actual volume, one-time costs, and relevant validation evidence are recorded.
+
+**Why:** This connects recommendations to measurable business outcomes and reduces savings leakage.
