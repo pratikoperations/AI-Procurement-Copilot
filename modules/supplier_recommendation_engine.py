@@ -5,6 +5,20 @@ def _winner(profiles, key, reverse=True):
     return sorted(profiles, key=lambda item: item[key], reverse=reverse)[0]
 
 
+RECOMMENDATION_EXPLANATIONS = {
+    "Best Value Supplier": "Highest overall value after balancing cost, performance, governance, and business risk.",
+    "Lowest Cost Supplier": "Lowest quoted commercial price before risk and total-cost adjustments.",
+    "Lowest Risk Supplier": "Strongest available operational, financial, and governance profile.",
+    "Best Performer": "Highest operational performance across quality, delivery, service, and commercial execution.",
+    "Most Innovative Supplier": "Highest demonstrated innovation capability based on the available evidence.",
+    "Most Sustainable Supplier": "Strongest available ESG maturity based on the available evidence.",
+    "Best Strategic Partner": "Strongest strategic fit for structured relationship governance and long-term collaboration.",
+    "Best Long-Term Supplier": "Best combined profile for continuity, performance, financial resilience, ESG, and innovation.",
+    "Development Candidate": "Suitable for targeted capability improvement rather than immediate strategic award.",
+    "Exit Candidate": "Requires corrective action and governance review before future sourcing consideration.",
+}
+
+
 def generate_supplier_recommendations(profiles):
     enriched = []
     for profile in profiles:
@@ -42,9 +56,9 @@ def generate_supplier_recommendations(profiles):
         results.append({
             "Recommendation": label,
             "Supplier": winner["supplier_name"],
-            "Score Basis": round(float(scorer(winner)),1),
-            "Explanation": f"Selected using deterministic comparison of Supplier 360, performance, financial health, ESG, innovation, and SRM factors relevant to {label.lower()}.",
-            "Trade-Off": "Recommendation is role-specific and does not replace final commercial, legal, quality, or governance approval.",
+            "Score Basis": round(float(scorer(winner)), 1),
+            "Explanation": RECOMMENDATION_EXPLANATIONS[label],
+            "Trade-Off": "This role-specific recommendation remains subject to commercial, legal, quality, compliance, and governance approval.",
             "Governance": "Transparent, rule-guided, auditable, and not black-box AI.",
         })
     return results
