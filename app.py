@@ -1,12 +1,13 @@
 # =====================================================
 # AI PROCUREMENT COPILOT
 # Portfolio Edition v1.0
-# Build 0.9.1 — Multi-Category Foundation
+# Build 0.9.3 — Procurement Intelligence Engine
 # =====================================================
 
 import streamlit as st
 
 from modules.allocation import recommend_allocation
+from modules.allocation_optimizer import optimize_allocation
 from modules.category_engine import is_production_ready
 from modules.config import APP_NAME, BUILD, EDITION, STATUS
 from modules.data_loader import get_demo_suppliers, load_uploaded_rfq
@@ -20,6 +21,7 @@ from modules.dashboard import (
     render_supplier_snapshot,
     render_tco_breakdown,
 )
+from modules.decision_engine import generate_decision, generate_executive_narrative
 from modules.executive_outputs import (
     generate_executive_memo,
     generate_explainability_panel,
@@ -33,11 +35,16 @@ from modules.exports import (
     text_to_bytes,
 )
 from modules.negotiation import generate_negotiation_playbook, simulate_negotiation
+from modules.negotiation_engine import build_negotiation_intelligence
+from modules.procurement_intelligence_ui import render_procurement_intelligence
 from modules.recommendation import best_value_decision, executive_value_breakdown, recommendation_confidence
+from modules.risk_intelligence import assess_procurement_risks
 from modules.scenario import run_scenario_table
+from modules.scenario_engine import SCENARIOS, run_intelligence_scenario
 from modules.scoring import enrich_supplier_scores
 from modules.should_cost import calculate_packaging_should_cost, should_cost_dataframe
 from modules.sidebar import render_sidebar
+from modules.strategy_engine import recommend_strategy
 from modules.validation import validate_rfq_dataframe, validate_scored_output
 
 
@@ -58,7 +65,7 @@ st.caption(
     "should-cost, TCO, risk, ESG, allocation, negotiation, and executive recommendations."
 )
 
-st.success(f"{BUILD} — category routing and commodity metadata are now active.")
+st.success(f"{BUILD} — explainable procurement decision intelligence is active.")
 
 with st.expander("Selected Category Intelligence", expanded=True):
     c1, c2, c3 = st.columns(3)
@@ -73,9 +80,9 @@ with st.expander("Selected Category Intelligence", expanded=True):
 
 if not is_production_ready(assumptions["category"]):
     st.info(
-        "The Raw Material Procurement engine is available as a transparent architecture preview in Build 0.9.1. "
-        "Its commodity-specific should-cost, risk, TCO, and scoring logic will be implemented in Build 0.9.4. "
-        "Select Packaging Procurement to run the current production workflow."
+        "The Raw Material Procurement engine is available as a transparent architecture preview. "
+        "Its category-specific cost, risk, TCO, and scoring logic will be implemented in Build 0.9.4. "
+        "Select Packaging Procurement to run the production workflow."
     )
     st.markdown("---")
     st.header("Raw Material Foundation Preview")
@@ -91,7 +98,7 @@ if assumptions["data_source"] == "Upload RFQ CSV/Excel":
     uploaded_file = st.file_uploader(
         "Upload RFQ CSV or Excel file",
         type=["csv", "xlsx"],
-        help="Use the sample schema in sample_data/sample_packaging_rfq.csv.",
+        help="Use the sample schema in sample_data/sample_packaging_rfq.csv or a recognized alternate template.",
     )
 
 if uploaded_file is not None:
@@ -162,6 +169,33 @@ playbook_text = generate_negotiation_playbook(
     negotiation_result["annual_saving_usd"],
 )
 
+optimized_allocation = optimize_allocation(scored_df, assumptions["annual_volume"])
+risk_result = assess_procurement_risks(scored_df, optimized_allocation["allocation_df"])
+strategy_result = recommend_strategy(scored_df, assumptions["annual_volume"])
+intelligence_decision = generate_decision(scored_df, optimized_allocation["allocation_df"], risk_result)
+negotiation_intelligence = build_negotiation_intelligence(
+    scored_df,
+    assumptions["annual_volume"],
+    should_cost["target_unit_cost_usd"],
+)
+selected_intelligence_scenario = st.sidebar.selectbox(
+    "Procurement Intelligence Scenario",
+    list(SCENARIOS.keys()),
+    index=0,
+)
+intelligence_scenario_result = run_intelligence_scenario(
+    suppliers_df,
+    assumptions,
+    selected_intelligence_scenario,
+)
+executive_narrative = generate_executive_narrative(
+    intelligence_decision,
+    strategy_result,
+    optimized_allocation,
+    risk_result,
+    value_metrics["estimated_ebitda_opportunity_usd"],
+)
+
 executive_memo = generate_executive_memo(scored_df, allocation_df, value_metrics, confidence)
 supplier_email = generate_supplier_email(
     recommended,
@@ -183,14 +217,15 @@ json_package = build_decision_package_json(
 render_executive_dashboard(scored_df, assumptions, confidence)
 st.markdown("---")
 
-summary_tab, analysis_tab, strategy_tab, executive_tab, downloads_tab, interview_tab = st.tabs(
+summary_tab, analysis_tab, strategy_tab, intelligence_tab, executive_tab, downloads_tab, interview_tab = st.tabs(
     [
         "1. Decision Summary",
         "2. Cost & Risk",
         "3. Scenarios & Negotiation",
-        "4. Executive Outputs",
-        "5. Downloads",
-        "6. Interview Guide",
+        "4. Procurement Intelligence",
+        "5. Executive Outputs",
+        "6. Downloads",
+        "7. Interview Guide",
     ]
 )
 
@@ -217,6 +252,17 @@ with strategy_tab:
     render_allocation(allocation_df, assumptions)
     render_scenario_table(scenario_df, assumptions)
     render_negotiation(playbook_text, negotiation_result)
+
+with intelligence_tab:
+    render_procurement_intelligence(
+        intelligence_decision,
+        strategy_result,
+        optimized_allocation,
+        negotiation_intelligence,
+        risk_result,
+        intelligence_scenario_result,
+        executive_narrative,
+    )
 
 with executive_tab:
     st.header("Executive Sourcing Memo")
@@ -283,7 +329,7 @@ with interview_tab:
     st.subheader("Recommended 7-Minute Demo Flow")
     st.write(
         "1. Explain the business problem. 2. Load the RFQ. 3. Show best value vs lowest price. "
-        "4. Explain should-cost and risk-adjusted TCO. 5. Show allocation and scenario resilience. "
+        "4. Explain should-cost and risk-adjusted TCO. 5. Show Procurement Intelligence. "
         "6. Demonstrate negotiation and executive outputs. 7. Close with explainability and business impact."
     )
 
