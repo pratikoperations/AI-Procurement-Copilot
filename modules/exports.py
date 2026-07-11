@@ -20,6 +20,11 @@ READABLE_SCORE_COLUMNS = {
     "risk_category": "Risk Category",
     "performance_score": "RFQ Performance Score",
     "esg_score": "RFQ ESG Score",
+    "supplier360_performance_score": "Supplier 360 Performance Score",
+    "governed_financial_indicator": "Governed Financial Indicator",
+    "governed_esg_maturity_score": "Governed ESG Maturity Score",
+    "governed_innovation_maturity_score": "Governed Innovation Maturity Score",
+    "supplier360_score": "Supplier 360 Score",
     "total_score": "Overall Decision Score",
 }
 
@@ -49,7 +54,7 @@ def build_readable_supplier_scores(scored_df, data_confidence, eligibility, supp
         }
         available_governed = ["Supplier"] + [column for column in governed_columns if column in supplier_comparison.columns]
         governed = supplier_comparison[available_governed].rename(columns=governed_columns).copy()
-        report = report.merge(governed, on="Supplier", how="left")
+        report = report.merge(governed, on="Supplier", how="left", suffixes=("", " Comparison"))
 
     report["Data Confidence"] = f"{data_confidence.get('data_confidence_score', 0)}/100 — {data_confidence.get('confidence_category', 'Not assessed')}"
     report["Eligibility Status"] = eligibility.get("status", "Not assessed")
