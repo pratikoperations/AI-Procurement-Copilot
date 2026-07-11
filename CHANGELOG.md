@@ -2,6 +2,26 @@
 
 All meaningful project changes will be recorded here.
 
+## Build 0.8.1 — Deployment Stabilization
+
+### Added / Changed
+
+- Added `runtime.txt` to pin Streamlit Community Cloud to Python 3.11.
+- Replaced open dependency ranges with exact, reproducible versions.
+- Added an explicit NumPy pin to avoid unstable binary combinations.
+- Replaced deprecated `use_container_width=True` usage with `width="stretch"`.
+- Updated application status to deployment-validation pending.
+
+### Incident
+
+Streamlit Community Cloud deployed the app on Python 3.14.6 with very recent binary packages and later terminated with a native segmentation fault. No Python traceback or procurement-engine defect was identified.
+
+### QA Notes
+
+- GitHub Actions remains aligned to Python 3.11.
+- A new CI run is required after dependency pinning.
+- Streamlit Community Cloud must be rebooted or redeployed to consume the pinned runtime.
+
 ## Build 0.8 — Portfolio Edition v1.0 Release Candidate
 
 ### Added
@@ -17,9 +37,7 @@ All meaningful project changes will be recorded here.
 
 ### QA Notes
 
-- Core CI was green before Build 0.8.
-- Build 0.8 adds broader automated coverage.
-- Latest Build 0.8 workflow result, manual visual review, sample upload, and download-button verification remain pending.
+- Build 0.8 CI passed before deployment stabilization.
 
 ## Build 0.7 — Defect Remediation, Visual Polish, Downloadable Outputs, and Release-Candidate Preparation
 
@@ -111,7 +129,7 @@ Build 0.4 brings the app closer to the uploaded V9.5 base plan while keeping the
 
 ### Notes
 
-Build 0.3 turns the app from a skeleton into a working procurement analytics engine.
+Build 0.3 turns the app into a working procurement analytics engine.
 
 ## Build 0.2 — Streamlit Framework and Modular Application Skeleton
 
@@ -128,7 +146,7 @@ Build 0.3 turns the app from a skeleton into a working procurement analytics eng
 
 ### Notes
 
-Build 0.2 creates the application skeleton.
+Build 0.2 created the application skeleton.
 
 ## Build 0.1 — Repository Foundation
 
