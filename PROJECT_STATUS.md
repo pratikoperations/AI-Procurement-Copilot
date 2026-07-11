@@ -14,7 +14,7 @@ Build 0.7 — Defect Remediation, Visual Polish, Downloadable Outputs, and Relea
 
 ## Current Status
 
-Build 0.7 Completed — Release Candidate Validation Pending
+Build 0.7 Completed — CI Validated, Live App Validation Pending
 
 ## Canonical Source of Truth
 
@@ -41,14 +41,14 @@ Prepare the application for release-candidate validation by improving presentati
 
 ## Latest Completed Action
 
-Build 0.7 added downloadable decision packages, a six-step interview workflow, release-candidate messaging, export helpers, and final acceptance documentation.
+Build 0.7 added downloadable decision packages, a six-step interview workflow, release-candidate messaging, export helpers, and final acceptance documentation. The CI import-path defect was remediated and the latest Quality Checks runs are green.
 
 ## QA Status
 
 - Static integration review: Completed
 - Validation layer: Added
-- Regression tests: Added
-- Automated GitHub workflow: Added; result pending confirmation
+- Regression tests: Passed in GitHub Actions
+- Automated GitHub workflow: Green
 - Download output logic: Added
 - Local Streamlit visual review: Pending
 - Uploaded sample RFQ regression review: Pending
