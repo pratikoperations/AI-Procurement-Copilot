@@ -1,0 +1,3 @@
+Supplier,Quoted Unit Price USD,MOQ,Lead Time Days,Payment Terms,Incoterms,Currency,Unit
+Pack Minimal A,0.43,10000,15,Net 30,DDP,USD,piece
+Pack Minimal B,0.41,15000,20,Net 45,FOB,USD,piece
