@@ -1,47 +1,57 @@
 # AI Procurement Copilot
 
 **Edition:** Portfolio Edition v1.0  
-**Current Build:** Build 0.9.5 — Supplier Intelligence Platform  
-**Status:** CI and Live Supplier Intelligence Validation Pending  
+**Current Build:** Build 0.9.6 — Independent Validation and Real-World Stress Testing  
+**Status:** Validation Evidence Pending  
 **Repository Owner:** pratikoperations
 
 ## Objective
 
-AI Procurement Copilot is an interview-ready procurement decision intelligence project demonstrating strategic sourcing, category-specific should-cost, TCO optimization, supplier risk, Supplier 360, SRM, ESG, innovation, negotiation, allocation, scenario analysis, explainability, and executive recommendation capability.
+AI Procurement Copilot is an interview-ready procurement decision-support project covering category-specific should-cost, TCO, risk, Procurement Intelligence, Supplier 360, SRM, data-confidence governance, recommendation eligibility and executive communication.
 
 ## Build Philosophy
 
-This is not a black-box AI award tool. Business rules, assumptions, category logic, scoring, defaults, and recommendations remain visible and auditable.
+The platform is transparent, rule-guided and human-controlled. It is not a black-box supplier-award system. Inputs, assumptions, defaults, formulas, data gaps, validation failures and recommendation conditions remain visible and auditable.
 
 ## Implemented Capabilities
 
 - Synthetic demo data and CSV/Excel RFQ upload
-- Intelligent RFQ header recognition, canonical mapping, unit normalization, and quality diagnostics
+- Intelligent header recognition, canonical mapping and unit normalization
 - Active Packaging Procurement and Raw Material Procurement engines
-- Packaging-specific should-cost, TCO, and supplier risk
-- Raw-material commodity-index should-cost, duty, freight, FX, inventory, working capital, volatility, and risk-adjusted TCO
-- Category-specific scoring weights and decision routing
-- Executive decision, sourcing strategy, allocation, negotiation, risk, and scenario intelligence
-- Supplier 360 profiles with transparent default tracking
-- Extended supplier performance intelligence
-- Financial health indicators with due-diligence safeguards
-- ESG and innovation maturity intelligence
-- SRM classification and governance recommendations
-- Explainable supplier recommendation rankings
-- Side-by-side supplier comparison
-- Executive supplier narrative
-- AI Explainability 2.0
-- Downloadable Excel, CSV, TXT, and JSON decision packages
-- Automated regression tests, CI, and Streamlit smoke testing
+- Category-specific should-cost, TCO, risk and scoring
+- Executive decision, strategy, allocation, negotiation, risk and scenario intelligence
+- Supplier 360, performance, financial indicators, ESG, innovation and SRM classification
+- Supplier comparison, recommendation rankings and executive narratives
+- Data-confidence scoring
+- Recommendation eligibility gate
+- Business-rule validation
+- Safe withholding of final-award language
+- Synthetic real-world and adversarial validation datasets
+- Regression tests, CI, Streamlit smoke testing and governance documentation
 
-## Supported Raw Materials
+## Build 0.9.6 Safety Controls
 
-- PET Resin
-- Polyethylene
-- Polypropylene
-- Aluminium Foil
-- Steel
-- Copper
+The application now checks:
+
+- Required data and valid numeric ranges
+- Positive price and annual volume
+- Currency and UOM consistency
+- Capacity sufficiency
+- Allocation total and supplier-level feasibility
+- Percentage conventions
+- Missing, defaulted and inferred data
+- Minimum supplier risk threshold
+- Whether final award language is permitted
+
+Eligibility states:
+
+- Eligible
+- Eligible With Conditions
+- Human Review Required
+- Insufficient Data
+- Blocked
+
+Data confidence measures completeness and reliance on defaults/inferences. It is not the probability that the recommendation is correct.
 
 ## Run Locally
 
@@ -56,77 +66,38 @@ streamlit run app.py
 python -m pytest
 ```
 
-## Input
+## Validation Assets
 
-Use built-in packaging or raw-material demo data, or upload a CSV/Excel RFQ. The Intelligent RFQ Engine recognizes common alternatives such as Vendor Name, Unit Rate, Minimum Order Quantity, Delivery Days, Credit Terms, Delivery Terms, and UOM.
+- `validation/FORMULA_REGISTER.md`
+- `validation/ASSUMPTION_REGISTER.md`
+- `validation/DECISION_RULE_REGISTER.md`
+- `validation/INPUT_OUTPUT_TRACEABILITY.md`
+- `validation/KNOWN_MODEL_LIMITATIONS.md`
+- `validation/EXPECTED_RESULT_MATRIX.md`
+- `validation/VALIDATION_DEFECT_REGISTER.md`
+- `validation/RELEASE_READINESS_SCORECARD.md`
+- `validation/MODEL_RISK_STATEMENT.md`
+- `validation_data/`
+- `external_reviews/`
+- `docs/BUILD_0.9.6_VALIDATION_REPORT.md`
+- `docs/EXTERNAL_FILE_VALIDATION_REPORT.md`
 
-## Output
+## Current Release Position
 
-The application generates:
+Build 0.9.6 implementation is complete, but Portfolio Edition v1.0 is not yet approved. Remaining gates are:
 
-- Category-specific should-cost and TCO
-- Best-value supplier recommendation
-- Sourcing strategy and optimized allocation
-- Negotiation and risk intelligence
-- Scenario-adjusted recommendation
-- Supplier 360 profiles
-- SRM classification
-- Financial, ESG, innovation, and performance intelligence
-- Supplier comparison and recommendation rankings
-- Executive sourcing and supplier narratives
-- Downloadable decision packages
+1. Green GitHub Actions for the complete Build 0.9.6 set
+2. Live packaging and raw-material Streamlit validation
+3. Gemini independent validation report
+4. Perplexity methodology review
+5. Human procurement review or formal written waiver
+6. Closure of all Critical defects and mitigation of Major defects
+7. Final release-readiness score of at least 9.0/10
 
-## Architecture
+## Model Risk Statement
 
-```text
-AI Procurement Copilot
-├── Streamlit Presentation Layer
-├── Category Engine Router
-│   ├── Packaging Cost / Risk / TCO
-│   └── Raw Material Cost / Risk / TCO
-├── Intelligent RFQ Engine
-├── Category-Aware Scoring Layer
-├── Procurement Intelligence Engine
-├── Supplier Intelligence Platform
-│   ├── Supplier 360
-│   ├── Performance
-│   ├── Financial Health
-│   ├── ESG
-│   ├── Innovation
-│   ├── SRM
-│   ├── Recommendation Rankings
-│   └── Supplier Comparison
-├── Explainability and Executive Outputs
-├── Validation, Tests, and CI
-└── Export and Recovery Layer
-```
-
-## Documentation
-
-- `PROJECT_STATUS.md`
-- `ARCHITECTURE.md`
-- `QUALITY_ASSURANCE_PROTOCOL.md`
-- `docs/CATEGORY_ENGINE.md`
-- `docs/INTELLIGENT_RFQ_ENGINE.md`
-- `docs/PROCUREMENT_INTELLIGENCE_ENGINE.md`
-- `docs/CATEGORY_SPECIFIC_COST_AND_RISK.md`
-- `docs/SUPPLIER_INTELLIGENCE_PLATFORM.md`
-- `docs/BUILD_0.9.5_QA_REPORT.md`
-- `docs/USER_GUIDE.md`
-- `docs/PORTFOLIO_ASSETS.md`
-- `docs/DEMO_SCRIPT.md`
-
-## Data and Governance Limits
-
-- Defaulted fields are explicitly listed.
-- Financial health outputs are indicators, not audited facts.
-- Supplier recommendations do not replace legal, quality, commercial, risk, or executive approval.
-- Historical intelligence improves when connected to ERP, QMS, SRM, audit, and financial data.
-
-## Version Strategy
-
-Build 0.9.5 is the feature-complete candidate for Portfolio Edition v1.0 release preparation. Future work should prioritize release hardening, UX polish, verified data integrations, and deeper category libraries rather than adding ungoverned feature breadth.
+AI Procurement Copilot is a decision-support and portfolio demonstration system. It does not autonomously approve suppliers, execute awards, replace due diligence, or substitute for commercial, legal, quality, financial, compliance, sustainability, or executive review.
 
 ## Operating Standard
 
-GitHub is the canonical source of truth. Every meaningful milestone updates project status, changelog, build history, version manifest, QA report, and recovery documentation.
+GitHub is the canonical source of truth. Every milestone updates project status, changelog, build history, version manifest, QA evidence, defect governance and recovery documentation.
