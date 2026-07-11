@@ -47,7 +47,7 @@ assumptions["category_profile"] = profile
 st.title(APP_NAME)
 st.subheader(EDITION)
 st.caption("Transparent, category-aware procurement decision intelligence with validation gates for RFQ analysis, should-cost, TCO, risk, supplier intelligence, ESG, allocation, negotiation, and executive recommendations.")
-st.success(f"{BUILD} — independent validation and safety controls are active.")
+st.success(f"{BUILD} — executive-readable supplier intelligence and evidence safeguards are active.")
 
 with st.expander("Selected Category Intelligence", expanded=True):
     c1, c2, c3 = st.columns(3)
@@ -250,16 +250,17 @@ with tabs[6]:
     c4, c5, c6 = st.columns(3)
     c4.download_button("Download Supplier Scores CSV", dataframe_to_csv_bytes(scored_df), "supplier_scores.csv", "text/csv")
     c5.download_button("Download Allocation CSV", dataframe_to_csv_bytes(allocation_df), "supplier_allocation.csv", "text/csv")
-    c6.download_button("Download Decision JSON", json_package, "procurement_decision_package.json", "application/json")
+    c6.download_button("Machine-Readable Decision Audit Data", json_package, "procurement_decision_package.json", "application/json")
     c7, c8, c9 = st.columns(3)
     c7.download_button("Download Supplier Comparison CSV", dataframe_to_csv_bytes(supplier_intelligence["comparison_df"]), "supplier_comparison.csv", "text/csv")
-    c8.download_button("Download Supplier 360 JSON", supplier_profiles_json, "supplier_360_profiles.json", "application/json")
+    c8.download_button("Supplier 360 Audit Data", supplier_profiles_json, "supplier_360_profiles.json", "application/json")
     c9.download_button("Download Supplier Narrative", text_to_bytes(supplier_narrative), "executive_supplier_narrative.txt", "text/plain")
+    st.caption("Machine-readable audit files are downloads only and are not displayed in the application.")
 
 with tabs[7]:
     st.header("Interview Talking Points")
     st.write(interview_talking_points)
-    st.info("Positioning: a category-aware procurement and Supplier 360 decision-support product with visible data-confidence, business-rule, and human-approval gates.")
+    st.info("Positioning: a category-aware procurement and Supplier 360 decision-support product with visible data-confidence, business-rule, evidence-quality, and human-approval gates.")
 
 st.markdown("---")
 st.caption(f"{BUILD} | Application status: {STATUS}")
