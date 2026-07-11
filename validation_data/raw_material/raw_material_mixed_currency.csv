@@ -1,0 +1,3 @@
+Supplier,Material,Quoted Unit Price USD,Currency,Unit,MOQ,Lead Time Days,Payment Terms,Incoterms,Supplier Capacity
+Mixed USD,PET Resin,1.25,USD,kg,20000,20,Net 30,CIF,600000
+Mixed INR,PET Resin,105,INR,kg,20000,18,Net 45,DDP,700000
