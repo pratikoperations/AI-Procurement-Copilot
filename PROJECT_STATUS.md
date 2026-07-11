@@ -4,69 +4,86 @@
 
 AI Procurement Copilot
 
-## Edition
+## Release
 
-Portfolio Edition v1.0
-
-## Current Build
-
-Build 1.0 RC1.2.3 — Scenario Engine Column Alignment Critical Hotfix
+Portfolio Edition v1.0.0
 
 ## Current Status
 
-Critical runtime hotfix implementation completed. GitHub Actions, Streamlit smoke testing, and live scenario retest remain pending.
+Stable
 
 ## Canonical Source of Truth
 
 GitHub repository: pratikoperations/AI-Procurement-Copilot
 
-## Release Freeze
+## Release Approval
 
-Feature development remains frozen. RC1.2.3 addresses only the validated scenario-rendering defect.
+Version 1.0.0 was approved after completion of:
 
-## RC1.2.3 Scope Completed
+- Green GitHub Actions
+- Full regression suite
+- Streamlit smoke testing
+- Packaging Procurement live validation
+- Raw Material Procurement and PET Resin live validation
+- Scenario-engine runtime and calculation retesting
+- Supplier Intelligence and Supplier 360 review
+- Executive output review
+- Direct inspection of readable CSV, TXT, and Excel exports
+- Validation of machine-readable audit exports
+- Closure of all known Major and Critical release defects
 
-- Aligned the dashboard scenario renderer with the governed RC1.2.2 scenario schema
-- Added a reusable column resolver instead of directly hard-coding one annual-TCO heading
-- Preferred `Annual TCO (USD)` while retaining backward compatibility with `Annual TCO USD` and `annual_tco_usd`
-- Updated INR conversion and Plotly chart logic to use the resolved annual-TCO column
-- Preserved category-aware TCO labels for kg and piece
-- Preserved RC1.2.2 freight scenario calculations
-- Added Packaging and Raw Material scenario-schema regression tests
+## Stable Scope
 
-## Validation Status
+- Packaging Procurement
+- Raw Material Procurement
+- Category-aware should-cost and TCO
+- Supplier risk and scoring
+- Procurement Intelligence
+- Supplier Intelligence and Supplier 360
+- SRM, financial, ESG, innovation, and performance indicators
+- Recommendation eligibility and business-rule validation
+- Scenario stress testing
+- Negotiation intelligence
+- Executive memo, supplier email, narrative, and explainability
+- Business-readable and machine-readable exports
+- Regression, adversarial, external-file, and UI validation
 
-- Builds 0.1–1.0 RC1.2.2: completed as recorded
-- Build 1.0 RC1.2.3: implementation completed
-- GitHub Actions: pending
-- Streamlit smoke test: pending
-- PET Resin Multi-Scenario Stress Test retest: pending
-- Packaging Multi-Scenario Stress Test retest: pending
-- Excel and CSV retest: pending
-- Portfolio Edition v1.0 approval: not granted
+## Release Governance
 
-## Open Release Gates
+- v1.0.0 is frozen as the stable Portfolio Edition release.
+- Stable maintenance is limited to documented defects and security or deployment fixes.
+- New features must not be added directly to the stable release line.
+- Version 1.1 development must remain separate.
 
-1. Confirm the latest GitHub Actions workflow is green
-2. Confirm the live Streamlit deployment loads Build 1.0 RC1.2.3
-3. Confirm Raw Material Multi-Scenario Stress Test renders without `KeyError`
-4. Confirm Packaging Multi-Scenario Stress Test renders without `KeyError`
-5. Verify Freight +50% increases PET Resin and Packaging unit and annual TCO
-6. Verify Supplier Scores Report clearly differentiates RFQ and governed scores
-7. Verify scenario sheet uses Risk Resilience Score and category-aware TCO labels
-8. Open and inspect all readable and machine-readable downloads
-9. Complete or formally waive independent reviews
-10. Approve final release-readiness score
-11. Create the `v1.0.0` tag only after all gates are complete
+## RC Archive
 
-## Post-v1.0 Approved Backlog
+Release-candidate history is preserved in:
 
-### Version 1.1 — Time-Aware Procurement Analytics
+- `BUILD_HISTORY.md`
+- `CHANGELOG.md`
+- `docs/RC_BUILD_ARCHIVE.md`
+- `validation/VALIDATION_DEFECT_REGISTER.md`
+- `validation/FINAL_MANUAL_VALIDATION_RC1.2.3.md`
 
-Documentation-only backlog item. No implementation is authorized during the v1.0 release freeze.
+## Version 1.1 Backlog
 
-Reference: `docs/FUTURE_TIME_AWARE_ANALYTICS.md`
+### Time-Aware Procurement Analytics
+
+Approved for future planning only.
+
+Reference:
+
+- `docs/FUTURE_TIME_AWARE_ANALYTICS.md`
+
+Planned capabilities include:
+
+- Date-range selection
+- All Available Data mode
+- Period-over-period analysis
+- Quarter-over-quarter and year-over-year comparison
+- Rolling 3-month and 12-month trends
+- Reporting-period metadata and incomplete-period controls
 
 ## Next Milestone
 
-Validate Build 1.0 RC1.2.3. Do not tag v1.0.0 and do not resume feature development.
+Preserve Version 1.0.0 as stable. Do not begin Version 1.1 implementation without explicit approval.
