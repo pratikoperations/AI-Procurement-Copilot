@@ -1,27 +1,36 @@
 # Build History
 
-## Build 0.9.1 — Multi-Category Foundation
+## Build 0.9.2 — Intelligent RFQ Engine
 
-**Status:** Completed — CI and Live Deployment Validation Pending  
-**Objective:** Introduce category-aware architecture without weakening the production packaging workflow.
+**Status:** Completed — CI and Live Upload Validation Pending  
+**Objective:** Accept varied supplier RFQ templates and convert them into a governed canonical schema.
 
 ### Completed
 
-- Added category router and common category profile contract.
-- Added packaging and raw-material engine modules.
-- Added commodity metadata library.
-- Added category and commodity selectors.
-- Added transparent raw-material preview guardrail.
-- Added category regression tests and documentation.
-- Updated application, architecture, status, changelog, and version records.
+- Added intelligent header recognition and fuzzy mapping.
+- Added canonical RFQ schema conversion.
+- Added unit normalization and numeric conversion diagnostics.
+- Added duplicate, missing-data, and unmapped-column analysis.
+- Added RFQ upload quality scoring and validation messages.
+- Integrated normalization into CSV and Excel loading.
+- Added regression tests and documentation.
+- Updated project governance records.
 
 ### Outcome
 
-The application is now category-aware. Packaging remains production-ready, while raw materials are visible as a clearly bounded foundation preview rather than a misleading reuse of packaging logic.
+The application can now accept common variations such as Vendor Name, Unit Rate, Minimum Order Quantity, Delivery Days, Credit Terms, Delivery Terms, and UOM without requiring manual renaming. Weak or incomplete uploads remain visible and are blocked before supplier scoring when required information is missing.
 
 ### Next
 
-Build 0.9.2 — Intelligent RFQ Engine.
+Build 0.9.3 — Procurement Intelligence Engine.
+
+---
+
+## Build 0.9.1 — Multi-Category Foundation
+
+**Status:** Completed — CI Validated
+
+- Added category routing, packaging and raw-material profiles, commodity metadata, selectors, guardrails, tests, and documentation.
 
 ---
 
@@ -29,12 +38,10 @@ Build 0.9.2 — Intelligent RFQ Engine.
 
 **Status:** Completed — Deployed Successfully
 
-- Pinned Python 3.11 and stable dependencies.
-- Removed Streamlit width deprecations.
-- Restored stable Streamlit Community Cloud operation.
+- Pinned Python 3.11 and stable dependencies and restored Streamlit Cloud stability.
 
 ---
 
 ## Builds 0.1–0.8
 
-Completed repository foundation, modular Streamlit app, packaging procurement engines, decision intelligence, executive outputs, QA protocol, validation, CI, exports, portfolio assets, and release-candidate deployment.
+Completed repository foundation, packaging engines, decision intelligence, executive outputs, QA, CI, exports, portfolio assets, and public deployment.
