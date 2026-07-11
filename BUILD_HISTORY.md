@@ -1,26 +1,34 @@
 # Build History
 
-## Build 0.9.4 — Category-Specific Cost and Risk Engines
+## Build 0.9.5 — Supplier Intelligence Platform
 
-**Status:** Completed — CI and Live Multi-Category Validation Pending  
-**Objective:** Activate production raw-material should-cost, TCO, risk, scoring, and application workflows.
+**Status:** Completed — CI and Live Validation Pending  
+**Objective:** Transform supplier records into explainable Supplier 360 profiles and executive relationship intelligence.
 
 ### Completed
 
-- Added raw-material should-cost, risk, and TCO engines.
-- Added category-specific scoring weights and routing.
-- Added raw-material demo data and commodity selection support.
-- Promoted Raw Material Procurement to Active.
-- Integrated category-specific cost and risk workflows into Streamlit.
-- Added regression tests and documentation.
+- Added Supplier 360, performance, financial, ESG, innovation, and SRM engines.
+- Added supplier recommendation rankings and comparison.
+- Added executive supplier narrative.
+- Added Supplier Intelligence dashboard tab and exports.
+- Added Packaging and Raw Material compatibility tests.
+- Added QA and platform documentation.
 
 ### Outcome
 
-Packaging and Raw Material Procurement now run different commercial models. The application no longer treats raw materials as a preview or reuses packaging logic for raw-material decisions.
+The application now evaluates suppliers as ongoing business relationships rather than only RFQ rows, while clearly separating real inputs, transparent defaults, indicators, and human approval.
 
 ### Next
 
-Build 0.9.5 — Executive Decision Intelligence and Release Preparation.
+Portfolio Edition v1.0 release preparation after CI and live validation.
+
+---
+
+## Build 0.9.4 — Category-Specific Cost and Risk Engines
+
+**Status:** Completed — CI Validated
+
+- Added production raw-material should-cost, risk, TCO, category-aware scoring, routing, tests, and documentation.
 
 ---
 
