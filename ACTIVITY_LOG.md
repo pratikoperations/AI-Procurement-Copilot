@@ -6,19 +6,7 @@ Chronological record of meaningful project activity. Every build session must ap
 
 ## Entry Standard
 
-Each entry must include:
-
-- Date and time
-- Build ID
-- Branch
-- Objective
-- Files changed
-- Tests and checks run
-- Result
-- Commit SHA
-- CI status
-- Known limitations
-- Next action
+Each entry must include date, build ID, branch, objective, files changed, tests/checks, result, commit SHA, CI status, limitations, and next action.
 
 ---
 
@@ -26,21 +14,28 @@ Each entry must include:
 
 - Build ID: Governance Architecture Update
 - Branch: `agent/finalize-build-architecture`
-- Objective: Finalize the integrated AI Procurement Copilot and Packaging Value Engineering architecture, include all build scope options, and strengthen GitHub-first recovery and quality-control rules.
+- Objective: Establish GitHub-first build governance and scope options.
+- Result: Initial draft architecture created.
+- CI status: Documentation-only update.
+
+## 2026-07-11 — Repository Separation Revision
+
+- Build ID: Architecture Correction
+- Branch: `agent/finalize-build-architecture`
+- Objective: Separate AI Procurement Copilot and Packaging Value Engineering into independent repositories and file systems.
+- Decision:
+  - AI Procurement Copilot remains in `pratikoperations/AI-Procurement-Copilot`.
+  - Packaging Value Engineering will use a new repository, recommended as `pratikoperations/Packaging-Value-Engineering-Decision-Intelligence`.
+  - Integration will occur through versioned JSON/CSV contracts or APIs only.
 - Files changed:
   - `docs/MASTER_BUILD_ARCHITECTURE.md`
-  - `BUILD_INSTRUCTIONS.md`
-  - `ACTIVITY_LOG.md`
-  - `RECOVERY_MANIFEST.md`
   - `DECISION_LOG.md`
-  - `PROJECT_STATUS.md`
+  - `ACTIVITY_LOG.md`
 - Checks:
-  - Confirmed repository and default branch
-  - Confirmed current Build 0.9.5 status
-  - Confirmed architecture does not create a separate Packaging Value Engineering repository
-  - Confirmed immediate priority remains Build 0.9.5 CI and live validation
-  - Repository file verification required after all updates
-- Result: Architecture and operating model established on a dedicated branch.
-- CI status: Documentation-only update; repository verification required before merge.
-- Known limitation: Application code and automated tests are unchanged.
-- Next action: Review the draft pull request, merge the governance architecture, complete Build 0.9.5 validation, then begin Packaging Value Engineering Scope A.
+  - Confirmed no PVE application files currently exist in the Procurement Copilot repository.
+  - Confirmed the new model prevents same-name file overwrite and mixed recovery records.
+  - Confirmed Build 0.9.5 remains the immediate Procurement Copilot gate.
+- Result: Previous single-repository decision superseded before merge.
+- CI status: Documentation-only; application code unchanged.
+- Known limitation: The new PVE repository has not yet been created.
+- Next action: Revise the draft PR description, complete Procurement Copilot validation, then create the standalone PVE repository foundation before PVE coding.
