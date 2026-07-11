@@ -61,16 +61,26 @@ def get_category_profile(category, commodity=None):
 
 
 def ensure_category_profile(profile=None):
-    """Return a complete category profile, falling back safely when metadata is missing."""
+    """Return a complete profile while preserving all explicitly supplied values."""
+    supplied = profile if isinstance(profile, dict) else {}
     result = deepcopy(DEFAULT_CATEGORY_PROFILE)
-    if isinstance(profile, dict):
-        result.update(profile)
+    result.update(supplied)
+
     result.setdefault("category_name", result.get("category", PACKAGING_CATEGORY))
     result.setdefault("commodity_group", "General Procurement")
-    result.setdefault("units", [result.get("unit", "piece")])
     result.setdefault("currency", "USD")
     result.setdefault("default_weightings", deepcopy(DEFAULT_CATEGORY_PROFILE["default_weightings"]))
     result.setdefault("default_assumptions", deepcopy(DEFAULT_CATEGORY_PROFILE["default_assumptions"]))
+
+    # Keep singular and plural unit fields consistent without allowing defaults
+    # to override an explicitly supplied unit or units value.
+    if "units" not in supplied and "unit" in supplied:
+        result["units"] = [supplied["unit"]]
+    elif "unit" not in supplied and "units" in supplied and supplied["units"]:
+        result["unit"] = supplied["units"][0]
+    else:
+        result.setdefault("units", [result.get("unit", "piece")])
+
     return result
 
 
