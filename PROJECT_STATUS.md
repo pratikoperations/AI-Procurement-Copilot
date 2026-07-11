@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.9.2 — Intelligent RFQ Engine
+Build 0.9.3 — Procurement Intelligence Engine
 
 ## Current Status
 
-Build 0.9.2 Completed — CI Validated, Live Upload Validation Pending
+Build 0.9.3 Completed — CI and Live Dashboard Validation Pending
 
 ## Canonical Source of Truth
 
@@ -22,21 +22,21 @@ GitHub repository: pratikoperations/AI-Procurement-Copilot
 
 ## Build Objective
 
-Make RFQ uploads resilient to different supplier templates by recognizing headers, mapping them to a canonical schema, normalizing units, diagnosing data-quality issues, and blocking incomplete files before scoring.
+Transform supplier analytics into deterministic, explainable procurement recommendations covering strategy, allocation, negotiation, risk, scenarios, and executive decision narrative.
 
 ## Completed Scope
 
-- Exact and fuzzy RFQ header recognition
-- Canonical column mapping
-- Unit-of-measure normalization
-- Numeric conversion diagnostics
-- Duplicate supplier detection
-- Missing-data and unmapped-column diagnostics
-- Upload quality scoring
-- Intelligent validation messages
-- Data-loader integration
+- Executive decision engine
+- AI Explainability 2.0
+- Procurement strategy engine
+- Supplier allocation optimizer
+- Negotiation intelligence
+- Procurement risk intelligence
+- Scenario simulation
+- Executive decision narrative
+- Procurement Intelligence dashboard tab
 - Regression tests
-- Intelligent RFQ documentation
+- Procurement intelligence documentation
 
 ## Category Status
 
@@ -45,14 +45,12 @@ Make RFQ uploads resilient to different supplier templates by recognizing header
 
 ## QA Status
 
-- Existing synthetic workflow preserved
-- Intelligent RFQ tests added
-- Invalid files blocked before scoring
-- Unmapped columns preserved
-- GitHub Actions result: Green
-- Build 0.9.2 regression suite: Passed
-- Live alternate-template upload review: Pending
+- Existing packaging workflow preserved by integration design
+- Deterministic decision tests added
+- Strategy, allocation, negotiation, risk, and scenario tests added
+- GitHub Actions result: Pending
+- Live Procurement Intelligence tab review: Pending
 
 ## Next Milestone
 
-Build 0.9.3 — Procurement Intelligence Engine
+Build 0.9.4 — Category-Specific Cost and Risk Engines
