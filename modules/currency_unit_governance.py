@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import pandas as pd
 
-SUPPORTED_TO_USD = {"USD", "INR"}
-
 
 def normalize_comparison_basis(df: pd.DataFrame, fx_rate: float | None, base_currency: str = "USD"):
     """Preserve original quotation data and normalize supported currencies to USD.
@@ -22,9 +20,6 @@ def normalize_comparison_basis(df: pd.DataFrame, fx_rate: float | None, base_cur
     result["Original Currency"] = result["Currency"].fillna("").astype(str).str.upper().str.strip()
     result["Original Unit Price"] = pd.to_numeric(result["Quoted Unit Price USD"], errors="coerce")
     result["Unit of Measure"] = result["Unit"].fillna("").astype(str).str.strip()
-    result["Normalized Currency"] = base_currency
-    result["FX Rate Used"] = 1.0
-    result["Comparison Basis"] = result["Normalized Currency"] + " per " + result["Unit of Measure"]
 
     blockers = []
     normalized_prices = []
@@ -51,6 +46,7 @@ def normalize_comparison_basis(df: pd.DataFrame, fx_rate: float | None, base_cur
     result["Normalized Unit Price"] = normalized_prices
     result["Normalized Currency"] = normalized_currency_values
     result["FX Rate Used"] = normalized_fx
+    result["Comparison Basis"] = result["Normalized Currency"] + " per " + result["Unit of Measure"]
     result["Quoted Unit Price USD"] = result["Normalized Unit Price"]
     result["Currency"] = result["Normalized Currency"]
     result.attrs.update(df.attrs)
