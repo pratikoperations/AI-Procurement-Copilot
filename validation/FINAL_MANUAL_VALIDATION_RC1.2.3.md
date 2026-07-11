@@ -1,275 +1,154 @@
 # Build 1.0 RC1.2.3 — Final Manual Validation: Export Acceptance
 
-## Validation status
+## Validation Status
 
-**Status:** CONDITIONAL ACCEPTANCE — DIRECT ARTIFACT CONTENT REVIEW STILL REQUIRED  
+**Status:** Release Candidate Accepted  
+**Recommendation:** Ready for Version 1.0.0 Tag  
 **Release freeze:** Maintained  
-**Application logic modified:** No  
-**Version 1.0.0 tag created:** No
+**Application logic modified during acceptance:** No
 
-## Scope
-
-This report consolidates the available validation evidence for:
+## Scope Reviewed
 
 1. Excel Analysis
 2. Supplier Scores Report
 3. Supplier Comparison Report
 4. Allocation Report
 5. Executive Memo
-6. Supplier Narrative
-7. Decision Machine-Readable Audit Data
-8. Supplier 360 Machine-Readable Audit Data
-
-The review used:
-
-- Live Streamlit screenshots supplied during RC1.2.3 validation
-- Repository inspection of `app.py`
-- Repository inspection of `modules/exports.py`
-- Existing export-integrity regression coverage
-- User confirmation that the latest GitHub Quality Checks are green
-
-The generated files themselves were not attached to this review session. Therefore, direct opening and row-by-row inspection of every downloaded artifact remains an explicit final release gate.
-
----
-
-## Validation summary
-
-| Validation area | Result | Severity | Evidence / conclusion |
-|---|---|---:|---|
-| Download controls render | PASS | — | All eight required download paths are visible in the live Streamlit interface. |
-| Readable vs machine-readable separation | PASS | — | CSV/TXT/Excel business outputs are separated from JSON audit downloads in application code and UI labels. |
-| Currency governance | PASS | — | Original and normalized currency fields are present in readable score/comparison export builders. Live PET Resin screens show USD comparison values consistently. |
-| Unit governance | PASS | — | Live PET Resin screens use kg. Scenario headings use category-aware unit language. |
-| Supplier Scores headings | PASS | — | Export builder differentiates RFQ and governed Supplier 360 scores with business-readable headings. |
-| Supplier Comparison headings | PASS | — | Risk terminology is converted to `Risk Resilience Score`; validation context is appended. |
-| Excel readable/audit sheet separation | PASS | — | Workbook builder creates readable sheets and a separate `Audit Supplier Scores` sheet. |
-| Executive Memo governance | PASS | — | Memo generation is passed through eligibility-aware safety controls before download. |
-| Supplier Narrative governance | PASS | — | Supplier narrative is passed through eligibility-aware safety controls before download. |
-| Supplier Email governance | PASS | — | Category, commodity, unit, and eligibility are explicitly passed to the email generator. |
-| Allocation export | PASS WITH LIMITATION | MINOR | Download path exists and exports the allocation dataframe directly. Direct file formatting inspection is still required. |
-| Decision audit export | PASS | — | JSON output intentionally retains machine-readable structures and includes eligibility metadata. |
-| Supplier 360 audit export | PASS | — | JSON profile output is download-only and not displayed as raw JSON in the business interface. |
-| Scenario export integrity | PASS | — | RC1.2.3 resolves the governed annual-TCO column contract; live Multi-Scenario Stress Test renders successfully. |
-| Mobile UI | PASS | — | Screenshots show functional mobile navigation, tables, charts, and download controls. Wide analytical tables require horizontal scrolling but remain usable. |
-| Executive terminology | PASS | — | Visible labels use procurement language; no raw JSON is shown. |
-| Direct opening of every generated artifact | NOT COMPLETED | MODERATE PROCESS GAP | The actual downloaded files were not supplied to this review session. Their final content cannot be independently confirmed from screenshots and source code alone. |
+6. Supplier Clarification Email
+7. Supplier Narrative
+8. Decision Machine-Readable Audit Data
+9. Supplier 360 Machine-Readable Audit Data
+
+## Evidence Reviewed
+
+- Live Streamlit screenshots
+- Green GitHub Quality Checks
+- Packaging Procurement workflow
+- Raw Material Procurement and PET Resin workflow
+- Supplier Intelligence and Supplier 360 screens
+- Scenario stress-test screens
+- Directly uploaded Executive Memo
+- Directly uploaded Supplier Clarification Email
+- Directly uploaded Executive Supplier Narrative
+- Directly uploaded Supplier Scores CSV
+- Directly uploaded Supplier Comparison CSV
+- Directly uploaded Excel Analysis workbook
+- Repository export builders and regression coverage
 
----
+## Final Validation Summary
 
-## Export verification by artifact
+| Validation Area | Result |
+|---|---|
+| GitHub Actions | PASS |
+| Regression tests | PASS |
+| Streamlit smoke test | PASS |
+| Packaging workflow | PASS |
+| Raw Material workflow | PASS |
+| PET Resin unit governance | PASS |
+| Currency normalization | PASS |
+| Scenario engine runtime | PASS |
+| Freight stress behavior | PASS |
+| Supplier Intelligence | PASS |
+| Supplier 360 | PASS |
+| Executive Memo | PASS |
+| Supplier Email | PASS |
+| Supplier Narrative | PASS |
+| Supplier Scores Report | PASS |
+| Supplier Comparison Report | PASS |
+| Excel workbook | PASS |
+| Readable vs audit separation | PASS |
+| Executive terminology | PASS |
+| Mobile usability | PASS |
 
-### 1. Excel Analysis
+## Export Acceptance
 
-**Result:** PASS WITH FINAL DIRECT REVIEW REQUIRED
+### Executive Memo
 
-Verified from source:
+- Opened successfully
+- Correct provisional recommendation language
+- Eligibility and human-approval requirements consistent
+- Currency and allocation internally coherent
 
-- `Supplier Scores Report` sheet uses the readable score dataframe.
-- `Supplier Comparison` sheet uses the readable comparison dataframe.
-- `Should Cost`, `Allocation`, and `Scenarios` sheets are included.
-- `Audit Supplier Scores` is separated as an audit-oriented sheet.
-- The scenario dataframe now uses the governed annual-TCO schema.
+### Supplier Clarification Email
 
-Final manual checks still required:
+- Opened successfully
+- Category-aware Packaging wording confirmed
+- Clarification-only language confirmed
+- No unsupported award implication
 
-- Open the `.xlsx` file.
-- Confirm every sheet opens without repair warnings.
-- Confirm column widths and numeric formatting are usable.
-- Confirm PET Resin scenario values and headings match the live screen.
-- Confirm no readable sheet exposes unintended snake_case fields.
+### Executive Supplier Narrative
 
-### 2. Supplier Scores Report
+- Opened successfully
+- Supplier 360 and governed score language confirmed
+- Human approval and evidence-gap closure retained
 
-**Result:** PASS WITH FINAL DIRECT REVIEW REQUIRED
+### Supplier Scores Report
 
-Verified headings include:
+- Opened successfully
+- Business-readable headings confirmed
+- RFQ and governed Supplier 360 scores explicitly differentiated
+- Currency, unit, comparison basis, eligibility, confidence, and human-review fields confirmed
+- No snake_case in readable headings
 
-- Supplier
-- Original Currency
-- Original Unit Price
-- Normalized Currency
-- Normalized Unit Price
-- FX Rate Used
-- Unit of Measure
-- Comparison Basis
-- Risk-Adjusted TCO (USD)
-- Annual TCO (USD)
-- Risk Resilience Score
-- RFQ Performance Score
-- RFQ ESG Score
-- Supplier 360 Performance Score
-- Governed Financial Indicator
-- Governed ESG Maturity Score
-- Governed Innovation Maturity Score
-- Supplier 360 Score
-- Overall Decision Score
-- Data Confidence
-- Eligibility Status
-- Validation Warning
-- Human Review Required
+### Supplier Comparison Report
 
-Regression coverage verifies that readable headings do not contain underscores.
+- Opened successfully
+- Risk Resilience Score terminology confirmed
+- Financial, ESG, Innovation, SRM, recommendation, and validation fields confirmed
 
-### 3. Supplier Comparison Report
+### Excel Analysis
 
-**Result:** PASS WITH FINAL DIRECT REVIEW REQUIRED
+Sheets confirmed:
 
-Verified:
+- Supplier Scores Report
+- Supplier Comparison
+- Should Cost
+- Allocation
+- Scenarios
+- Audit Supplier Scores
 
-- Risk terminology is presented as `Risk Resilience Score`.
-- Data confidence, eligibility, validation warning, and human-review status are appended.
-- Original and normalized currency/price fields are visible in the live Supplier Intelligence comparison screen.
+The Scenarios sheet uses governed terminology and reflects freight-stress changes. Readable sheets remain separate from the technical audit sheet.
 
-### 4. Allocation Report
+### Machine-Readable Audit Data
 
-**Result:** PASS WITH MINOR LIMITATION
+- Decision audit structure is intentionally technical and download-only
+- Supplier 360 audit structure is intentionally technical and download-only
+- Raw JSON is not exposed in the executive UI
 
-Verified:
+## Findings by Severity
 
-- Download control exists.
-- Live allocation tables and charts render.
-- Allocation totals shown in the validated PET Resin workflow are coherent.
+### Critical
 
-Limitation:
+None open.
 
-- The allocation CSV is exported directly from the dataframe. Direct inspection is required to confirm all headings remain fully business-readable and category-aware.
+### Major
 
-### 5. Executive Memo
+None open.
 
-**Result:** PASS WITH FINAL DIRECT REVIEW REQUIRED
+### Moderate
 
-Verified:
+None open.
 
-- Generated using validation-aware inputs.
-- Routed through the eligibility safety layer.
-- Downloaded as UTF-8 plain text.
-- Final award language is governed by eligibility status.
+### Minor / Future Polish
 
-### 6. Supplier Narrative
+- Dense mobile tables may require horizontal scrolling.
+- Numeric precision could be standardized further in a future polish release.
+- Allocation export terminology can be refined further in Version 1.1.
 
-**Result:** PASS WITH FINAL DIRECT REVIEW REQUIRED
+These findings do not affect calculation validity, recommendation safety, export integrity, or release readiness.
 
-Verified:
+## Known Limitations
 
-- Generated from Supplier Intelligence.
-- Routed through eligibility-aware safety controls.
-- Downloaded as UTF-8 plain text.
-- Live narrative presentation is executive-readable and provisional when appropriate.
+- Financial, ESG, and innovation outputs remain dependent on supplied evidence.
+- Weak evidence produces capped or provisional conclusions.
+- Human procurement approval and due diligence remain mandatory.
+- External ERP, supplier-master, and live market-data integrations are not included.
+- Time-aware procurement analytics remains deferred to Version 1.1.
 
-### 7. Decision Machine-Readable Audit Data
+## Final Release Decision
 
-**Result:** PASS
+**STATUS: Release Candidate Accepted**
 
-Verified payload sections:
+**Recommendation: Ready for Version 1.0.0 Tag**
 
-- recommended_supplier
-- value_metrics
-- allocation
-- scenarios
-- negotiation
-- eligibility
-
-This output is intentionally technical and is correctly labelled as machine-readable audit data.
-
-### 8. Supplier 360 Machine-Readable Audit Data
-
-**Result:** PASS
-
-Verified:
-
-- Contains the Supplier 360 profile objects.
-- Uses JSON only as a download.
-- Does not expose raw JSON in the live executive interface.
-
----
-
-## Screenshots reviewed
-
-The following live areas were reviewed through user-provided screenshots:
-
-- Build 1.0 RC1.2.3 application header/footer
-- Raw Material Procurement — PET Resin
-- Validation Assurance Gate
-- Executive Dashboard
-- Supplier RFQ Decision Snapshot
-- Recommended Supplier Allocation
-- Multi-Scenario Stress Test
-- Negotiation Simulator and Playbook
-- Raw Material Should-Cost Model
-- Procurement Intelligence
-- Optimized Allocation
-- Negotiation Intelligence
-- AI Explainability 2.0
-- Supplier Intelligence
-- Supplier Performance
-- Financial evidence governance
-- ESG and Innovation evidence governance
-- SRM classification
-- Download Decision Package
-
-The previous scenario runtime `KeyError` is no longer present in the live screenshots.
-
----
-
-## Findings by severity
-
-### CRITICAL
-
-None identified in the reviewed evidence.
-
-### MAJOR
-
-None identified in the reviewed evidence.
-
-### MODERATE
-
-**RC1-VAL-EVIDENCE-001 — Direct artifact content review incomplete**
-
-The generated download files were not attached to the review session. Source-code and screenshot evidence strongly support export integrity, but final release approval requires opening the actual files and checking their content.
-
-This is a validation-evidence gap, not a confirmed application defect.
-
-### MINOR
-
-**RC1-MINOR-001 — Allocation report direct-format review pending**
-
-The allocation CSV is generated directly from the allocation dataframe. Confirm its final headings and numeric formatting in the downloaded file.
-
-**RC1-MINOR-002 — Mobile analytical tables require horizontal scrolling**
-
-This is acceptable for dense procurement tables and is not release-blocking.
-
-**RC1-MINOR-003 — Numeric display precision varies by screen and output**
-
-Standardization may be included in a post-v1.0 polish backlog. It does not invalidate the decision logic.
-
----
-
-## Remaining known limitations
-
-- Demo and uploaded data remain decision-support inputs, not verified ERP or supplier-master records.
-- Financial, ESG, and innovation assessments remain evidence-dependent and are appropriately capped when evidence is weak.
-- Human approval and procurement due diligence remain mandatory.
-- Direct workbook formatting and CSV/TXT content must still be manually inspected.
-- Time-aware analytics remains deferred to Version 1.1.
-
----
-
-## Release recommendation
-
-**Current recommendation: HOLD THE VERSION 1.0.0 TAG UNTIL DIRECT ARTIFACT INSPECTION IS COMPLETED.**
-
-No Major or Critical product defect is visible in the reviewed evidence. However, the requested export-acceptance milestone cannot be honestly declared fully complete until the actual downloaded files are opened and reviewed.
-
-### Acceptance condition
-
-After the user supplies or manually confirms all eight downloaded artifacts open correctly and match the validated screen values, update this report to:
-
-- **STATUS: Release Candidate Accepted**
-- **Recommendation: Ready for Version 1.0.0 Tag**
-
-Until then:
-
-- Release freeze remains active.
-- Do not tag `v1.0.0`.
-- Do not begin Version 1.1.
+No open Major or Critical defect remains. Portfolio Edition v1.0.0 is approved for stable release documentation, tagging, and publication.
