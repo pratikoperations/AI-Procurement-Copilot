@@ -1,8 +1,8 @@
 # AI Procurement Copilot
 
 **Edition:** Portfolio Edition v1.0  
-**Current Build:** Build 0.7 — Release Candidate Preparation  
-**Status:** Release Candidate Validation Pending  
+**Current Build:** Build 0.8 — Portfolio Edition v1.0 Release Candidate  
+**Status:** Final Workflow Confirmation and Manual Visual Review Pending  
 **Repository Owner:** pratikoperations
 
 ## Objective
@@ -29,8 +29,10 @@ This is not a black-box AI award tool. It is a transparent, rule-guided, AI-read
 - Supplier clarification email
 - AI-style explainability panel
 - Interview talking points
-- Automated regression test workflow
+- Core and export regression tests
+- Automated Streamlit smoke testing
 - Downloadable Excel, CSV, TXT, and JSON decision packages
+- Resume, LinkedIn, demo-script, and screenshot portfolio assets
 
 ## Run Locally
 
@@ -42,7 +44,7 @@ streamlit run app.py
 ## Run Tests
 
 ```bash
-pytest -q
+python -m pytest
 ```
 
 ## Input
@@ -79,6 +81,10 @@ AI Procurement Copilot
 - `docs/USER_GUIDE.md`
 - `docs/BASE_BUILD_PLAN_REFERENCE.md`
 - `docs/RELEASE_CANDIDATE_CHECKLIST.md`
+- `docs/BUILD_0.8_QA_REPORT.md`
+- `docs/PORTFOLIO_ASSETS.md`
+- `docs/DEMO_SCRIPT.md`
+- `assets/screenshots/README.md`
 
 ## Version Strategy
 
