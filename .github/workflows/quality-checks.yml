@@ -31,3 +31,6 @@ jobs:
 
       - name: Run regression tests
         run: python -m pytest
+
+      - name: Run Streamlit smoke test
+        run: bash scripts/streamlit_smoke_test.sh
