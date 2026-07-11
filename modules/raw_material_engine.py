@@ -1,32 +1,29 @@
-"""Raw-material category engine foundation.
-
-Build 0.9.1 introduces the category contract and commodity metadata only.
-The full raw-material should-cost, risk, and scoring logic is planned for Build 0.9.4.
-"""
+"""Production raw-material category engine."""
 
 from modules.commodity_library import get_commodities, get_commodity_profile
 
 CATEGORY_NAME = "Raw Material Procurement"
-ENGINE_STATUS = "Foundation Preview"
+ENGINE_STATUS = "Active"
 
 
 def get_engine_profile(commodity=None):
-    """Return raw-material engine metadata without claiming production scoring readiness."""
+    """Return production raw-material engine metadata."""
     commodities = get_commodities(CATEGORY_NAME)
     selected = commodity if commodity in commodities else commodities[0]
     profile = get_commodity_profile(CATEGORY_NAME, selected)
     return {
         "category": CATEGORY_NAME,
+        "category_name": CATEGORY_NAME,
         "engine_status": ENGINE_STATUS,
         "selected_commodity": selected,
+        "commodity_group": profile.get("family", "Raw Materials"),
         "commodities": commodities,
-        "cost_model": "Commodity Index + Conversion Premium + Delivered Cost + Risk-Adjusted TCO",
-        "risk_model": "Volatility, supply concentration, import, FX, substitution, and continuity risk",
+        "cost_model": "Commodity Index + Conversion Premium + Freight + Duty + FX + Risk-Adjusted TCO",
+        "risk_model": "Volatility, import dependency, concentration, substitution, FX, quality, capacity, and continuity risk",
         "unit": profile.get("unit", "kg"),
+        "units": [profile.get("unit", "kg")],
+        "currency": "USD",
         "primary_cost_drivers": profile.get("primary_cost_drivers", []),
         "risk_signals": profile.get("risk_signals", []),
-        "implementation_note": (
-            "Architecture and commodity metadata are active. Full raw-material scoring and "
-            "should-cost execution will be implemented in Build 0.9.4."
-        ),
+        "implementation_note": "Production raw-material should-cost, TCO, risk, scoring, and decision workflow active in Build 0.9.4.",
     }
