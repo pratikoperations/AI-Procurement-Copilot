@@ -2,12 +2,19 @@
 
 import streamlit as st
 
-from modules.category_engine import get_category_profile
-from modules.config import DEFAULT_FX_RATE, SUPPORTED_CATEGORIES, FUTURE_CATEGORIES
+from modules.category_engine import ensure_category_profile, get_category_profile
+from modules.config import DEFAULT_FX_RATE, FUTURE_CATEGORIES, SUPPORTED_CATEGORIES
+
+
+def build_sidebar_result(**values):
+    """Build the governed sidebar return contract with a guaranteed category profile."""
+    result = dict(values)
+    result["category_profile"] = ensure_category_profile(result.get("category_profile"))
+    return result
 
 
 def render_sidebar():
-    """Render sidebar controls and return user-selected assumptions."""
+    """Render sidebar controls and always return a complete assumptions dictionary."""
     st.sidebar.title("AI Procurement Copilot")
     st.sidebar.caption("Portfolio Edition v1.0")
 
@@ -23,13 +30,13 @@ def render_sidebar():
         index=0,
     )
 
-    base_profile = get_category_profile(category)
+    base_profile = ensure_category_profile(get_category_profile(category))
     commodity = st.sidebar.selectbox(
         "Commodity / Material",
         base_profile["commodities"],
         index=0,
     )
-    category_profile = get_category_profile(category, commodity)
+    category_profile = ensure_category_profile(get_category_profile(category, commodity))
 
     if category_profile["engine_status"] != "Active":
         st.sidebar.warning(
@@ -60,19 +67,19 @@ def render_sidebar():
     min_risk_score = st.sidebar.slider("Minimum Risk Score", 0, 100, 55)
     min_esg_score = st.sidebar.slider("Minimum ESG Score", 0, 100, 50)
 
-    return {
-        "data_source": data_source,
-        "category": category,
-        "commodity": commodity,
-        "category_profile": category_profile,
-        "fx_rate": fx_rate,
-        "display_currency": display_currency,
-        "annual_volume": annual_volume,
-        "raw_material_shock": raw_material_shock,
-        "freight_shock": freight_shock,
-        "demand_change": demand_change,
-        "max_supplier_share": max_supplier_share,
-        "min_backup_share": min_backup_share,
-        "min_risk_score": min_risk_score,
-        "min_esg_score": min_esg_score,
-    }
+    return build_sidebar_result(
+        data_source=data_source,
+        category=category,
+        commodity=commodity,
+        category_profile=category_profile,
+        fx_rate=fx_rate,
+        display_currency=display_currency,
+        annual_volume=annual_volume,
+        raw_material_shock=raw_material_shock,
+        freight_shock=freight_shock,
+        demand_change=demand_change,
+        max_supplier_share=max_supplier_share,
+        min_backup_share=min_backup_share,
+        min_risk_score=min_risk_score,
+        min_esg_score=min_esg_score,
+    )
