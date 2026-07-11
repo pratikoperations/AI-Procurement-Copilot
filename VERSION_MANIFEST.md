@@ -10,15 +10,24 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.8 — Portfolio Edition v1.0 Release Candidate
+Build 0.8.1 — Deployment Stabilization
 
 ## Build Status
 
-Completed — Final Workflow Confirmation and Manual Visual Review Pending
+Completed — Streamlit Cloud Redeployment Validation Pending
 
 ## Current Scope
 
-v1.0 includes packaging RFQ analysis, packaging should-cost, risk-adjusted TCO, supplier risk, ESG, performance, allocation, scenario testing, negotiation, executive memo, supplier email, AI explainability, interview outputs, validation, core and export regression tests, CI quality checks, automated Streamlit health testing, downloadable decision packages, and portfolio assets.
+v1.0 includes packaging RFQ analysis, packaging should-cost, risk-adjusted TCO, supplier risk, ESG, performance, allocation, scenario testing, negotiation, executive memo, supplier email, AI explainability, interview outputs, validation, core and export regression tests, CI quality checks, automated Streamlit health testing, downloadable decision packages, portfolio assets, and a pinned Python 3.11 deployment environment.
+
+## Deployment Baseline
+
+- Python: 3.11
+- Streamlit: 1.59.1
+- Pandas: 2.2.3
+- NumPy: 2.1.3
+- Plotly: 5.24.1
+- OpenPyXL: 3.1.5
 
 ## Future Scope
 
@@ -27,7 +36,7 @@ v1.0 includes packaging RFQ analysis, packaging should-cost, risk-adjusted TCO, 
 
 ## Latest Stable State
 
-Build 0.8 code, tests, workflow changes, and documentation are committed to GitHub. The project is now a release candidate. Final freeze requires a green Build 0.8 workflow plus manual visual and download validation.
+Build 0.8.1 code and documentation are committed to GitHub. The release candidate now has a reproducible deployment baseline. Final freeze requires green post-stabilization CI plus successful Streamlit Cloud redeployment and manual review.
 
 ## Next Planned Milestone
 
