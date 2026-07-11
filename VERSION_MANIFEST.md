@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.9.4 — Category-Specific Cost and Risk Engines
+Build 0.9.5 — Supplier Intelligence Platform
 
 ## Build Status
 
-Completed — CI and Live Multi-Category Validation Pending
+Completed — CI and Live Supplier Intelligence Validation Pending
 
 ## Active Category Engines
 
@@ -23,20 +23,21 @@ Completed — CI and Live Multi-Category Validation Pending
 
 ## Current Scope
 
-The application includes category routing, intelligent RFQ normalization, category-specific should-cost, TCO, risk and scoring for packaging and raw materials, procurement intelligence, explainability, exports, tests, CI, and public Streamlit deployment.
+The application includes category-aware RFQ analysis, packaging and raw-material should-cost/TCO/risk engines, procurement intelligence, Supplier 360, supplier performance, financial health indicators, ESG maturity, innovation maturity, SRM classification, supplier comparison, recommendation rankings, executive narratives, exports, tests, CI, and public Streamlit deployment.
 
-## Raw Material Baseline
+## Supplier Intelligence Baseline
 
-- Commodity index and producer premium
-- Freight, duty, FX and quality premiums
-- Commodity volatility and continuity risk
-- Import dependency and supplier concentration
-- Substitute availability and capacity risk
-- Category-specific scoring weights
+- Supplier 360 profiles with transparent default tracking
+- Extended supplier performance scoring
+- Financial health indicators with due-diligence safeguards
+- ESG and innovation maturity intelligence
+- SRM relationship classification
+- Deterministic recommendation rankings
+- Supplier comparison and executive narrative
 
-## Next Planned Build
+## Next Planned Milestone
 
-Build 0.9.5 — Executive Decision Intelligence and Release Preparation
+Portfolio Edition v1.0 release preparation after Build 0.9.5 CI and live validation
 
 ## Recovery Note
 
