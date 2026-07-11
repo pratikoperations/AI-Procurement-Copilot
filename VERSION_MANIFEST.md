@@ -10,15 +10,15 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.7 — Defect Remediation, Visual Polish, Downloadable Outputs, and Release-Candidate Preparation
+Build 0.8 — Portfolio Edition v1.0 Release Candidate
 
 ## Build Status
 
-Completed — Release Candidate Validation Pending
+Completed — Final Workflow Confirmation and Manual Visual Review Pending
 
 ## Current Scope
 
-v1.0 includes packaging RFQ analysis, packaging should-cost, risk-adjusted TCO, supplier risk, ESG, performance, allocation, scenario testing, negotiation, executive memo, supplier email, AI explainability, interview outputs, validation, regression tests, CI quality checks, and downloadable decision packages.
+v1.0 includes packaging RFQ analysis, packaging should-cost, risk-adjusted TCO, supplier risk, ESG, performance, allocation, scenario testing, negotiation, executive memo, supplier email, AI explainability, interview outputs, validation, core and export regression tests, CI quality checks, automated Streamlit health testing, downloadable decision packages, and portfolio assets.
 
 ## Future Scope
 
@@ -27,11 +27,11 @@ v1.0 includes packaging RFQ analysis, packaging should-cost, risk-adjusted TCO, 
 
 ## Latest Stable State
 
-Build 0.7 code and documentation are committed to GitHub. Static integration review is complete. Release-candidate validation, workflow confirmation, local visual review, and download verification remain pending.
+Build 0.8 code, tests, workflow changes, and documentation are committed to GitHub. The project is now a release candidate. Final freeze requires a green Build 0.8 workflow plus manual visual and download validation.
 
-## Next Planned Build
+## Next Planned Milestone
 
-Build 0.8 — Final Defect Closure, Live Demo Validation, Screenshot Assets, and Portfolio Edition v1.0 Release Candidate
+Portfolio Edition v1.0 Release Freeze
 
 ## Recovery Note
 
