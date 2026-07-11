@@ -2,8 +2,8 @@
 
 APP_NAME = "AI Procurement Copilot"
 EDITION = "Portfolio Edition v1.0"
-BUILD = "Build 0.8 - Portfolio Edition v1.0 Release Candidate"
-STATUS = "Release Candidate"
+BUILD = "Build 0.8.1 - Deployment Stabilization"
+STATUS = "Release Candidate - Deployment Validation Pending"
 
 DEFAULT_FX_RATE = 83
 DEFAULT_CATEGORY = "Packaging Procurement"
