@@ -8,6 +8,7 @@ from modules.allocation_optimizer import optimize_allocation
 from modules.category_cost_router import calculate_category_should_cost
 from modules.category_engine import ensure_category_profile
 from modules.config import APP_NAME, BUILD, EDITION, STATUS
+from modules.currency_unit_governance import normalize_comparison_basis, validate_category_unit
 from modules.data_loader import get_demo_data, load_uploaded_rfq
 from modules.dashboard import (
     render_allocation, render_executive_dashboard, render_executive_value,
@@ -21,6 +22,7 @@ from modules.executive_outputs import (
 )
 from modules.exports import (
     build_decision_package_json, build_excel_workbook,
+    build_readable_supplier_comparison, build_readable_supplier_scores,
     dataframe_to_csv_bytes, text_to_bytes,
 )
 from modules.negotiation import generate_negotiation_playbook, simulate_negotiation
@@ -46,8 +48,8 @@ assumptions["category_profile"] = profile
 
 st.title(APP_NAME)
 st.subheader(EDITION)
-st.caption("Transparent, category-aware procurement decision intelligence with validation gates for RFQ analysis, should-cost, TCO, risk, supplier intelligence, ESG, allocation, negotiation, and executive recommendations.")
-st.success(f"{BUILD} — executive-readable supplier intelligence and evidence safeguards are active.")
+st.caption("Transparent, category-aware procurement decision intelligence with explicit currency, unit, evidence, and recommendation governance.")
+st.success(f"{BUILD} — export integrity and category-aware communication controls are active.")
 
 with st.expander("Selected Category Intelligence", expanded=True):
     c1, c2, c3 = st.columns(3)
@@ -68,8 +70,19 @@ try:
     suppliers_df = load_uploaded_rfq(uploaded_file) if uploaded_file is not None else get_demo_data(
         assumptions["category"], assumptions["commodity"]
     )
+    suppliers_df = normalize_comparison_basis(suppliers_df, assumptions.get("fx_rate"), "USD")
 except Exception as exc:
-    st.error(f"The RFQ file could not be read: {exc}")
+    st.error(f"The RFQ file could not be read or normalized: {exc}")
+    st.stop()
+
+for warning in validate_category_unit(suppliers_df, assumptions["category"], assumptions["commodity"]):
+    st.error(warning)
+    st.stop()
+
+currency_governance = suppliers_df.attrs.get("currency_unit_governance", {})
+for issue in currency_governance.get("blockers", []):
+    st.error(issue)
+if currency_governance.get("blockers"):
     st.stop()
 
 validation = validate_rfq_dataframe(suppliers_df)
@@ -128,31 +141,38 @@ provisional_executive_narrative = generate_executive_narrative(
 
 supplier_intelligence = build_supplier_intelligence(scored_df, assumptions["category"], assumptions["commodity"])
 assurance = run_validation_assurance(
-    suppliers_df,
-    scored_df,
-    optimized_allocation["allocation_df"],
-    supplier_intelligence["profiles"],
-    assumptions,
-    validation,
+    suppliers_df, scored_df, optimized_allocation["allocation_df"],
+    supplier_intelligence["profiles"], assumptions, validation,
 )
 data_confidence = assurance["data_confidence"]
 business_rules = assurance["business_rules"]
 eligibility = assurance["eligibility"]
 
-raw_executive_memo = generate_executive_memo(scored_df, allocation_df, value_metrics, confidence)
+raw_executive_memo = generate_executive_memo(
+    scored_df, allocation_df, value_metrics, confidence, eligibility, data_confidence
+)
 executive_memo = safe_executive_text(eligibility, raw_executive_memo, raw_executive_memo)
 executive_narrative = safe_executive_text(eligibility, provisional_executive_narrative, provisional_executive_narrative)
 supplier_narrative = safe_executive_text(
-    eligibility,
-    supplier_intelligence["executive_narrative"],
-    supplier_intelligence["executive_narrative"],
+    eligibility, supplier_intelligence["executive_narrative"], supplier_intelligence["executive_narrative"]
 )
 supplier_intelligence["executive_narrative"] = supplier_narrative
-supplier_email = generate_supplier_email(recommended, should_cost["target_unit_cost_usd"], assumptions["annual_volume"])
+unit = str(recommended.get("Unit of Measure", recommended.get("Unit", "piece")))
+supplier_email = generate_supplier_email(
+    recommended,
+    should_cost["target_unit_cost_usd"],
+    assumptions["annual_volume"],
+    assumptions["category"],
+    assumptions["commodity"],
+    unit,
+    eligibility,
+)
 explainability_text = generate_explainability_panel(recommended)
 interview_talking_points = generate_interview_talking_points()
-excel_package = build_excel_workbook(scored_df, should_cost_df, allocation_df, scenario_df)
-json_package = build_decision_package_json(recommended, value_metrics, allocation_df, scenario_df, negotiation_result)
+readable_scores = build_readable_supplier_scores(scored_df, data_confidence, eligibility)
+readable_comparison = build_readable_supplier_comparison(supplier_intelligence["comparison_df"], data_confidence, eligibility)
+excel_package = build_excel_workbook(scored_df, should_cost_df, allocation_df, scenario_df, readable_scores, readable_comparison)
+json_package = build_decision_package_json(recommended, value_metrics, allocation_df, scenario_df, negotiation_result, eligibility)
 supplier_profiles_json = json.dumps(supplier_intelligence["profiles"], indent=2, default=str).encode("utf-8")
 
 with st.expander("Validation Assurance Gate", expanded=True):
@@ -248,19 +268,19 @@ with tabs[6]:
     c2.download_button("Download Executive Memo", text_to_bytes(executive_memo), "executive_sourcing_memo.txt", "text/plain")
     c3.download_button("Download Supplier Email", text_to_bytes(supplier_email), "supplier_clarification_email.txt", "text/plain")
     c4, c5, c6 = st.columns(3)
-    c4.download_button("Download Supplier Scores CSV", dataframe_to_csv_bytes(scored_df), "supplier_scores.csv", "text/csv")
-    c5.download_button("Download Allocation CSV", dataframe_to_csv_bytes(allocation_df), "supplier_allocation.csv", "text/csv")
-    c6.download_button("Machine-Readable Decision Audit Data", json_package, "procurement_decision_package.json", "application/json")
+    c4.download_button("Download Supplier Scores Report", dataframe_to_csv_bytes(readable_scores), "supplier_scores_report.csv", "text/csv")
+    c5.download_button("Download Allocation Report", dataframe_to_csv_bytes(allocation_df), "supplier_allocation_report.csv", "text/csv")
+    c6.download_button("Decision Machine-Readable Audit Data", json_package, "procurement_decision_audit.json", "application/json")
     c7, c8, c9 = st.columns(3)
-    c7.download_button("Download Supplier Comparison CSV", dataframe_to_csv_bytes(supplier_intelligence["comparison_df"]), "supplier_comparison.csv", "text/csv")
-    c8.download_button("Supplier 360 Audit Data", supplier_profiles_json, "supplier_360_profiles.json", "application/json")
+    c7.download_button("Download Supplier Comparison Report", dataframe_to_csv_bytes(readable_comparison), "supplier_comparison_report.csv", "text/csv")
+    c8.download_button("Supplier 360 Machine-Readable Audit Data", supplier_profiles_json, "supplier_360_audit.json", "application/json")
     c9.download_button("Download Supplier Narrative", text_to_bytes(supplier_narrative), "executive_supplier_narrative.txt", "text/plain")
-    st.caption("Machine-readable audit files are downloads only and are not displayed in the application.")
+    st.caption("Business-readable reports are separated from machine-readable audit data.")
 
 with tabs[7]:
     st.header("Interview Talking Points")
     st.write(interview_talking_points)
-    st.info("Positioning: a category-aware procurement and Supplier 360 decision-support product with visible data-confidence, business-rule, evidence-quality, and human-approval gates.")
+    st.info("Positioning: category-aware, currency-normalized, evidence-governed procurement decision support with consistent screen and download outputs.")
 
 st.markdown("---")
 st.caption(f"{BUILD} | Application status: {STATUS}")
