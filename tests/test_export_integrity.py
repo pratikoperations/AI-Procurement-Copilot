@@ -19,6 +19,11 @@ def test_readable_supplier_scores_use_business_headings():
         "risk_category":"Low",
         "performance_score":75,
         "esg_score":60,
+        "supplier360_performance_score":72,
+        "governed_financial_indicator":50,
+        "governed_esg_maturity_score":55,
+        "governed_innovation_maturity_score":50,
+        "supplier360_score":70,
         "total_score":78,
     }])
     report = build_readable_supplier_scores(df, {"data_confidence_score":80,"confidence_category":"Acceptable With Review"}, {"status":"Eligible With Conditions","reason":"Review"})
@@ -26,6 +31,14 @@ def test_readable_supplier_scores_use_business_headings():
     assert "Original Currency" in report.columns
     assert "Normalized Unit Price" in report.columns
     assert "Eligibility Status" in report.columns
+    assert "RFQ Performance Score" in report.columns
+    assert "RFQ ESG Score" in report.columns
+    assert "Supplier 360 Performance Score" in report.columns
+    assert "Governed ESG Maturity Score" in report.columns
+    assert report.loc[0, "RFQ Performance Score"] == 75
+    assert report.loc[0, "Supplier 360 Performance Score"] == 72
+    assert report.loc[0, "RFQ ESG Score"] == 60
+    assert report.loc[0, "Governed ESG Maturity Score"] == 55
     assert not any("_" in column for column in report.columns)
 
 
