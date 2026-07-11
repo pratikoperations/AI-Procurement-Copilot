@@ -1,8 +1,8 @@
 # AI Procurement Copilot
 
 **Edition:** Portfolio Edition v1.0  
-**Current Build:** Build 0.8.1 — Deployment Stabilization  
-**Status:** Streamlit Cloud Redeployment Validation Pending  
+**Current Build:** Build 0.9.3 — Procurement Intelligence Engine  
+**Status:** CI and Live Dashboard Validation Pending  
 **Repository Owner:** pratikoperations
 
 ## Objective
@@ -16,20 +16,24 @@ This is not a black-box AI award tool. It is a transparent, rule-guided, AI-read
 ## Implemented Capabilities
 
 - Synthetic demo data and CSV/Excel RFQ upload
-- RFQ validation
+- Intelligent RFQ header recognition and canonical mapping
+- Unit normalization and RFQ quality diagnostics
+- Multi-category architecture with active Packaging Procurement and Raw Material foundation preview
 - Packaging should-cost engine
 - Risk-adjusted TCO model
 - Structured supplier risk model
 - ESG and supplier performance scoring
 - Lowest-price vs best-value decision
-- Scenario stress testing
-- Supplier allocation recommendation
-- Negotiation simulator and playbook
-- Executive sourcing memo
-- Supplier clarification email
-- AI-style explainability panel
-- Interview talking points
-- Core and export regression tests
+- Deterministic executive decision engine
+- Procurement strategy recommendation
+- Supplier allocation optimizer
+- Negotiation intelligence
+- Procurement risk intelligence
+- Scenario simulation and recommendation recomputation
+- AI Explainability 2.0
+- Board-ready executive decision narrative
+- Executive sourcing memo and supplier clarification email
+- Core, export, category, RFQ, and procurement-intelligence regression tests
 - Automated Streamlit smoke testing
 - Downloadable Excel, CSV, TXT, and JSON decision packages
 - Resume, LinkedIn, demo-script, and screenshot portfolio assets
@@ -59,24 +63,43 @@ python -m pytest
 
 ## Input
 
-Use the built-in synthetic demo or upload a CSV/Excel RFQ. A sample file is available at:
+Use the built-in synthetic demo or upload a CSV/Excel RFQ. The Intelligent RFQ Engine recognizes common alternatives such as Vendor Name, Unit Rate, Minimum Order Quantity, Delivery Days, Credit Terms, Delivery Terms, and UOM.
+
+Sample file:
 
 `sample_data/sample_packaging_rfq.csv`
 
 ## Output
 
-The app generates a transparent best-value sourcing recommendation, should-cost build-up, TCO analysis, risk/ESG/performance scores, allocation recommendation, scenario results, negotiation strategy, executive memo, supplier email, interview explanation, and downloadable decision package.
+The app generates:
+
+- Best-value supplier recommendation
+- Award confidence
+- Sourcing strategy
+- Optimized allocation
+- Negotiation priorities
+- Risk severity and mitigation
+- Scenario-adjusted recommendation
+- Explainability and rejected-supplier rationale
+- Executive decision narrative
+- Downloadable decision package
 
 ## High-Level Architecture
 
 ```text
 AI Procurement Copilot
 ├── Presentation Layer: Streamlit
-├── Procurement Decision Engine
-├── Category Engine: Packaging v1.0
-├── Future Category Engine: Raw Materials v1.1
-├── Business Rules Layer
-├── AI Assistance Layer
+├── Category Engine Router
+├── Intelligent RFQ Engine
+├── Procurement Scoring and TCO Layer
+├── Procurement Intelligence Engine
+│   ├── Decision Engine
+│   ├── Strategy Engine
+│   ├── Allocation Optimizer
+│   ├── Negotiation Intelligence
+│   ├── Risk Intelligence
+│   └── Scenario Engine
+├── Explainability and Executive Output Layer
 ├── Data Validation + Test Layer
 ├── Export + Handoff Layer
 └── Documentation + Recovery Layer
@@ -88,11 +111,13 @@ AI Procurement Copilot
 - `PROJECT_BUILD_PLAN.md`
 - `ARCHITECTURE.md`
 - `QUALITY_ASSURANCE_PROTOCOL.md`
+- `docs/CATEGORY_ENGINE.md`
+- `docs/INTELLIGENT_RFQ_ENGINE.md`
+- `docs/PROCUREMENT_INTELLIGENCE_ENGINE.md`
+- `docs/BUILD_0.9.3_QA_REPORT.md`
 - `docs/USER_GUIDE.md`
 - `docs/BASE_BUILD_PLAN_REFERENCE.md`
 - `docs/RELEASE_CANDIDATE_CHECKLIST.md`
-- `docs/BUILD_0.8_QA_REPORT.md`
-- `docs/BUILD_0.8.1_QA_REPORT.md`
 - `docs/PORTFOLIO_ASSETS.md`
 - `docs/DEMO_SCRIPT.md`
 - `assets/screenshots/README.md`
@@ -105,4 +130,4 @@ AI Procurement Copilot
 
 ## Operating Standard
 
-GitHub is the canonical source of truth. Every meaningful milestone must be committed with project status, changelog, build history, version manifest, and recovery documentation updated.
+GitHub is the canonical source of truth. Every meaningful milestone must be committed with project status, changelog, build history, version manifest, QA report, and recovery documentation updated.
