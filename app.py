@@ -1,7 +1,7 @@
 # =====================================================
 # AI PROCUREMENT COPILOT
 # Portfolio Edition v1.0
-# Build 0.7 — Release Candidate Preparation
+# Build 0.8 — Portfolio Edition v1.0 Release Candidate
 # =====================================================
 
 import streamlit as st
@@ -56,7 +56,7 @@ st.caption(
 )
 
 st.success(
-    "Build 0.7 release-candidate preparation adds downloadable decision packages and a polished six-step interview workflow."
+    "Portfolio Edition v1.0 Release Candidate — regression tests, export tests, and automated Streamlit smoke testing are configured in GitHub Actions."
 )
 
 uploaded_file = None
@@ -264,6 +264,6 @@ with interview_tab:
 
 st.markdown("---")
 st.caption(
-    "Build 0.7 — Defect Remediation, Visual Polish, Downloadable Outputs, and Release-Candidate Preparation | "
+    "Build 0.8 — Portfolio Edition v1.0 Release Candidate | "
     f"Application status: {STATUS}"
 )
