@@ -2,6 +2,8 @@
 
 import pandas as pd
 
+from modules.intelligent_rfq import normalize_rfq_dataframe
+
 
 def get_demo_suppliers():
     """Return synthetic RFQ data for the packaging procurement demo."""
@@ -69,9 +71,13 @@ def get_demo_suppliers():
 
 
 def load_uploaded_rfq(uploaded_file):
-    """Load uploaded CSV or Excel RFQ file."""
+    """Load, recognize, and normalize an uploaded CSV or Excel RFQ file."""
     if uploaded_file is None:
         return None
     if uploaded_file.name.lower().endswith(".csv"):
-        return pd.read_csv(uploaded_file)
-    return pd.read_excel(uploaded_file)
+        raw_df = pd.read_csv(uploaded_file)
+    else:
+        raw_df = pd.read_excel(uploaded_file)
+    normalized_df, report = normalize_rfq_dataframe(raw_df)
+    normalized_df.attrs["rfq_quality_report"] = report
+    return normalized_df
