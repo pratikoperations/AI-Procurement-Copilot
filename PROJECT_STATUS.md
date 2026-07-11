@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 1.0 RC1.2.1 — Supplier 360 Display Formatting Hotfix
+Build 1.0 RC1.2.2 — Export Score Consistency and Scenario Integrity Hotfix
 
 ## Current Status
 
-Implementation and automated validation completed. Final manual release validation remains in progress.
+Hotfix implementation completed. GitHub Actions, Streamlit smoke testing, and manual export retest remain pending.
 
 ## Canonical Source of Truth
 
@@ -22,47 +22,38 @@ GitHub repository: pratikoperations/AI-Procurement-Copilot
 
 ## Release Freeze
 
-Feature development remains frozen. RC1.2 and RC1.2.1 corrected validated release defects only. No new business feature is authorized before v1.0 release approval.
+Feature development remains frozen. RC1.2.2 addresses validated release defects only.
 
-## RC1.2 and RC1.2.1 Scope Completed
+## RC1.2.2 Scope Completed
 
-- Explicit original and normalized currency fields
-- Auditable FX rate and comparison basis
-- Corrected Packaging and Raw Material demo metadata
-- PET Resin standardized to kg
-- Category-aware supplier clarification emails
-- Eligibility-aware memo, email, narrative, negotiation brief, and audit package
-- Governed recommendation roles using displayed scores and evidence sufficiency
-- No-qualified-supplier outcome when evidence is insufficient
-- Exit Candidate precedence over Development Candidate
-- Visible Risk Resilience Score terminology
-- Business-readable supplier score and comparison reports
-- Separate machine-readable audit downloads
-- Corrected Supplier 360 Approved Categories and Commodity Coverage display formatting
-- Regression coverage for scalar and collection display behavior
+- Differentiated RFQ scores from governed Supplier Intelligence scores in readable exports
+- Added Supplier 360 Performance, governed Financial, ESG, Innovation, and Supplier 360 fields to readable score reports
+- Corrected Freight +50% scenario behavior for delivered-price suppliers
+- Preserved zero incremental freight in base-case DDP pricing
+- Added embedded freight pass-through only during explicit freight stress
+- Standardized scenario terminology to Risk Resilience Score
+- Added category-aware TCO headings such as Risk-Adjusted TCO per kg (USD)
+- Added regression tests for Raw Material and Packaging freight scenarios
 
 ## Validation Status
 
-- Builds 0.1–0.9.6.1: Completed and previously CI/live validated as recorded
-- Build 1.0 RC1.1: Executive polish implemented
-- Build 1.0 RC1.2: Completed and CI validated
-- Build 1.0 RC1.2.1: Completed and CI validated
-- Packaging manual validation: In progress
-- PET Resin manual validation: In progress
-- Downloaded file review: In progress
-- Gemini independent review: Pending
-- Perplexity methodology review: Pending
-- Human procurement review: Pending / not waived
-- Portfolio Edition v1.0 approval: Not granted
+- Builds 0.1–1.0 RC1.2.1: completed as recorded
+- Build 1.0 RC1.2.2: implementation completed
+- GitHub Actions: pending
+- Streamlit smoke test: pending
+- Packaging manual retest: pending
+- PET Resin manual retest: pending
+- Excel and CSV retest: pending
+- Portfolio Edition v1.0 approval: not granted
 
 ## Open Release Gates
 
-1. Complete live Packaging workflow review
-2. Complete live PET Resin workflow review
-3. Confirm Supplier 360 formatting correction in the deployed application
-4. Open and inspect every readable and machine-readable download
-5. Confirm screen, memo, email, narrative, CSV, and Excel outputs remain consistent
-6. Close remaining manual-validation findings
+1. Confirm GitHub Actions are green
+2. Confirm live Streamlit deployment loads RC1.2.2
+3. Verify Freight +50% increases PET Resin and Packaging unit and annual TCO
+4. Verify Supplier Scores Report clearly differentiates RFQ and governed scores
+5. Verify scenario sheet uses Risk Resilience Score and category-aware TCO labels
+6. Open and inspect all readable and machine-readable downloads
 7. Complete or formally waive independent reviews
 8. Approve final release-readiness score
 9. Create the `v1.0.0` tag only after all gates are complete
@@ -71,22 +62,10 @@ Feature development remains frozen. RC1.2 and RC1.2.1 corrected validated releas
 
 ### Version 1.1 — Time-Aware Procurement Analytics
 
-Documentation has been completed for future date-range and period-comparison analytics across RFQ, performance, SRM, spend, savings, risk, ESG, innovation, contracts, commodity costs, procurement operations, and supplier development.
-
-Planned capabilities include:
-
-- All Available Data and Custom Date Range
-- Month, quarter, and year presets
-- Period-over-period, QoQ, and YoY comparisons
-- Rolling 3-month and 12-month analytics
-- Module-specific governing date fields
-- Incomplete-period and missing-date safeguards
-- Reporting-period metadata in screens and exports
+Documentation-only backlog item. No implementation is authorized during the v1.0 release freeze.
 
 Reference: `docs/FUTURE_TIME_AWARE_ANALYTICS.md`
 
-**Important:** This is a documentation-only backlog record. It does not alter the current application, data schema, calculations, tests, or release behavior.
-
 ## Next Milestone
 
-Complete final manual validation of Build 1.0 RC1.2.1. Do not tag v1.0.0 yet and do not resume feature development.
+Validate Build 1.0 RC1.2.2. Do not tag v1.0.0 and do not resume feature development.
