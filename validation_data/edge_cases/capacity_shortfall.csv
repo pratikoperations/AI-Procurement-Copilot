@@ -1,0 +1,3 @@
+Supplier,Quoted Unit Price USD,MOQ,Lead Time Days,Payment Terms,Incoterms,Currency,Unit,Supplier Capacity,Capacity Utilization %
+Capacity A,1.00,100,10,Net 30,DDP,USD,kg,300,90
+Capacity B,1.05,100,12,Net 45,DDP,USD,kg,250,95
