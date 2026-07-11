@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.7 — Defect Remediation, Visual Polish, Downloadable Outputs, and Release-Candidate Preparation
+Build 0.8 — Portfolio Edition v1.0 Release Candidate
 
 ## Current Status
 
-Build 0.7 Completed — CI Validated, Live App Validation Pending
+Build 0.8 Completed — Final Workflow Confirmation and Manual Visual Review Pending
 
 ## Canonical Source of Truth
 
@@ -22,7 +22,7 @@ GitHub repository: pratikoperations/AI-Procurement-Copilot
 
 ## Build Objective
 
-Prepare the application for release-candidate validation by improving presentation quality, adding downloadable decision packages, strengthening handoff readiness, and formalizing final acceptance checks.
+Complete final defect closure, expand automated validation to include exports and Streamlit health, prepare screenshot and interview assets, and promote the project to Portfolio Edition v1.0 Release Candidate.
 
 ## Scope Locked for v1.0
 
@@ -37,23 +37,25 @@ Prepare the application for release-candidate validation by improving presentati
 - AI explainability panel
 - Interview talking points
 - Validation and regression test layer
+- Automated Streamlit smoke test
 - Downloadable Excel, CSV, TXT, and JSON outputs
+- Portfolio, resume, LinkedIn, demo, and screenshot guidance
 
 ## Latest Completed Action
 
-Build 0.7 added downloadable decision packages, a six-step interview workflow, release-candidate messaging, export helpers, and final acceptance documentation. The CI import-path defect was remediated and the latest Quality Checks runs are green.
+Build 0.8 added export regression tests, automated Streamlit health testing, Portfolio Edition v1.0 release-candidate labels, portfolio positioning assets, a seven-minute demo script, and screenshot capture standards.
 
 ## QA Status
 
 - Static integration review: Completed
-- Validation layer: Added
-- Regression tests: Passed in GitHub Actions
-- Automated GitHub workflow: Green
-- Download output logic: Added
-- Local Streamlit visual review: Pending
-- Uploaded sample RFQ regression review: Pending
-- Release candidate acceptance review: Pending
+- Core regression tests: Previously green
+- Export regression tests: Added; latest workflow result pending confirmation
+- Streamlit smoke test: Added; latest workflow result pending confirmation
+- Local visual review: Pending
+- Sample RFQ upload review: Pending
+- Download-button manual review: Pending
+- Screenshot capture: Pending
 
 ## Next Milestone
 
-Build 0.8 — Final Defect Closure, Live Demo Validation, Screenshot Assets, and Portfolio Edition v1.0 Release Candidate
+Portfolio Edition v1.0 Release Freeze — after green Build 0.8 Quality Checks and final manual visual validation
