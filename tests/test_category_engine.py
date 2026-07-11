@@ -1,4 +1,4 @@
-"""Category foundation regression tests."""
+"""Category engine regression tests."""
 
 import pytest
 
@@ -23,11 +23,14 @@ def test_packaging_engine_is_production_ready():
     assert is_production_ready("Packaging Procurement") is True
 
 
-def test_raw_material_engine_is_explicitly_preview_only():
+def test_raw_material_engine_is_production_ready():
     profile = get_category_profile("Raw Material Procurement", "PET Resin")
-    assert profile["engine_status"] == "Foundation Preview"
+    assert profile["engine_status"] == "Active"
     assert profile["selected_commodity"] == "PET Resin"
-    assert is_production_ready("Raw Material Procurement") is False
+    assert is_production_ready("Raw Material Procurement") is True
+    assert profile["unit"] == "kg"
+    assert profile["cost_model"]
+    assert profile["risk_model"]
 
 
 def test_commodity_profiles_have_required_metadata():
