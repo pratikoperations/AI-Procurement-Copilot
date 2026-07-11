@@ -1,213 +1,209 @@
 # Master Build Architecture
 
-## Project
+## Architecture Decision
 
-AI Procurement Copilot with Packaging Value Engineering & Decision Intelligence
+AI Procurement Copilot and Packaging Value Engineering & Decision Intelligence will use **separate GitHub repositories and separate file systems**.
 
-## Canonical Source of Truth
+This prevents duplicate file names, accidental overwrites, mixed build histories, unclear recovery states, and cross-project commits.
 
-GitHub repository: `pratikoperations/AI-Procurement-Copilot`
+## Canonical Repositories
 
-All code, data schemas, business rules, decisions, build plans, QA evidence, activity logs, versions, and recovery instructions must be stored in this repository. Chat history is supporting context only and must never be required to resume the project.
+### Repository 1 — Existing
 
-## Product Architecture
+`pratikoperations/AI-Procurement-Copilot`
 
-```text
-AI Procurement Copilot
-├── Executive Dashboard
-├── Intelligent RFQ Engine
-├── Category Engine Router
-│   ├── Packaging Procurement
-│   │   └── Packaging Value Engineering & Decision Intelligence
-│   └── Raw Material Procurement
-├── Procurement Intelligence
-│   ├── Should-Cost
-│   ├── TCO
-│   ├── Supplier Comparison
-│   ├── Allocation
-│   ├── Negotiation
-│   └── Scenario Analysis
-├── Supplier Intelligence
-│   ├── Supplier 360
-│   ├── Performance
-│   ├── Financial Indicators
-│   ├── ESG
-│   ├── Innovation
-│   └── SRM
-├── Savings Realization
-├── Decision Evidence Ledger
-├── Explainability and Executive Outputs
-└── Validation, QA, CI, Recovery, and Governance
-```
+Owns:
 
-## Packaging Value Engineering Scope
+- RFQ intelligence
+- Procurement should-cost and TCO
+- Supplier comparison and allocation
+- Negotiation intelligence
+- Supplier 360, performance, ESG, innovation, financial indicators, and SRM
+- Procurement-level scenarios, executive recommendations, and savings tracking
 
-The Packaging Value Engineering module is a specialist vertical inside the Copilot. It must not duplicate supplier comparison, negotiation, allocation, or savings tracking already owned by the horizontal Procurement Copilot.
+### Repository 2 — To Be Created Before PVE Build
 
-### Core Decision Flow
+Recommended name:
+
+`pratikoperations/Packaging-Value-Engineering-Decision-Intelligence`
+
+Owns:
+
+- Packaging baseline and specifications
+- Packaging design alternatives
+- Material and weight optimization
+- Category-specific engineering should-cost
+- Technical qualification
+- Packaging quality and implementation risks
+- Validation-test recommendations
+- Sustainability indicators
+- Risk-adjusted packaging recommendation
+- Packaging trial and knowledge intelligence
+
+Each repository is independently recoverable and contains its own code, data, tests, documentation, versions, activity log, QA reports, and release history.
+
+## Integration Architecture
 
 ```text
-Spend / RFQ Opportunity
-→ Packaging Baseline
-→ Alternative Design Comparison
-→ Should-Cost and Material Impact
-→ Technical Qualification Gate
-→ Risk-Adjusted Savings
-→ Supplier and TCO Evaluation
-→ Negotiation and Allocation
-→ Trial / Validation
-→ Implementation
-→ Verified Savings
+Packaging Value Engineering Repository
+│
+│  exports a versioned Decision Package
+│
+▼
+Integration Contract
+│
+▼
+AI Procurement Copilot Repository
+│
+├── Supplier and RFQ Evaluation
+├── TCO
+├── Negotiation
+├── Allocation
+├── Executive Recommendation
+└── Savings Realization
 ```
 
-## Scope Options
+The projects integrate through explicit files or APIs, not shared writable folders.
 
-### Scope A — Lean Interview Module
+## Integration Contract
 
-Target effort: 80–110 hours.
+PVE may export:
 
-Includes:
+- `pve_decision_package.json`
+- `pve_qualified_options.csv`
+- `pve_target_costs.csv`
+- `pve_validation_requirements.json`
 
-- One packaging category
-- Packaging baseline and alternatives
-- Should-cost and material calculations
-- Technical qualification and risk rules
+Minimum fields:
+
+- Decision package version
+- Project and specification IDs
+- Packaging category
+- Baseline specification
+- Approved or conditional alternatives
+- Target cost
+- Technical qualification status
 - Risk-adjusted savings
-- Linkage to supplier comparison, TCO, negotiation, and executive recommendation
-- Basic explainability
-- Core testing and interview walkthrough
+- Confidence and data gaps
+- Required validation
+- Implementation constraints
 
-Exit condition: reliable five-minute interview demonstration with traceable calculations and clear limitations.
+The Procurement Copilot imports the package but does not alter the PVE source records.
 
-### Scope B — Robust Interview Version
+## File-System Isolation Rules
 
-Target cumulative effort: 150–200 hours.
+- No code file is manually copied between repositories without a recorded decision.
+- No repository writes directly into the other repository.
+- Every file path is project-local.
+- Each repository has its own `README.md`, `PROJECT_STATUS.md`, `BUILD_HISTORY.md`, `CHANGELOG.md`, `DECISION_LOG.md`, `ACTIVITY_LOG.md`, `VERSION_MANIFEST.md`, `RECOVERY_MANIFEST.md`, tests, and QA reports.
+- Integration data lives only in a clearly named `integration/` directory in each repository.
+- Imported packages are read-only inputs and include their source commit and schema version.
 
-Adds:
+## PVE Repository Structure
 
-- Scenario and sensitivity analysis
-- Savings realization
-- Decision Evidence Ledger
-- Stronger data-quality controls
-- Downloadable executive decision record
-- Expanded QA and edge-case testing
-- Improved UI and portfolio documentation
+```text
+Packaging-Value-Engineering-Decision-Intelligence/
+├── app.py
+├── src/
+│   ├── cost_engine/
+│   ├── technical_qualification/
+│   ├── risk_engine/
+│   ├── sustainability/
+│   ├── recommendation/
+│   └── exports/
+├── data/
+│   ├── demo/
+│   ├── schemas/
+│   └── reference/
+├── integration/
+│   ├── contracts/
+│   ├── exports/
+│   └── samples/
+├── tests/
+├── docs/
+│   ├── architecture/
+│   ├── builds/
+│   ├── qa/
+│   └── demo/
+├── README.md
+├── PROJECT_STATUS.md
+├── BUILD_INSTRUCTIONS.md
+├── ACTIVITY_LOG.md
+├── BUILD_HISTORY.md
+├── CHANGELOG.md
+├── DECISION_LOG.md
+├── VERSION_MANIFEST.md
+└── RECOVERY_MANIFEST.md
+```
 
-Exit condition: portfolio-grade application demonstrating business execution, governance, and auditable decision support.
+## Procurement Copilot Integration Structure
 
-### Scope C — Complete Integrated Portfolio Version
+```text
+AI-Procurement-Copilot/
+├── integration/
+│   └── packaging_value_engineering/
+│       ├── contracts/
+│       ├── imports/
+│       ├── adapters/
+│       └── tests/
+└── existing procurement and supplier modules
+```
 
-Target cumulative effort: approximately 280–320 hours.
+## Scope Options for PVE
 
-Adds:
+| Scope | Effort |
+|---|---:|
+| Lean Interview Project | 80–110 hours |
+| Robust Interview Project | 150–200 cumulative hours |
+| Complete Portfolio Project | 280–320 cumulative hours |
+| Production Pilot | 1,800–2,200 team hours |
+| Enterprise Scale-Up | Additional 1,400–1,800 team hours |
 
-- Trial and validation workflow
-- Historical packaging knowledge retrieval
-- Opportunity prioritization
-- Advanced confidence scoring
-- Additional packaging category
-- Extended reporting and recovery assets
-- Full regression suite and release hardening
+## Build and Versioning
 
-Exit condition: comprehensive, modular portfolio platform with a credible enterprise roadmap.
+### Procurement Copilot
 
-### Scope D — Production Pilot
+Uses its existing build and release sequence.
 
-Target effort: 1,800–2,200 cross-functional team hours over 3–5 months.
+### Packaging Value Engineering
 
-Includes:
+Uses independent build identifiers:
 
-- Real data discovery and cleansing
-- Production database and APIs
-- Authentication and role-based access
-- Approval workflows and audit logs
-- One category or site pilot
-- Controlled AI capabilities
-- ERP, PLM, QMS, or supplier-data integrations as available
-- User acceptance testing and measurable value validation
+- `PVE-0.1` Repository Foundation
+- `PVE-0.2` Data Model and Demo Data
+- `PVE-0.3` Cost and Material Engine
+- `PVE-0.4` Technical Qualification and Risk
+- `PVE-0.5` Scenario and Recommendation UI
+- `PVE-0.6` Decision Package Export
+- `PVE-0.7` QA and Interview Release
 
-### Scope E — Enterprise Scale-Up
+### Integration
 
-Target additional effort: 1,400–1,800 team hours over 5–7 months.
+Use explicit contract versions such as:
 
-Includes:
+- `PVE-CONTRACT-v1.0`
+- `PC-PVE-ADAPTER-v1.0`
 
-- Multi-category models
-- Additional sites and business units
-- Enterprise integrations
-- Security hardening
-- Support and release operations
-- Change management
-- Adoption and value dashboards
+## Mandatory Quality Rules
 
-## Build Numbering Standard
+Every meaningful update in either repository must:
 
-- Existing platform builds remain `Build 0.x.x` until Portfolio Edition v1.0 release.
-- Packaging Value Engineering work uses sub-build identifiers under the active milestone, for example:
-  - `Build 1.0-PVE-01`
-  - `Build 1.0-PVE-02`
-- Major milestone releases use semantic versions:
-  - `v1.0` Portfolio Edition release
-  - `v1.1` Packaging Value Engineering interview module
-  - `v1.2` Robust integrated decision version
-  - `v2.0` Production-pilot architecture
-- A version is never advanced solely for documentation wording; it advances when the defined exit criteria are met.
+1. Update the project-local activity and build records.
+2. Run project-local tests.
+3. Inspect the complete diff.
+4. Commit and push only to the correct repository.
+5. Re-fetch the GitHub commit to confirm file placement.
+6. Check CI or record why it is not applicable.
+7. Store QA evidence in the same repository.
 
-## Mandatory Repository Records
+Integration changes require tests in both repositories or a documented compatibility test against a fixed contract sample.
 
-Every meaningful build update must update the relevant records:
+## Immediate Sequence
 
-- `PROJECT_STATUS.md`
-- `CHANGELOG.md`
-- `BUILD_HISTORY.md`
-- `DECISION_LOG.md`
-- `ACTIVITY_LOG.md`
-- `VERSION_MANIFEST.md`
-- `RECOVERY_MANIFEST.md`
-- Build-specific QA report in `docs/`
-
-## Build Update Workflow
-
-1. Read `PROJECT_STATUS.md`, `RECOVERY_MANIFEST.md`, latest `BUILD_HISTORY.md`, and latest QA report.
-2. Confirm current branch, build number, scope, dependencies, and acceptance criteria.
-3. Implement one coherent build unit only.
-4. Run relevant tests and quality checks.
-5. Update activity, build, decision, changelog, version, status, and recovery records.
-6. Inspect the full diff for unrelated changes.
-7. Commit with the build identifier and a concise description.
-8. Push the branch.
-9. Verify the commit and repository files from GitHub.
-10. Check CI or record why CI is not applicable.
-11. Do not mark the build complete until QA evidence is stored in GitHub.
-
-## Quality Gates
-
-A build cannot be declared complete unless all applicable gates pass:
-
-- Scope gate: only approved build scope changed
-- Calculation gate: deterministic formulas validated
-- Data gate: required fields, units, defaults, and assumptions checked
-- Business-rule gate: triggered rules and outcomes tested
-- Integration gate: upstream and downstream linkages tested
-- Regression gate: existing functions remain operational
-- Explainability gate: recommendation can be traced to evidence
-- Documentation gate: all mandatory repository records updated
-- Recovery gate: a new chat or developer can resume using repository content alone
-- CI gate: automated checks pass or the exception is explicitly recorded
-
-## Architecture Principles
-
-- Deterministic calculations and business rules are the source of truth.
-- AI is used for extraction, synthesis, explanation, and drafting—not autonomous award or technical approval.
-- Technical qualification precedes commercial ranking.
-- Recommendations may be Recommended, Conditionally Recommended, Not Recommended, or Insufficient Data.
-- Every recommendation must expose assumptions, data gaps, confidence, and required validation.
-- Savings are not considered delivered until implementation and actual-volume evidence exists.
-- Category-specific technical logic must remain separate from common procurement logic.
-- Shared entities include supplier, material, specification, quote, plant, SKU, trial, risk, project, decision, and savings record.
-
-## Immediate Priority
-
-Do not add uncontrolled feature breadth before Build 0.9.5 CI and live validation are complete.
-
-After Portfolio Edition v1.0 release hardening, begin Scope A as the next controlled milestone.
+1. Complete AI Procurement Copilot Build 0.9.5 CI and live validation.
+2. Harden Portfolio Edition v1.0.
+3. Create the separate PVE repository with governance files before any PVE code.
+4. Build PVE Scope A independently.
+5. Freeze `PVE-CONTRACT-v1.0`.
+6. Add the PVE import adapter to Procurement Copilot.
+7. Run cross-repository integration and regression tests.
