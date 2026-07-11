@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This protocol defines the technical, procurement, data-quality, model-risk, executive-UX and release gates for every AI Procurement Copilot build.
+This protocol defines the technical, procurement, data-quality, currency, unit, model-risk, export, executive-UX, and release gates for AI Procurement Copilot.
 
 ## Build Quality Gates
 
@@ -11,72 +11,65 @@ This protocol defines the technical, procurement, data-quality, model-risk, exec
 | G1 | GitHub record | All meaningful changes committed and recoverable |
 | G2 | App startup | `streamlit run app.py` launches without errors |
 | G3 | Imports | All modules import successfully |
-| G4 | Functional test | New features work with category-appropriate demo data |
+| G4 | Functional test | Packaging and Raw Material demos work |
 | G5 | Regression test | Previous functionality remains intact |
-| G6 | Code quality | Modular, readable and without obvious duplicated logic |
-| G7 | Procurement logic | Outputs are commercially sensible, traceable and explainable |
-| G8 | Data confidence | Missing, defaulted and inferred data is visible |
-| G9 | Recommendation safety | Invalid or insufficient data cannot produce final award language |
-| G10 | Allocation feasibility | Allocation totals 100% and does not exceed verified capacity |
-| G11 | External files | Canonical, alternate, incomplete, invalid and large files behave as expected |
-| G12 | Executive UX | No raw structured payload, code-style field name or debug object is visible |
-| G13 | Evidence governance | Financial, ESG and innovation conclusions are capped by evidence completeness |
-| G14 | Mobile usability | Cards, charts, selectors and matrices remain usable on mobile |
-| G15 | Documentation | Status, changelog, history, version, QA and validation evidence updated |
-| G16 | Independent review | External AI and human findings are dispositioned |
-| G17 | Recovery | Project can be resumed from GitHub alone |
+| G6 | Procurement logic | Outputs are commercially sensible, traceable and explainable |
+| G7 | Data confidence | Missing, defaulted and inferred data is visible |
+| G8 | Currency integrity | Original and normalized values are explicit; unsupported conversion blocks |
+| G9 | Unit integrity | Category unit is explicit; PET Resin uses kg |
+| G10 | Recommendation safety | Invalid or insufficient data cannot produce final award language |
+| G11 | Evidence governance | Financial, ESG and Innovation conclusions are capped by evidence |
+| G12 | Classification precedence | Exit Candidate cannot also receive contradictory development or long-term roles |
+| G13 | Allocation feasibility | Allocation totals 100% and remains within capacity |
+| G14 | Communication consistency | Memo, email, narrative and screen share eligibility status |
+| G15 | Export integrity | Readable reports use business headings and match on-screen values |
+| G16 | Audit separation | Machine-readable data remains separate from readable reports |
+| G17 | Executive UX | No raw payload or snake_case is visible in business outputs |
+| G18 | Mobile usability | Cards, charts, selectors and matrices remain usable on mobile |
+| G19 | Documentation | Status, changelog, history, version, QA and evidence updated |
+| G20 | Independent review | External AI and human findings are dispositioned |
+| G21 | Recovery | Project can be resumed from GitHub alone |
 
-## Scoring Framework
+## RC1.2 Required Controls
 
-Score each build from 0–10 across architecture, code quality, formula correctness, procurement logic, input validation, recommendation safety, allocation feasibility, external-file robustness, data-confidence transparency, evidence integrity, explainability, executive UX, mobile usability, documentation, interview readiness, maintainability and live deployment stability.
+Before accepting Build 1.0 RC1.2, verify:
 
-## Minimum Acceptance Threshold
+- Standard Packaging and Raw Material demo rows contain explicit currency and unit.
+- Standard PET Resin demo contains only USD comparison values and kg units.
+- INR quotations convert to USD only with a positive INR-per-USD rate.
+- Unsupported currency conversion blocks processing.
+- No USD-labelled field contains an unconverted INR value.
+- Supplier email content changes by category.
+- Blocked, Insufficient Data, Human Review Required, Eligible With Conditions, and Eligible language is consistent across outputs.
+- Recommendation roles use governed displayed scores and evidence status.
+- Most Innovative and Most Sustainable return No Qualified Supplier when evidence is insufficient.
+- Best Strategic Partner and Best Long-Term Supplier require sufficient evidence and cannot select an Exit Candidate.
+- Exit Candidate and Development Candidate are not assigned to the same supplier.
+- Risk Resilience Score is used in visible business outputs.
+- Supplier Scores Report and Supplier Comparison Report contain human-readable headings.
+- Excel readable sheets and audit sheets are clearly separated.
+- Existing and new tests pass.
+- Streamlit smoke test passes.
+- Every downloadable file is opened and manually reviewed.
 
-Normal build target: **8.5/10** or higher.
-
-Portfolio Edition v1.0 release target: **9.0/10** or higher, with allocation feasibility at **10/10**, recommendation safety at **9/10** or higher, and executive UX at **9/10** or higher.
-
-## Build 0.9.6 Required Controls
-
-Before displaying a final recommendation, verify valid RFQ data, positive price and volume, valid ranges, consistent currency and UOM, sufficient capacity, feasible allocation, risk threshold, visible data confidence, visible eligibility, safe narrative withholding and explicit demo/upload source status.
-
-## Build 0.9.6.1 Required Controls
-
-Before accepting the Supplier Intelligence UX hotfix, verify:
-
-- No `st.json` or equivalent structured-data renderer remains in application UI files.
-- No raw dictionary, raw list, braces, quoted field names or snake-case business labels appear on-screen.
-- Performance uses readable scorecards, chart, strengths, gaps and actions.
-- Financial uses governed displayed score, completeness, assessment status, evidence and due-diligence warning.
-- ESG uses governed displayed score, completeness, maturity cap, document requirements and corrective actions.
-- Innovation uses governed displayed score, completeness, maturity cap, opportunity matrix and agenda.
-- SRM uses classification, rationale, strategy and governance matrix.
-- Supplier 360 profile is readable on mobile.
-- Machine-readable audit data is download-only.
-- A readable Supplier 360 report is available.
-- Packaging and Raw Material workflows remain functional.
-- New and existing tests pass.
-
-## Release v1.0 Acceptance Criteria
+## Portfolio Edition v1.0 Acceptance Criteria
 
 - Packaging and Raw Material workflows run end to end.
-- Supplier Intelligence and Procurement Intelligence remain functional.
-- Realistic and adversarial file tests pass.
-- Formula, assumption and decision-rule registers are current.
-- No open Critical defects remain.
-- No unmitigated Major defects remain.
+- No open Critical defect remains.
+- No unmitigated Major defect remains.
 - GitHub Actions are green.
 - Streamlit smoke and manual deployment checks pass.
-- Executive-readable outputs pass mobile review.
-- Gemini independent validation is completed and dispositioned.
-- Perplexity methodology validation is completed and dispositioned.
-- Human procurement review is completed or formally waived with written residual-risk acceptance.
+- Download-content audit passes.
+- Allocation feasibility is 10/10.
+- Recommendation safety is at least 9/10.
+- Executive UX is at least 9/10.
+- Independent reviews are completed or formally waived with residual-risk acceptance.
 - Final release-readiness score is at least 9.0/10.
 
 ## Defect Governance
 
-Every accepted Critical or Major finding requires a defect-register entry, reproduction steps, corrective commit, regression test, retest evidence and release-blocker decision. Rejected findings require written rationale.
+Every accepted Critical or Major finding requires a defect-register entry, reproduction steps, corrective commit, regression test, retest evidence, and release-blocker decision. Rejected findings require written rationale.
 
 ## Governance Principle
 
-No feature or release is complete until it is committed, tested, documented, recoverable, independently challenged and approved under human procurement governance.
+No release is complete until code, screen outputs, communications, and downloadable reports tell the same validated story.
