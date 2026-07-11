@@ -1,0 +1,3 @@
+Supplier,Quoted Unit Price USD,MOQ,Lead Time Days,Payment Terms,Incoterms,Currency,Unit,OTIF %,Quality PPM,Audit Score,Complaint Rate %,Supplier Capacity
+Invalid Price,-0.10,10000,14,Net 30,DDP,USD,piece,95,500,85,1,300000
+Invalid Percent,0.40,10000,-5,Net 30,DDP,USD,piece,110,-20,150,-2,-100
