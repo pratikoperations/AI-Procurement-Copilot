@@ -4,8 +4,8 @@ from modules.category_engine import get_supported_categories
 
 APP_NAME = "AI Procurement Copilot"
 EDITION = "Portfolio Edition v1.0"
-BUILD = "Build 0.9.3 - Procurement Intelligence Engine"
-STATUS = "In Development"
+BUILD = "Build 0.9.3.1 - Category Profile Integration Hotfix"
+STATUS = "Hotfix Validation Pending"
 
 DEFAULT_FX_RATE = 83
 DEFAULT_CATEGORY = "Packaging Procurement"
