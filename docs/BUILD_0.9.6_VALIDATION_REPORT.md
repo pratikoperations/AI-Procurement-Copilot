@@ -6,7 +6,7 @@ Build 0.9.6 — Independent Validation and Real-World Stress Testing
 
 ## Status
 
-**Implementation complete; CI, live deployment, Gemini, Perplexity and human review pending.**
+**Implementation and CI validation complete; live deployment, Gemini, Perplexity and human review pending.**
 
 Build 0.9.6 cannot be marked fully complete until all release gates are evidenced.
 
@@ -48,36 +48,36 @@ Build 0.9.6 cannot be marked fully complete until all release gates are evidence
 
 ## Defects identified internally
 
-| ID | Severity | Summary | Remediation |
-|---|---|---|---|
-| VAL-001 | Critical | Final award language lacked central eligibility gate | Gate and safe narrative withholding added |
-| VAL-002 | Major | Supplier 360 defaults could create false confidence | Defaults now reduce and explain data confidence |
-| VAL-003 | Critical | Allocation needed independent capacity feasibility validation | 100% and capacity checks added |
-| VAL-004 | Critical | Mixed currencies/UOMs needed a final comparison blocker | Consistency blockers added |
-| VAL-005 | Major | Decimal-versus-whole percentage ambiguity | Explicit warning and test case added |
+| ID | Severity | Summary | Remediation | Retest status |
+|---|---|---|---|---|
+| VAL-001 | Critical | Final award language lacked central eligibility gate | Gate and safe narrative withholding added | Passed CI |
+| VAL-002 | Major | Supplier 360 defaults could create false confidence | Defaults now reduce and explain data confidence | Passed CI |
+| VAL-003 | Critical | Allocation needed independent capacity feasibility validation | 100% and capacity checks added | Passed CI |
+| VAL-004 | Critical | Mixed currencies/UOMs needed a final comparison blocker | Consistency blockers added | Passed CI |
+| VAL-005 | Major | Decimal-versus-whole percentage ambiguity | Explicit warning and test case added | Passed CI |
 
-## Provisional results
+## Current results
 
 - Formula documentation: Complete internally
 - Safety-control code: Implemented
 - Adversarial dataset library: Implemented
-- Regression tests: Added
-- External-file synthetic test library: Implemented
+- Regression tests: Added and passing
+- External-file synthetic test library: Implemented and passing in CI
+- GitHub Quality Checks #150–#208: Confirmed green by project owner
+- Internal Critical and Major defects: Fixed and CI retested
 - Independent AI review: Pending
 - Human review: Pending
-- GitHub Actions: Pending latest run
 - Live Streamlit validation: Pending
-- Provisional release-readiness score: 9.1/10
+- Provisional release-readiness score: 9.2/10
 
 ## Completion gate
 
 Do not approve Portfolio Edition v1.0 until:
 
-1. Latest CI is green.
-2. Packaging and Raw Material live workflows are manually validated.
-3. Gemini report is completed and dispositioned.
-4. Perplexity methodology review is completed and dispositioned.
-5. Human review is completed or formally waived.
-6. All Critical defects are closed and retested.
-7. No unmitigated Major defects remain.
-8. Final scorecard remains at least 9.0/10.
+1. Packaging and Raw Material live workflows are manually validated.
+2. Gemini report is completed and dispositioned.
+3. Perplexity methodology review is completed and dispositioned.
+4. Human review is completed or formally waived.
+5. External review confirms no open Critical defect.
+6. No unmitigated Major defect remains.
+7. Final scorecard remains at least 9.0/10.
