@@ -1,0 +1,4 @@
+Supplier,Material,Quoted Unit Price USD,Currency,Unit,MOQ,Lead Time Days,Payment Terms,Incoterms,OTIF %,Quality PPM,Audit Score,Complaint Rate %,Capacity Buffer %,Supplier Capacity,Commodity Volatility %,Import Dependency %,Supplier Concentration %,Substitute Available,Duty %
+Resin Alpha,PET Resin,1.27,USD,kg,20000,21,Net 45,CIF,95,650,86,1.0,20,800000,14,45,40,Yes,5
+Resin Beta,PET Resin,1.22,USD,kg,50000,45,Advance 20%,FOB,88,1200,76,2.8,8,1200000,28,85,70,No,8
+Resin Gamma,PET Resin,1.32,USD,kg,10000,12,Net 60,DDP,97,450,91,0.6,25,650000,12,20,30,Yes,0
