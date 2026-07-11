@@ -38,11 +38,15 @@ def generate_negotiation_playbook(
     lowest_supplier_name,
     lowest_price,
     annual_saving,
-    category="Packaging Procurement",
-    commodity="Category",
-    unit="piece",
+    category=None,
+    commodity=None,
+    unit=None,
 ):
     """Generate a category-aware negotiation brief."""
+    category = category or str(supplier.get("category_engine", "Packaging Procurement"))
+    commodity = commodity or str(supplier.get("Material", "Category"))
+    unit = unit or str(supplier.get("Unit of Measure", supplier.get("Unit", "piece")))
+
     target_price = max(float(should_cost_target) + 0.02, float(supplier["Quoted Unit Price USD"]) * 0.94)
     ceiling_price = min(float(supplier["Quoted Unit Price USD"]), float(should_cost_target) + 0.06)
 
