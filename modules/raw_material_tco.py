@@ -2,7 +2,7 @@
 
 from modules.raw_material_risk import calculate_raw_material_risk
 from modules.risk import get_advance_percent, get_payment_days, normalize_incoterm
-from modules.tco import freight_factor_for_incoterm
+from modules.tco import freight_cost_factor_for_scenario
 from modules.utils import extract_number
 
 
@@ -21,7 +21,13 @@ def calculate_raw_material_tco(
     scenario_price = base_price * (1 + commodity_shock)
 
     incoterm = normalize_incoterm(row.get("Incoterms", "DDP"))
-    freight_cost = scenario_price * freight_factor_for_incoterm(incoterm, 0.08) * (1 + freight_shock)
+    freight_factor = freight_cost_factor_for_scenario(
+        incoterm,
+        freight_shock,
+        max_freight_exposure=0.08,
+        embedded_freight_share=float(row.get("Embedded Freight Share", 0.02)),
+    )
+    freight_cost = scenario_price * freight_factor
     duty_rate = float(row.get("Duty %", 0)) / 100
     duty_cost = scenario_price * duty_rate
 
