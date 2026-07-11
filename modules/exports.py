@@ -18,8 +18,8 @@ READABLE_SCORE_COLUMNS = {
     "annual_tco_usd": "Annual TCO (USD)",
     "risk_score": "Risk Resilience Score",
     "risk_category": "Risk Category",
-    "performance_score": "Performance Score",
-    "esg_score": "ESG Score",
+    "performance_score": "RFQ Performance Score",
+    "esg_score": "RFQ ESG Score",
     "total_score": "Overall Decision Score",
 }
 
@@ -34,10 +34,23 @@ def text_to_bytes(text):
     return str(text).encode("utf-8")
 
 
-def build_readable_supplier_scores(scored_df, data_confidence, eligibility):
-    """Return a business-readable supplier score report."""
+def build_readable_supplier_scores(scored_df, data_confidence, eligibility, supplier_comparison=None):
+    """Return a business-readable score report with differentiated RFQ and governed scores."""
     available = [column for column in READABLE_SCORE_COLUMNS if column in scored_df.columns]
     report = scored_df[available].rename(columns=READABLE_SCORE_COLUMNS).copy()
+
+    if supplier_comparison is not None and not supplier_comparison.empty and "Supplier" in supplier_comparison.columns:
+        governed_columns = {
+            "Performance Score": "Supplier 360 Performance Score",
+            "ESG Score": "Governed ESG Maturity Score",
+            "Financial Indicator": "Governed Financial Indicator",
+            "Innovation Score": "Governed Innovation Maturity Score",
+            "Supplier 360 Score": "Supplier 360 Score",
+        }
+        available_governed = ["Supplier"] + [column for column in governed_columns if column in supplier_comparison.columns]
+        governed = supplier_comparison[available_governed].rename(columns=governed_columns).copy()
+        report = report.merge(governed, on="Supplier", how="left")
+
     report["Data Confidence"] = f"{data_confidence.get('data_confidence_score', 0)}/100 — {data_confidence.get('confidence_category', 'Not assessed')}"
     report["Eligibility Status"] = eligibility.get("status", "Not assessed")
     report["Validation Warning"] = eligibility.get("reason", "")
