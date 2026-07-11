@@ -8,19 +8,19 @@ Build 0.9.3 — Procurement Intelligence Engine
 
 | Gate | Result | Notes |
 |---|---|---|
-| Executive decision engine | Pass by test design | Deterministic recommendation and confidence covered |
-| Strategy engine | Pass by test design | Supported strategy set and rationale covered |
-| Allocation optimizer | Pass by test design | Allocation totals 100% and uses governed splits |
-| Negotiation intelligence | Pass by test design | One negotiation record per supplier |
-| Risk intelligence | Pass by test design | Ranked risks, severity, evidence, and mitigation generated |
-| Scenario engine | Pass by test design | Recomputes scoring, allocation, and recommendation |
-| AI Explainability 2.0 | Pass by test design | Selected and rejected supplier rationale generated |
-| Dashboard integration | Static pass | New Procurement Intelligence tab added |
-| Existing functionality | Preserved by additive integration | Packaging workflow remains intact |
-| CI | Pending | Await latest GitHub Actions result |
-| Live dashboard | Pending | Requires Streamlit validation |
+| Executive decision engine | Pass | Deterministic recommendation and confidence validated |
+| Strategy engine | Pass | Supported strategy set and rationale validated |
+| Allocation optimizer | Pass | Allocation totals 100% and uses governed splits |
+| Negotiation intelligence | Pass | One negotiation record generated per supplier |
+| Risk intelligence | Pass | Ranked risks, severity, evidence, and mitigation generated |
+| Scenario engine | Pass | Recomputes scoring, allocation, and recommendation |
+| AI Explainability 2.0 | Pass | Selected and rejected supplier rationale generated |
+| Dashboard integration | Pass in CI | Procurement Intelligence tab compiles and the Streamlit smoke test passes |
+| Existing functionality | Pass | Packaging workflow remains compatible with the additive integration |
+| CI | Pass | All visible Build 0.9.3 Quality Checks runs are green |
+| Live dashboard | Pending | Requires manual Streamlit review |
 
-## Provisional Quality Score
+## Confirmed Quality Score
 
 - Architecture: 9.3/10
 - Code Quality: 9.1/10
@@ -29,7 +29,7 @@ Build 0.9.3 — Procurement Intelligence Engine
 - Executive Usefulness: 9.4/10
 - Maintainability: 9.1/10
 
-**Provisional Average:** 9.3/10
+**CI-validated Average:** 9.3/10
 
 ## Key Controls
 
@@ -39,11 +39,15 @@ Build 0.9.3 — Procurement Intelligence Engine
 - Assumptions and trade-offs remain visible.
 - The application states that it is transparent, rule-guided, auditable, and not black-box AI.
 
-## Remaining Validation
+## CI Evidence
 
-1. Confirm the latest Quality Checks run is green.
-2. Open the deployed app and validate the Procurement Intelligence tab.
-3. Change the scenario selector and confirm the recommendation updates.
-4. Confirm allocation totals 100%.
-5. Confirm risk and negotiation tables render without errors.
-6. Confirm the executive narrative is generated.
+The latest Build 0.9.3 GitHub Actions runs completed successfully for the decision, strategy, allocation, negotiation, risk, scenario, UI, app integration, documentation, governance, and QA commits.
+
+## Remaining Manual Validation
+
+1. Open the deployed application and select the Procurement Intelligence tab.
+2. Confirm the executive recommendation, strategy, allocation, negotiation, and risk sections render.
+3. Change the Procurement Intelligence Scenario selector and confirm the scenario recommendation updates.
+4. Confirm optimized allocation totals 100%.
+5. Confirm the executive decision narrative is generated.
+6. Report any visual or interaction defect before Build 0.9.4 begins.
