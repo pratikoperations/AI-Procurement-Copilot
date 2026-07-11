@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 1.0 RC1.1 — Final Executive Polish
+Build 1.0 RC1.2 — Export Integrity and Category-Aware Communication Hotfix
 
 ## Build Status
 
-Implementation completed — latest CI and live polish validation pending
+Implementation completed — CI, live deployment, and manual download validation pending
 
 ## Active Category Engines
 
@@ -23,29 +23,32 @@ Implementation completed — latest CI and live polish validation pending
 
 ## Release Freeze
 
-Feature development is frozen. RC1.1 changes are limited to executive terminology, visual labels, category-aware headings, regression tests, and release documentation.
+Feature development is frozen. RC1.2 is restricted to currency/unit governance, category-aware communication, governed recommendations, classification precedence, export integrity, tests, and release documentation.
 
 ## Current Scope
 
-The platform includes category-aware RFQ analysis, should-cost, TCO, risk, Procurement Intelligence, Supplier Intelligence, validation assurance, evidence-governed Supplier 360 outputs, executive narratives, and business-readable downloads.
+The platform includes category-aware RFQ analysis, should-cost, TCO, risk, Procurement Intelligence, Supplier Intelligence, validation assurance, evidence-governed Supplier 360 outputs, category-aware communications, and separate business-readable and audit exports.
 
-## Build 1.0 RC1.1 Additions
+## Build 1.0 RC1.2 Additions
 
-- Executive chart legends and axis titles
-- Category-aware Raw Material should-cost heading
-- Recommendation-specific business explanations
-- Standardized visible headings and terminology
-- Executive terminology regression tests
-- Closure of VAL-006 through VAL-009 after live validation
+- Original and normalized currency/price fields
+- Auditable FX and UOM comparison basis
+- Corrected synthetic demo metadata
+- Eligibility-aware supplier emails and executive memos
+- Governed recommendation roles and no-qualified-supplier outcomes
+- Exit Candidate precedence
+- Risk Resilience Score terminology
+- Readable supplier score and comparison reports
+- Download content audit and consistency tests
 
 ## Release Status
 
-Portfolio Edition v1.0 remains untagged until RC1.1 GitHub Actions and live polish checks pass, exports are opened successfully, and independent review gates are completed or formally waived.
+Portfolio Edition v1.0 remains untagged until RC1.2 GitHub Actions, Streamlit smoke testing, and manual opening of all downloadable files pass, and independent review gates are completed or formally waived.
 
 ## Next Planned Milestone
 
-Validate RC1.1 and prepare the `v1.0.0` release tag. Do not add new features.
+Validate RC1.2 and prepare the `v1.0.0` release tag. Do not add new features.
 
 ## Recovery Note
 
-Check `PROJECT_STATUS.md`, `validation/VALIDATION_DEFECT_REGISTER.md`, `validation/RC1_MANUAL_VALIDATION_CHECKLIST.md`, `validation/RELEASE_READINESS_SCORECARD.md`, this file, and `BUILD_HISTORY.md` when resuming development.
+Check `PROJECT_STATUS.md`, `docs/BUILD_1.0_RC1.2_HOTFIX.md`, `docs/RC1_DOWNLOAD_CONTENT_AUDIT.md`, `validation/VALIDATION_DEFECT_REGISTER.md`, `validation/RC1_MANUAL_VALIDATION_CHECKLIST.md`, `validation/RELEASE_READINESS_SCORECARD.md`, this file, and `BUILD_HISTORY.md` when resuming development.
