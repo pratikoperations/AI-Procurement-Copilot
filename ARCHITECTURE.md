@@ -2,7 +2,7 @@
 
 ## Architecture Principle
 
-AI Procurement Copilot is designed as a modular, category-aware procurement decision platform, not merely a Streamlit script.
+AI Procurement Copilot is a modular, category-aware procurement and supplier decision platform, not merely a Streamlit script.
 
 ## High-Level Layers
 
@@ -12,90 +12,35 @@ AI Procurement Copilot
 ├── Category Engine Router
 │   ├── Packaging Engine
 │   └── Raw Material Engine
-├── Commodity Library
-├── Common Procurement Decision Engine
-├── Business Rules Layer
-├── AI Assistance Layer
-├── Data Validation + Test Layer
-├── Export + Handoff Layer
-└── Documentation + Recovery Layer
+├── Intelligent RFQ Engine
+├── Category-Specific Cost / Risk / TCO
+├── Procurement Intelligence Engine
+├── Supplier Intelligence Platform
+├── Explainability and Executive Outputs
+├── Validation, Tests, and CI
+├── Export and Handoff Layer
+└── Documentation and Recovery Layer
 ```
 
 ## Presentation Layer
 
-Current interface: Streamlit.
-
-The interface exposes category, commodity, currency, scenario, and allocation controls while keeping engine maturity visible to the user.
+Streamlit exposes category, commodity, RFQ, currency, scenario, allocation, Procurement Intelligence, and Supplier Intelligence workflows while keeping assumptions and maturity visible.
 
 ## Category Engine Router
 
-`modules/category_engine.py` is the entry point for category selection.
+`modules/category_engine.py` registers categories, routes requests, returns a governed profile contract, and prevents unsupported categories from failing silently.
 
-It:
+## Category Engines
 
-- Registers supported categories.
-- Routes requests to the correct category engine.
-- Returns a common engine-profile contract.
-- Distinguishes Active engines from Foundation Preview engines.
-- Prevents unsupported categories from failing silently.
+### Packaging Procurement — Active
 
-## Commodity Library
+Uses packaging-specific should-cost, TCO, risk, ESG, service, MOQ, lead-time, payment, incoterm, and continuity logic.
 
-`modules/commodity_library.py` stores category-aware metadata:
+### Raw Material Procurement — Active
 
-- Commodity family
-- Unit of measure
-- Primary cost drivers
-- Risk signals
+Uses commodity index, producer premium, freight, duty, FX, inventory, working capital, volatility, import dependency, concentration, substitution, capacity, quality, and continuity logic.
 
-The library is metadata-driven so new commodities can be added without rewriting the application shell.
-
-## Common Procurement Decision Engine
-
-Shared logic across production-ready categories:
-
-- RFQ validation and normalization
-- Supplier comparison
-- Advanced TCO
-- Risk scoring
-- ESG scoring
-- Supplier performance scoring
-- Decision weighting
-- Allocation recommendation
-- Scenario simulation
-- Executive recommendation
-- Export package generation
-
-## Packaging Engine
-
-**Status:** Active
-
-Current category-specific logic includes:
-
-- Substrate / paper
-- Resin / film / foil
-- Ink / coating
-- Adhesive / solvent
-- Printing
-- Conversion
-- Lamination / slitting
-- Tooling / plate amortization
-- Scrap / wastage
-- Packaging freight buffer
-- EPR / recyclability / PCR logic
-
-Initial commodity profiles:
-
-- Corrugated Board
-- Flexible Laminates
-- PET Bottles
-- Labels
-
-## Raw Material Engine
-
-**Status:** Foundation Preview in Build 0.9.1
-
-Architecture and metadata are active for:
+Supported raw materials:
 
 - PET Resin
 - Polyethylene
@@ -104,55 +49,80 @@ Architecture and metadata are active for:
 - Steel
 - Copper
 
-Planned category-specific logic:
+## Intelligent RFQ Engine
 
-- Commodity index
-- Conversion / producer premium
-- Freight and duties
-- FX exposure
-- Additives or processing
-- Supplier margin
-- Volatility risk
-- Contract indexation
-- Substitute availability
-- Supply concentration
+Normalizes CSV/Excel supplier files through exact and fuzzy header mapping, unit normalization, duplicate checks, numeric diagnostics, quality scoring, and blocking validation.
 
-The application intentionally stops before supplier scoring when Raw Material Procurement is selected until the production engine is implemented.
+## Procurement Intelligence Engine
+
+Includes:
+
+- Executive decision engine
+- Sourcing strategy engine
+- Supplier allocation optimizer
+- Negotiation intelligence
+- Procurement risk intelligence
+- Scenario simulation
+- AI Explainability 2.0
+- Executive decision narrative
+
+## Supplier Intelligence Platform
+
+### Supplier 360
+
+`modules/supplier360_engine.py` combines supplier profile, capacity, qualification, performance, financial, ESG, innovation, and relationship outputs. Missing inputs are transparently defaulted and listed.
+
+### Performance
+
+`modules/supplier_performance_engine.py` evaluates quality, delivery, service, commercial competitiveness, corrective action, continuous improvement, capacity reliability, and innovation contribution.
+
+### Financial Health
+
+`modules/supplier_financial_engine.py` generates financial health indicators from available utilization, dependency, payment, and completeness signals. It does not claim audited financial facts or bankruptcy probability.
+
+### ESG and Innovation
+
+`modules/supplier_esg_intelligence.py` and `modules/supplier_innovation_engine.py` generate maturity scores, strengths, gaps, documentation needs, corrective actions, and collaboration opportunities.
+
+### SRM
+
+`modules/srm_engine.py` classifies suppliers as Strategic, Preferred, Approved, Transactional, Development, or Exit Candidate and assigns governance cadence and relationship strategy.
+
+### Recommendation and Comparison
+
+`modules/supplier_recommendation_engine.py` and `modules/supplier_comparison.py` produce deterministic rankings, side-by-side comparison, and executive supplier narrative.
 
 ## AI Assistance Layer
 
-AI supports:
-
-- Explanation
-- Summarization
-- Email drafting
-- Negotiation playbooks
-- Executive memo drafting
-- RFQ interpretation
-
-AI does not replace transparent procurement decision logic.
+AI-style outputs support explanation, summarization, email drafting, negotiation playbooks, executive narratives, and interview communication. Decision logic remains rule-guided and auditable.
 
 ## Data Layer
 
-Current data sources:
+Current sources:
 
-- Synthetic demo data
+- Synthetic packaging and raw-material demo data
 - CSV RFQ upload
 - Excel RFQ upload
 
-Future sources:
+Future production sources:
 
 - Supplier master
-- ERP export
-- Spend cube
+- ERP and spend data
+- QMS and OTIF history
+- Audit and certification records
+- Contract data
 - Commodity indices
+- Verified financial and country-risk data
 
-## Design Priorities
+## Governance Priorities
 
 1. Explainability
 2. Procurement credibility
 3. Category separation
-4. Modular code
-5. Interview readiness
-6. GitHub recoverability
-7. Future category extensibility
+4. Transparent defaulting
+5. Human approval
+6. Modular code
+7. Testability and CI
+8. GitHub recoverability
+9. Interview readiness
+10. Future integration extensibility
