@@ -1,26 +1,44 @@
 # Build History
 
-## Build 0.9.5 — Supplier Intelligence Platform
+## Build 0.9.6 — Independent Validation and Real-World Stress Testing
 
-**Status:** Completed — CI and Live Validation Pending  
-**Objective:** Transform supplier records into explainable Supplier 360 profiles and executive relationship intelligence.
+**Status:** Implementation completed — validation evidence pending  
+**Objective:** Prove logic, safety, file robustness and governance before Portfolio Edition v1.0 release.
 
 ### Completed
 
-- Added Supplier 360, performance, financial, ESG, innovation, and SRM engines.
-- Added supplier recommendation rankings and comparison.
-- Added executive supplier narrative.
-- Added Supplier Intelligence dashboard tab and exports.
-- Added Packaging and Raw Material compatibility tests.
-- Added QA and platform documentation.
+- Added data-confidence, eligibility and business-rule safety engines.
+- Added final-award narrative withholding.
+- Added formula, assumption, decision-rule, traceability and limitations registers.
+- Added adversarial and real-world file tests with synthetic datasets.
+- Added independent-review prompts, human-review template and defect governance.
+- Added release-readiness scorecard and model-risk statement.
+- Updated Streamlit to show validation status before recommendation outputs.
 
 ### Outcome
 
-The application now evaluates suppliers as ongoing business relationships rather than only RFQ rows, while clearly separating real inputs, transparent defaults, indicators, and human approval.
+The application now distinguishes technical scoring from recommendation eligibility. It can block unsafe recommendations, downgrade weak-data outputs to provisional analysis, expose defaults and prevent polished award language when validation fails.
+
+### Remaining gates
+
+- Green CI for Build 0.9.6
+- Live packaging and raw-material validation
+- Gemini independent review
+- Perplexity methodology review
+- Human procurement review or formal waiver
+- Defect closure and final scorecard approval
 
 ### Next
 
-Portfolio Edition v1.0 release preparation after CI and live validation.
+Complete Build 0.9.6 evidence. Build 1.0 remains blocked.
+
+---
+
+## Build 0.9.5 — Supplier Intelligence Platform
+
+**Status:** Completed — CI Validated
+
+- Added Supplier 360, performance, financial, ESG, innovation, SRM, comparison, recommendations, narratives, exports and tests.
 
 ---
 
@@ -28,42 +46,10 @@ Portfolio Edition v1.0 release preparation after CI and live validation.
 
 **Status:** Completed — CI Validated
 
-- Added production raw-material should-cost, risk, TCO, category-aware scoring, routing, tests, and documentation.
+- Added production raw-material should-cost, risk, TCO, scoring and routing.
 
 ---
 
-## Build 0.9.3.1 — Category Profile Integration Hotfix
+## Builds 0.1–0.9.3.1
 
-**Status:** Completed — CI Validated
-
-- Fixed missing category profile handling and explicit unit preservation.
-
----
-
-## Build 0.9.3 — Procurement Intelligence Engine
-
-**Status:** Completed — CI Validated
-
-- Added executive decision, strategy, allocation, negotiation, risk, scenario, explainability, dashboard, tests, and documentation.
-
----
-
-## Build 0.9.2 — Intelligent RFQ Engine
-
-**Status:** Completed — CI Validated
-
-- Added intelligent header recognition, canonical mapping, unit normalization, diagnostics, upload quality scoring, tests, and documentation.
-
----
-
-## Build 0.9.1 — Multi-Category Foundation
-
-**Status:** Completed — CI Validated
-
-- Added category routing, packaging and raw-material profiles, commodity metadata, selectors, guardrails, tests, and documentation.
-
----
-
-## Builds 0.1–0.8.1
-
-Completed repository foundation, packaging engines, executive outputs, QA, CI, exports, portfolio assets, public deployment, and stabilization.
+Completed repository foundation, packaging engines, executive outputs, QA, CI, exports, deployment, multi-category architecture, Intelligent RFQ, Procurement Intelligence and stabilization hotfixes.
