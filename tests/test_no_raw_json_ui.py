@@ -41,14 +41,14 @@ def test_supplier_intelligence_has_readable_sections():
 
 def test_machine_readable_payloads_are_download_only():
     source = (ROOT / "app.py").read_text(encoding="utf-8")
-    assert "Machine-Readable Decision Audit Data" in source
-    assert "Supplier 360 Audit Data" in source
+    assert "Decision Machine-Readable Audit Data" in source
+    assert "Supplier 360 Machine-Readable Audit Data" in source
 
 
 def test_dashboard_uses_executive_chart_labels():
     source = (ROOT / "modules" / "dashboard.py").read_text(encoding="utf-8")
     required = [
-        "Risk Score",
+        "Risk Resilience Score",
         "Performance",
         "ESG Maturity",
         "Overall Decision Score",
@@ -70,4 +70,4 @@ def test_recommendation_explanations_use_business_language():
     source = (ROOT / "modules" / "supplier_recommendation_engine.py").read_text(encoding="utf-8")
     assert "Selected using deterministic comparison" not in source
     assert "Highest overall value after balancing cost, performance, governance, and business risk." in source
-    assert "Lowest quoted commercial price before risk and total-cost adjustments." in source
+    assert "Lowest normalized commercial price before risk and total-cost adjustments." in source
