@@ -10,31 +10,33 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.9.3.1 — Category Profile Integration Hotfix
+Build 0.9.4 — Category-Specific Cost and Risk Engines
 
 ## Build Status
 
-Implemented — CI and Live Deployment Validation Pending
+Completed — CI and Live Multi-Category Validation Pending
 
 ## Active Category Engines
 
 - Packaging Procurement — Active
-- Raw Material Procurement — Foundation Preview
+- Raw Material Procurement — Active
 
 ## Current Scope
 
-The application includes category routing, intelligent RFQ normalization, production packaging analysis, procurement intelligence, explainability, exports, tests, CI, public Streamlit deployment, and a defensive category-profile integration contract.
+The application includes category routing, intelligent RFQ normalization, category-specific should-cost, TCO, risk and scoring for packaging and raw materials, procurement intelligence, explainability, exports, tests, CI, and public Streamlit deployment.
 
-## Hotfix Baseline
+## Raw Material Baseline
 
-- Default category profile available
-- Sidebar always returns `category_profile`
-- `app.py` uses safe profile access
-- Regression tests cover missing and partial metadata
+- Commodity index and producer premium
+- Freight, duty, FX and quality premiums
+- Commodity volatility and continuity risk
+- Import dependency and supplier concentration
+- Substitute availability and capacity risk
+- Category-specific scoring weights
 
 ## Next Planned Build
 
-Build 0.9.4 — only after hotfix CI and live deployment validation
+Build 0.9.5 — Executive Decision Intelligence and Release Preparation
 
 ## Recovery Note
 
