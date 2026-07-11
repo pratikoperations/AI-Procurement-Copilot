@@ -1,8 +1,8 @@
 # AI Procurement Copilot
 
 **Edition:** Portfolio Edition v1.0  
-**Current Build:** Build 0.8 — Portfolio Edition v1.0 Release Candidate  
-**Status:** Final Workflow Confirmation and Manual Visual Review Pending  
+**Current Build:** Build 0.8.1 — Deployment Stabilization  
+**Status:** Streamlit Cloud Redeployment Validation Pending  
 **Repository Owner:** pratikoperations
 
 ## Objective
@@ -33,6 +33,16 @@ This is not a black-box AI award tool. It is a transparent, rule-guided, AI-read
 - Automated Streamlit smoke testing
 - Downloadable Excel, CSV, TXT, and JSON decision packages
 - Resume, LinkedIn, demo-script, and screenshot portfolio assets
+- Reproducible Python 3.11 deployment baseline
+
+## Deployment Baseline
+
+- Python 3.11 via `runtime.txt`
+- Streamlit 1.59.1
+- Pandas 2.2.3
+- NumPy 2.1.3
+- Plotly 5.24.1
+- OpenPyXL 3.1.5
 
 ## Run Locally
 
@@ -82,6 +92,7 @@ AI Procurement Copilot
 - `docs/BASE_BUILD_PLAN_REFERENCE.md`
 - `docs/RELEASE_CANDIDATE_CHECKLIST.md`
 - `docs/BUILD_0.8_QA_REPORT.md`
+- `docs/BUILD_0.8.1_QA_REPORT.md`
 - `docs/PORTFOLIO_ASSETS.md`
 - `docs/DEMO_SCRIPT.md`
 - `assets/screenshots/README.md`
