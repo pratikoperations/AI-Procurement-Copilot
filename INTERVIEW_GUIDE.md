@@ -2,60 +2,56 @@
 
 ## Project Positioning
 
-AI Procurement Copilot demonstrates how AI-ready procurement and supplier intelligence can improve sourcing quality, decision transparency, supplier governance, risk visibility, and executive communication.
+AI Procurement Copilot demonstrates how AI-ready procurement and supplier intelligence can improve sourcing quality, decision transparency, supplier governance, risk visibility and executive communication while keeping safety gates and human approval explicit.
 
 ## Interview Pitch
 
-The project converts RFQ and supplier data into a structured sourcing recommendation and Supplier 360 view. It evaluates price, category-specific should-cost, advanced TCO, risk, ESG, supplier performance, MOQ, lead time, payment terms, allocation, financial health indicators, innovation maturity, and SRM classification.
+The project converts RFQ and supplier data into category-specific should-cost, TCO, risk, sourcing, allocation and Supplier 360 recommendations. Build 0.9.6 adds data-confidence scoring, recommendation eligibility, business-rule validation, adversarial testing and safe withholding of award language when data is inadequate.
 
-It does not simply select the lowest price. It distinguishes quoted cost, best-value sourcing, long-term supplier fit, and relationship strategy.
+It does not simply select the lowest price and it does not force a recommendation when critical data, capacity, currency, UOM or validation conditions fail.
 
 ## Recommended Demo Flow
 
 1. Select Packaging Procurement or Raw Material Procurement.
 2. Load demo data or upload an RFQ.
-3. Show lowest price versus best-value recommendation.
-4. Explain category-specific should-cost, TCO, and risk.
-5. Open Procurement Intelligence for strategy, allocation, negotiation, and scenarios.
-6. Open Supplier Intelligence and compare Supplier 360 profiles.
-7. Show performance, financial, ESG, innovation, and SRM classification.
-8. Close with recommendation rankings, executive narrative, explainability, and exports.
+3. Open the Validation Assurance Gate.
+4. Explain supplied, defaulted, missing-critical and inferred data.
+5. Show eligibility status and business-rule checks.
+6. Demonstrate lowest price versus best value.
+7. Show category-specific should-cost, TCO and risk.
+8. Open Procurement Intelligence for strategy, allocation, negotiation and scenarios.
+9. Open Supplier Intelligence for Supplier 360 and SRM.
+10. Demonstrate a blocked file and show that final award language is withheld.
+11. Close with the model-risk statement and human-approval requirement.
 
-## Supplier Intelligence Talking Points
+## Strong Interview Answer
 
-- Supplier records are treated as ongoing business relationships, not only quote lines.
-- Missing supplier facts are explicitly defaulted and listed rather than hidden.
-- Financial outputs are indicators and due-diligence signals, not audited financial claims.
-- SRM classification assigns governance intensity, cadence, sponsorship, and development strategy.
-- Recommendation rankings are role-specific and deterministic.
-- Packaging and Raw Material Procurement preserve different commercial models.
-- Human commercial, legal, quality, risk, and executive approval remains mandatory.
+> I built an AI-enabled procurement decision-support platform that evaluates RFQs using category-specific should-cost, TCO, risk and supplier performance logic. I extended it into Supplier 360 intelligence and then added a validation-assurance layer. The system measures data completeness, checks business rules, validates allocation feasibility and decides whether a recommendation is eligible, conditional, provisional, insufficient or blocked. When critical data fails, it withholds the polished award narrative. That is important because responsible AI adoption is not just about generating recommendations; it is about knowing when the system should refuse to recommend.
 
-## Key Talking Points
+## Validation Talking Points
 
-- Built as a transparent, rule-guided, AI-ready copilot.
-- Decision and supplier recommendation logic is explainable and auditable.
-- AI supports drafting, explanation, and summarization rather than black-box decisioning.
-- Packaging and raw-material engines are both active.
-- Supplier 360 integrates performance, financial, ESG, innovation, and relationship intelligence.
-- GitHub is the canonical project record with tests, QA reports, build history, and recovery documentation.
+- Green CI proves expected code paths; it does not prove business correctness.
+- Formula, assumption and decision-rule registers make logic auditable.
+- Data confidence measures completeness, not probability of correctness.
+- Recommendation confidence measures score separation, not forecast accuracy.
+- Mixed currency and UOM data is blocked until normalized.
+- Allocation must total 100% and remain within supplier capacity.
+- Supplier 360 defaults are visible and reduce confidence.
+- Financial health is an indicator, not bankruptcy prediction.
+- Gemini, Perplexity and human review findings must be dispositioned before release approval.
 
 ## Business Value
 
 - Improves sourcing and supplier-management decision quality.
-- Reduces over-reliance on lowest-price awards.
-- Makes cost, risk, defaulting, and trade-offs visible.
-- Creates executive-ready sourcing and supplier narratives.
-- Supports negotiation, supplier development, continuity, and SRM planning.
-- Enables category-specific and relationship-specific procurement analytics.
-
-## Strong Interview Answer
-
-> I built an AI-enabled procurement decision-support platform that evaluates RFQs using category-specific should-cost, TCO, risk, and supplier performance logic. I then extended it into Supplier 360 intelligence covering financial health indicators, ESG, innovation, and SRM classification. The system is deterministic and explainable, so every recommendation shows the factors, assumptions, trade-offs, and data gaps. AI assists communication, but the award and relationship decisions remain human-governed.
+- Reduces lowest-price bias and false confidence.
+- Prevents infeasible allocations and invalid comparisons.
+- Makes data gaps, defaults, assumptions and trade-offs visible.
+- Supports negotiation, supplier development, continuity and SRM planning.
+- Demonstrates responsible, governed AI adoption.
 
 ## Career Relevance
 
-This project supports positioning for roles in:
+This project supports positioning for:
 
 - Procurement transformation
 - Strategic sourcing
@@ -63,7 +59,7 @@ This project supports positioning for roles in:
 - Raw-material procurement
 - Category management
 - Supplier relationship management
-- Supplier development
+- Procurement excellence
 - Procurement analytics
-- AI-enabled operations
+- AI governance in operations
 - Digital procurement leadership
