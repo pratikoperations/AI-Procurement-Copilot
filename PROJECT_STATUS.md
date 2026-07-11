@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.9.1 — Multi-Category Foundation
+Build 0.9.2 — Intelligent RFQ Engine
 
 ## Current Status
 
-Build 0.9.1 Completed — CI and Live Deployment Validation Pending
+Build 0.9.2 Completed — CI and Live Upload Validation Pending
 
 ## Canonical Source of Truth
 
@@ -22,36 +22,36 @@ GitHub repository: pratikoperations/AI-Procurement-Copilot
 
 ## Build Objective
 
-Introduce a reusable category-engine architecture that separates packaging and raw-material intelligence, adds commodity metadata, and keeps engine maturity transparent.
+Make RFQ uploads resilient to different supplier templates by recognizing headers, mapping them to a canonical schema, normalizing units, diagnosing data-quality issues, and blocking incomplete files before scoring.
 
 ## Completed Scope
 
-- Category engine router
-- Active Packaging Procurement engine profile
-- Raw Material Procurement foundation preview
-- Commodity library for packaging and raw materials
-- Dynamic category and commodity selectors
-- Category intelligence panel
-- Guardrail preventing packaging calculations from being presented as raw-material logic
-- Category regression tests
-- Category and raw-material documentation
-- Updated architecture
+- Exact and fuzzy RFQ header recognition
+- Canonical column mapping
+- Unit-of-measure normalization
+- Numeric conversion diagnostics
+- Duplicate supplier detection
+- Missing-data and unmapped-column diagnostics
+- Upload quality scoring
+- Intelligent validation messages
+- Data-loader integration
+- Regression tests
+- Intelligent RFQ documentation
 
-## Engine Status
+## Category Status
 
 - Packaging Procurement: Active
 - Raw Material Procurement: Foundation Preview
-- Direct Materials: Planned
-- Indirect Materials: Planned
 
 ## QA Status
 
-- Existing packaging workflow preserved
-- Category tests added
-- Raw-material preview explicitly stops before scoring
+- Existing synthetic workflow preserved
+- Intelligent RFQ tests added
+- Invalid files blocked before scoring
+- Unmapped columns preserved
 - GitHub Actions result: Pending
-- Streamlit deployment refresh: Pending
+- Live alternate-template upload review: Pending
 
 ## Next Milestone
 
-Build 0.9.2 — Intelligent RFQ Engine
+Build 0.9.3 — Procurement Intelligence Engine
