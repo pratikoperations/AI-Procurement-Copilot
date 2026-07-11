@@ -18,7 +18,9 @@ def generate_executive_memo(scored_df, allocation_df, value_metrics, confidence,
     recommended = scored_df.iloc[0]
     lowest = scored_df.sort_values("Quoted Unit Price USD").iloc[0]
     eligibility = eligibility or {"status": "Eligible", "reason": "Eligibility checks passed.", "failed_checks": [], "required_remediation": []}
-    status = eligibility.get("status", award_status(recommended, confidence))
+    status = eligibility.get("status")
+    if not status:
+        status = award_status(recommended, confidence)
     heading = _eligibility_heading(status)
     confidence_text = "Not available" if not data_confidence else f"{data_confidence.get('data_confidence_score', 0)}/100 — {data_confidence.get('confidence_category', 'Not assessed')}"
 
