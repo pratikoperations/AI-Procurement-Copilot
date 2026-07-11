@@ -1,29 +1,33 @@
 # Build History
 
-## Build 0.9.3 — Procurement Intelligence Engine
+## Build 0.9.3.1 — Category Profile Integration Hotfix
 
-**Status:** Completed — CI and Live Dashboard Validation Pending  
-**Objective:** Convert procurement analytics into deterministic, explainable decision intelligence.
+**Status:** Implemented — CI and Live Deployment Validation Pending  
+**Objective:** Remove the Streamlit startup failure caused by a missing `category_profile` key.
 
 ### Completed
 
-- Added executive decision engine and AI Explainability 2.0.
-- Added sourcing strategy recommendation.
-- Added supplier allocation optimizer.
-- Added supplier-level negotiation intelligence.
-- Added procurement risk intelligence.
-- Added scenario simulation and recomputation.
-- Added board-ready executive decision narrative.
-- Added Procurement Intelligence dashboard tab.
-- Added regression tests and documentation.
+- Added a reusable default category profile.
+- Added profile completion and fallback logic.
+- Guaranteed the sidebar return contract includes `category_profile`.
+- Added defensive handling in `app.py`.
+- Added hotfix regression tests and documentation.
 
 ### Outcome
 
-The application now recommends a supplier, strategy, allocation, negotiation priorities, risk mitigations, and scenario-adjusted decisions rather than only presenting analytics.
+The application no longer depends on an unguarded category-profile lookup and can recover safely when metadata is absent or incomplete.
 
 ### Next
 
-Build 0.9.4 — Category-Specific Cost and Risk Engines.
+Validate CI and live deployment before Build 0.9.4.
+
+---
+
+## Build 0.9.3 — Procurement Intelligence Engine
+
+**Status:** Completed — CI Validated
+
+- Added executive decision, strategy, allocation, negotiation, risk, scenario, explainability, dashboard, tests, and documentation.
 
 ---
 
