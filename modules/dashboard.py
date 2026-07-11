@@ -3,7 +3,31 @@
 import streamlit as st
 import plotly.express as px
 
-from modules.utils import unit_cost, money_usd, money_inr
+from modules.utils import unit_cost, money_usd
+
+
+SUPPLIER_SNAPSHOT_LABELS = {
+    "scenario_unit_price_usd": "Scenario Unit Price (USD)",
+    "adjusted_tco_unit_usd": "Risk-Adjusted TCO (USD)",
+    "annual_tco_usd": "Annual TCO (USD)",
+    "risk_score": "Risk Score",
+    "risk_category": "Risk Category",
+    "performance_score": "Performance",
+    "esg_score": "ESG Maturity",
+    "total_score": "Overall Decision Score",
+}
+
+TCO_LABELS = {
+    "scenario_unit_price_usd": "Scenario Unit Price (USD)",
+    "freight_cost_usd": "Freight Cost (USD)",
+    "inventory_cost_usd": "Inventory Cost (USD)",
+    "working_capital_impact_usd": "Working-Capital Impact (USD)",
+    "risk_penalty_usd": "Risk Penalty (USD)",
+    "lead_time_buffer_usd": "Lead-Time Buffer (USD)",
+    "adjusted_tco_unit_usd": "Risk-Adjusted TCO (USD)",
+    "annual_tco_usd": "Annual TCO (USD)",
+    "annual_tco_inr": "Annual TCO (INR)",
+}
 
 
 def render_executive_dashboard(scored_df, assumptions, confidence=None):
@@ -30,12 +54,12 @@ def render_executive_dashboard(scored_df, assumptions, confidence=None):
             f"{lowest['Supplier']} has the lowest quote, but {recommended['Supplier']} ranks best after TCO, risk, ESG, and performance adjustment."
         )
     else:
-        st.success(f"{recommended['Supplier']} is currently both lowest quote and best-value supplier.")
+        st.success(f"{recommended['Supplier']} is currently both the lowest quote and the best-value supplier.")
 
 
 def render_supplier_snapshot(scored_df):
-    """Render scored supplier table and charts."""
-    st.header("Supplier RFQ + Decision Snapshot")
+    """Render scored supplier table and executive-labelled charts."""
+    st.header("Supplier RFQ Decision Snapshot")
 
     display_cols = [
         "Supplier",
@@ -49,30 +73,51 @@ def render_supplier_snapshot(scored_df):
         "esg_score",
         "total_score",
     ]
-    st.dataframe(scored_df[display_cols], width="stretch", hide_index=True)
+    display_df = scored_df[display_cols].rename(columns=SUPPLIER_SNAPSHOT_LABELS)
+    st.dataframe(display_df, width="stretch", hide_index=True)
 
+    price_chart_df = scored_df.rename(columns={
+        "Quoted Unit Price USD": "Quoted Price",
+        "adjusted_tco_unit_usd": "Risk-Adjusted TCO",
+    })
     fig = px.bar(
-        scored_df,
+        price_chart_df,
         x="Supplier",
-        y=["Quoted Unit Price USD", "adjusted_tco_unit_usd"],
+        y=["Quoted Price", "Risk-Adjusted TCO"],
         barmode="group",
         title="Quoted Price vs Risk-Adjusted TCO Unit Cost",
+        labels={"value": "Unit Cost (USD)", "variable": "Cost Measure"},
     )
+    fig.update_layout(legend_title_text="Cost Measure", margin=dict(l=10, r=10, t=55, b=10))
     st.plotly_chart(fig, width="stretch")
 
+    score_chart_df = scored_df.rename(columns={
+        "risk_score": "Risk Score",
+        "performance_score": "Performance",
+        "esg_score": "ESG Maturity",
+        "total_score": "Overall Decision Score",
+    })
     fig_score = px.bar(
-        scored_df,
+        score_chart_df,
         x="Supplier",
-        y=["risk_score", "performance_score", "esg_score", "total_score"],
+        y=["Risk Score", "Performance", "ESG Maturity", "Overall Decision Score"],
         barmode="group",
-        title="Supplier Risk, Performance, ESG, and Total Score",
+        title="Supplier Risk, Performance, ESG, and Overall Decision Score",
+        labels={"value": "Score (0–100)", "variable": "Decision Dimension"},
+        range_y=[0, 100],
     )
+    fig_score.update_layout(legend_title_text="Decision Dimension", margin=dict(l=10, r=10, t=55, b=10))
     st.plotly_chart(fig_score, width="stretch")
 
 
 def render_should_cost_section(should_cost_df, target_unit_cost, assumptions):
-    """Render packaging should-cost build-up."""
-    st.header("Packaging Should-Cost Model")
+    """Render category-aware should-cost build-up."""
+    category = assumptions.get("category", "Packaging Procurement")
+    commodity = assumptions.get("commodity", "Category")
+    heading = "Packaging Should-Cost Model" if category == "Packaging Procurement" else "Raw Material Should-Cost Model"
+    chart_title = "Packaging Should-Cost Component Build-Up" if category == "Packaging Procurement" else f"{commodity} Should-Cost Component Build-Up"
+
+    st.header(heading)
     st.metric("Should-Cost Target", unit_cost(target_unit_cost, assumptions["display_currency"], assumptions["fx_rate"]))
     st.dataframe(should_cost_df, width="stretch", hide_index=True)
 
@@ -80,9 +125,11 @@ def render_should_cost_section(should_cost_df, target_unit_cost, assumptions):
         should_cost_df,
         x="Component",
         y="Unit Cost USD",
-        title="Packaging Should-Cost Component Build-Up",
+        title=chart_title,
         text_auto=".4f",
+        labels={"Unit Cost USD": "Unit Cost (USD)"},
     )
+    fig.update_layout(margin=dict(l=10, r=10, t=55, b=10))
     st.plotly_chart(fig, width="stretch")
 
 
@@ -102,7 +149,7 @@ def render_tco_breakdown(scored_df, assumptions):
     ]
     tco_df = scored_df[cols].copy()
     tco_df["annual_tco_inr"] = tco_df["annual_tco_usd"] * assumptions["fx_rate"]
-    st.dataframe(tco_df, width="stretch", hide_index=True)
+    st.dataframe(tco_df.rename(columns=TCO_LABELS), width="stretch", hide_index=True)
 
 
 def render_executive_value(value_metrics, assumptions):
@@ -118,7 +165,7 @@ def render_executive_value(value_metrics, assumptions):
 
 def render_allocation(allocation_df, assumptions):
     """Render supplier allocation recommendation."""
-    st.header("Constraint-Style Supplier Allocation")
+    st.header("Recommended Supplier Allocation")
     display = allocation_df.copy()
     display["Estimated Annual TCO INR"] = display["Estimated Annual TCO USD"] * assumptions["fx_rate"]
     st.dataframe(display, width="stretch", hide_index=True)
@@ -129,6 +176,7 @@ def render_allocation(allocation_df, assumptions):
         values="Recommended Allocation %",
         title="Recommended Supplier Allocation",
     )
+    fig.update_layout(margin=dict(l=10, r=10, t=55, b=10))
     st.plotly_chart(fig, width="stretch")
 
 
@@ -145,13 +193,15 @@ def render_scenario_table(scenario_df, assumptions):
         y="Annual TCO USD",
         color="Winning Supplier",
         title="Scenario Stress Test: Winning Supplier and Annual TCO",
+        labels={"Annual TCO USD": "Annual TCO (USD)"},
     )
+    fig.update_layout(legend_title_text="Winning Supplier", margin=dict(l=10, r=10, t=55, b=10))
     st.plotly_chart(fig, width="stretch")
 
 
 def render_negotiation(playbook_text, negotiation_result):
     """Render negotiation simulator output and playbook."""
-    st.header("Negotiation Simulator + Playbook")
+    st.header("Negotiation Simulator and Playbook")
     c1, c2, c3 = st.columns(3)
     c1.metric("Current TCO Unit", money_usd(negotiation_result["current_tco_unit_usd"]))
     c2.metric("Simulated TCO Unit", money_usd(negotiation_result["simulated_tco_unit_usd"]))
