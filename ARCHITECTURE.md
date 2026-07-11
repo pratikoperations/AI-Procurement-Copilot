@@ -2,13 +2,13 @@
 
 ## Architecture Principle
 
-AI Procurement Copilot is a modular, category-aware procurement and supplier decision platform, not merely a Streamlit script.
+AI Procurement Copilot is a modular, category-aware procurement and supplier decision-support platform with explicit safety, data-confidence and human-approval gates.
 
 ## High-Level Layers
 
 ```text
 AI Procurement Copilot
-├── Presentation Layer
+├── Streamlit Presentation Layer
 ├── Category Engine Router
 │   ├── Packaging Engine
 │   └── Raw Material Engine
@@ -16,85 +16,79 @@ AI Procurement Copilot
 ├── Category-Specific Cost / Risk / TCO
 ├── Procurement Intelligence Engine
 ├── Supplier Intelligence Platform
+├── Validation Assurance Layer
+│   ├── Data Confidence
+│   ├── Business Rule Validator
+│   ├── Recommendation Eligibility
+│   └── Safe Executive Output
 ├── Explainability and Executive Outputs
-├── Validation, Tests, and CI
+├── Tests, CI and External Validation Assets
 ├── Export and Handoff Layer
 └── Documentation and Recovery Layer
 ```
 
 ## Presentation Layer
 
-Streamlit exposes category, commodity, RFQ, currency, scenario, allocation, Procurement Intelligence, and Supplier Intelligence workflows while keeping assumptions and maturity visible.
-
-## Category Engine Router
-
-`modules/category_engine.py` registers categories, routes requests, returns a governed profile contract, and prevents unsupported categories from failing silently.
+Streamlit exposes category, commodity, RFQ, currency, scenario, allocation, Procurement Intelligence, Supplier Intelligence and Validation Assurance workflows. The interface distinguishes synthetic demonstration data from uploaded unverified supplier data.
 
 ## Category Engines
 
 ### Packaging Procurement — Active
 
-Uses packaging-specific should-cost, TCO, risk, ESG, service, MOQ, lead-time, payment, incoterm, and continuity logic.
+Uses packaging-specific should-cost, TCO, risk, ESG, service, MOQ, lead-time, payment, incoterm and continuity logic.
 
 ### Raw Material Procurement — Active
 
-Uses commodity index, producer premium, freight, duty, FX, inventory, working capital, volatility, import dependency, concentration, substitution, capacity, quality, and continuity logic.
-
-Supported raw materials:
-
-- PET Resin
-- Polyethylene
-- Polypropylene
-- Aluminium Foil
-- Steel
-- Copper
+Uses commodity index, producer premium, freight, duty, FX, inventory, working capital, volatility, import dependency, concentration, substitution, capacity, quality and continuity logic.
 
 ## Intelligent RFQ Engine
 
-Normalizes CSV/Excel supplier files through exact and fuzzy header mapping, unit normalization, duplicate checks, numeric diagnostics, quality scoring, and blocking validation.
+Normalizes supplier files through exact and fuzzy header mapping, unit normalization, duplicate checks, numeric diagnostics, quality scoring and blocking validation.
 
 ## Procurement Intelligence Engine
 
-Includes:
-
-- Executive decision engine
-- Sourcing strategy engine
-- Supplier allocation optimizer
-- Negotiation intelligence
-- Procurement risk intelligence
-- Scenario simulation
-- AI Explainability 2.0
-- Executive decision narrative
+Includes executive decision, strategy, allocation, negotiation, risk, scenarios, explainability and executive narrative.
 
 ## Supplier Intelligence Platform
 
-### Supplier 360
+Includes Supplier 360, extended performance, financial-health indicators, ESG maturity, innovation maturity, SRM classification, supplier comparison and explainable recommendation rankings.
 
-`modules/supplier360_engine.py` combines supplier profile, capacity, qualification, performance, financial, ESG, innovation, and relationship outputs. Missing inputs are transparently defaulted and listed.
+## Validation Assurance Layer
 
-### Performance
+### Data confidence
 
-`modules/supplier_performance_engine.py` evaluates quality, delivery, service, commercial competitiveness, corrective action, continuous improvement, capacity reliability, and innovation contribution.
+`modules/data_confidence.py` measures supplied, defaulted, missing-critical and inferred data. The score measures completeness and reliability, not correctness probability.
 
-### Financial Health
+### Business-rule validation
 
-`modules/supplier_financial_engine.py` generates financial health indicators from available utilization, dependency, payment, and completeness signals. It does not claim audited financial facts or bankruptcy probability.
+`modules/business_rule_validator.py` validates price, volume, percentages, currency, UOM, capacity, allocation and contradictory statuses.
 
-### ESG and Innovation
+### Recommendation eligibility
 
-`modules/supplier_esg_intelligence.py` and `modules/supplier_innovation_engine.py` generate maturity scores, strengths, gaps, documentation needs, corrective actions, and collaboration opportunities.
+`modules/recommendation_eligibility.py` returns:
 
-### SRM
+- Eligible
+- Eligible With Conditions
+- Human Review Required
+- Insufficient Data
+- Blocked
 
-`modules/srm_engine.py` classifies suppliers as Strategic, Preferred, Approved, Transactional, Development, or Exit Candidate and assigns governance cadence and relationship strategy.
+### Safe executive outputs
 
-### Recommendation and Comparison
+`modules/validation_assurance.py` orchestrates validation and withholds polished final-award language when validation does not permit it.
 
-`modules/supplier_recommendation_engine.py` and `modules/supplier_comparison.py` produce deterministic rankings, side-by-side comparison, and executive supplier narrative.
+## Validation Assets
 
-## AI Assistance Layer
-
-AI-style outputs support explanation, summarization, email drafting, negotiation playbooks, executive narratives, and interview communication. Decision logic remains rule-guided and auditable.
+- Formula and assumption registers
+- Decision-rule and input-output traceability
+- Known model limitations
+- Expected-result matrix
+- Defect register
+- Release-readiness scorecard
+- Model-risk statement
+- Fourteen synthetic file cases
+- Adversarial and external-file tests
+- Gemini, Perplexity and human-review templates
 
 ## Data Layer
 
@@ -103,26 +97,31 @@ Current sources:
 - Synthetic packaging and raw-material demo data
 - CSV RFQ upload
 - Excel RFQ upload
+- Synthetic validation datasets
 
 Future production sources:
 
-- Supplier master
+- Verified supplier master
 - ERP and spend data
 - QMS and OTIF history
-- Audit and certification records
+- Audit, certification and ESG records
 - Contract data
-- Commodity indices
+- Commodity indices and FX feeds
 - Verified financial and country-risk data
 
 ## Governance Priorities
 
-1. Explainability
-2. Procurement credibility
-3. Category separation
-4. Transparent defaulting
-5. Human approval
-6. Modular code
-7. Testability and CI
-8. GitHub recoverability
-9. Interview readiness
-10. Future integration extensibility
+1. Recommendation safety
+2. Allocation feasibility
+3. Explainability
+4. Procurement credibility
+5. Category separation
+6. Transparent defaulting
+7. Human approval
+8. Testability and independent validation
+9. GitHub recoverability
+10. Interview readiness
+
+## Release Rule
+
+Portfolio Edition v1.0 is not approved until CI, live deployment, independent AI reviews, human review or formal waiver, defect closure and final release-readiness evidence are complete.
