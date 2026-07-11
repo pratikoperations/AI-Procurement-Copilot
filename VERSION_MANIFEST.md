@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.9.1 — Multi-Category Foundation
+Build 0.9.2 — Intelligent RFQ Engine
 
 ## Build Status
 
-Completed — CI and Live Deployment Validation Pending
+Completed — CI and Live Upload Validation Pending
 
 ## Active Category Engines
 
@@ -23,11 +23,11 @@ Completed — CI and Live Deployment Validation Pending
 
 ## Current Scope
 
-The application now includes category routing, commodity metadata, a production packaging workflow, a transparent raw-material foundation preview, RFQ analysis, should-cost, TCO, risk, ESG, performance, allocation, scenarios, negotiation, executive outputs, exports, tests, CI, and public Streamlit deployment.
+The application includes category routing, commodity metadata, intelligent RFQ header recognition, canonical mapping, unit normalization, upload quality diagnostics, production packaging analysis, raw-material foundation preview, should-cost, TCO, risk, ESG, performance, allocation, scenarios, negotiation, executive outputs, exports, tests, CI, and public Streamlit deployment.
 
 ## Next Planned Build
 
-Build 0.9.2 — Intelligent RFQ Engine
+Build 0.9.3 — Procurement Intelligence Engine
 
 ## Recovery Note
 
