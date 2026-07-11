@@ -1,33 +1,53 @@
 # Build History
 
-## Build 1.0 RC1.2.2 — Export Score Consistency and Scenario Integrity Hotfix
+## Version 1.0.0 — Stable Portfolio Edition
 
-**Status:** Implementation completed — CI, Streamlit, and manual retest pending  
-**Objective:** Correct readable score ambiguity, freight-scenario integrity, and residual risk terminology defects.
+**Status:** Released and frozen  
+**Release basis:** Build 1.0 RC1.2.3
 
-### Completed
+### Release achievements
 
-- Differentiated RFQ and governed Supplier Intelligence scores in readable exports.
-- Added governed Supplier 360 score fields to readable supplier score reports.
-- Corrected freight stress treatment for delivered-price suppliers.
-- Added category-aware scenario TCO headings.
-- Replaced Risk Score with Risk Resilience Score in readable scenario exports.
-- Added Packaging and Raw Material freight-scenario regression tests.
-- Preserved feature freeze and existing score weightings.
+- Packaging and Raw Material procurement engines
+- Category-aware should-cost and TCO
+- Risk, ESG, performance, innovation, financial, and SRM intelligence
+- Procurement Intelligence and Supplier Intelligence
+- Supplier 360 and recommendation governance
+- Scenario stress testing and allocation
+- Negotiation intelligence and executive outputs
+- Business-readable and machine-readable exports
+- Validation assurance, data confidence, and business-rule controls
+- Green CI, Streamlit smoke testing, and direct export inspection
 
-### Remaining gates
+### Release result
 
-- Latest GitHub Actions green
-- Streamlit smoke test
-- Manual Supplier Scores Report retest
-- Manual Scenarios worksheet retest
-- Confirmation that Freight +50% changes unit and annual TCO
-- Closure of RC1-DEF-012 through RC1-DEF-014
-- Final release approval
+- Critical defects open: 0
+- Major defects open: 0
+- Release Candidate Accepted
+- Portfolio Edition v1.0.0 approved as Stable
 
 ### Next
 
-Validate RC1.2.2. Do not tag v1.0.0 and do not add features.
+Preserve the stable release. Version 1.1 remains a separate future-development stream.
+
+---
+
+## Build 1.0 RC1.2.3 — Scenario Engine Column Alignment Critical Hotfix
+
+**Status:** Completed, CI validated, and live validated
+
+- Aligned dashboard scenario rendering with governed annual-TCO headings.
+- Resolved the live Multi-Scenario Stress Test `KeyError`.
+- Added governed and legacy schema compatibility tests.
+
+---
+
+## Build 1.0 RC1.2.2 — Export Score Consistency and Scenario Integrity Hotfix
+
+**Status:** Completed, CI validated, and manually validated
+
+- Differentiated RFQ and governed Supplier Intelligence scores in readable exports.
+- Corrected freight stress treatment for delivered-price suppliers.
+- Added category-aware scenario TCO headings and terminology.
 
 ---
 
@@ -42,7 +62,7 @@ Validate RC1.2.2. Do not tag v1.0.0 and do not add features.
 
 ## Build 1.0 RC1.2 — Export Integrity and Category-Aware Communication Hotfix
 
-**Status:** Completed and CI validated; manual download validation continued
+**Status:** Completed, CI validated, and manually validated
 
 - Added currency, unit, communication, recommendation, classification, and export-governance controls.
 
@@ -50,7 +70,7 @@ Validate RC1.2.2. Do not tag v1.0.0 and do not add features.
 
 ## Build 1.0 RC1.1 — Final Executive Polish
 
-**Status:** Implemented
+**Status:** Completed
 
 - Replaced technical chart labels and recommendation wording.
 - Standardized category headings and executive terminology.
@@ -68,7 +88,7 @@ Validate RC1.2.2. Do not tag v1.0.0 and do not add features.
 
 ## Build 0.9.6 — Independent Validation and Real-World Stress Testing
 
-**Status:** Completed — CI Validated through Quality Checks #150–#208
+**Status:** Completed — CI validated
 
 - Added data-confidence, eligibility, business-rule validation, adversarial tests, external-file validation and release governance.
 
