@@ -1,9 +1,10 @@
-"""Supplier scoring engine for Build 0.3."""
+"""Category-aware supplier scoring engine."""
 
 import pandas as pd
 
 from modules.esg import calculate_esg_score
 from modules.performance import calculate_performance_score
+from modules.raw_material_tco import calculate_raw_material_tco
 from modules.tco import calculate_supplier_tco
 from modules.utils import safe_positive
 
@@ -17,28 +18,47 @@ DEFAULT_WEIGHTS = {
     "esg": 0.05,
 }
 
+RAW_MATERIAL_WEIGHTS = {
+    "tco": 0.38,
+    "risk": 0.27,
+    "lead_time": 0.08,
+    "payment": 0.07,
+    "moq": 0.05,
+    "performance": 0.10,
+    "esg": 0.05,
+}
+
 
 def enrich_supplier_scores(df, assumptions, weights=None):
-    """Add TCO, risk, ESG, performance, and weighted score columns to supplier RFQ data."""
-    weights = weights or DEFAULT_WEIGHTS
+    """Add category-specific TCO, risk, ESG, performance, and weighted scores."""
+    category = assumptions.get("category", "Packaging Procurement")
+    weights = weights or (RAW_MATERIAL_WEIGHTS if category == "Raw Material Procurement" else DEFAULT_WEIGHTS)
     rows = []
 
     for _, row in df.iterrows():
         record = row.to_dict()
-        tco = calculate_supplier_tco(
-            record,
-            annual_volume=assumptions["annual_volume"],
-            raw_material_shock=assumptions["raw_material_shock"],
-            freight_shock=assumptions["freight_shock"],
-            demand_change=assumptions["demand_change"],
-        )
+        if category == "Raw Material Procurement":
+            tco = calculate_raw_material_tco(
+                record,
+                annual_volume=assumptions["annual_volume"],
+                commodity_shock=assumptions["raw_material_shock"],
+                freight_shock=assumptions["freight_shock"],
+                demand_change=assumptions["demand_change"],
+            )
+        else:
+            tco = calculate_supplier_tco(
+                record,
+                annual_volume=assumptions["annual_volume"],
+                raw_material_shock=assumptions["raw_material_shock"],
+                freight_shock=assumptions["freight_shock"],
+                demand_change=assumptions["demand_change"],
+            )
         record.update(tco)
         record["esg_score"] = calculate_esg_score(record)
         record["performance_score"] = calculate_performance_score(record)
         rows.append(record)
 
     scored = pd.DataFrame(rows)
-
     min_tco = safe_positive(scored["adjusted_tco_unit_usd"].min())
     min_moq = safe_positive(scored["MOQ"].min())
     min_lead = safe_positive(scored["Lead Time Days"].min())
@@ -58,4 +78,5 @@ def enrich_supplier_scores(df, assumptions, weights=None):
         + scored["esg_score"] * weights["esg"]
     ).round(1)
 
+    scored["category_engine"] = category
     return scored.sort_values("total_score", ascending=False).reset_index(drop=True)
