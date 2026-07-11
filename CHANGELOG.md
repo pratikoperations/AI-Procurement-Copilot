@@ -2,25 +2,30 @@
 
 All meaningful project changes are recorded here.
 
-## Build 0.9.2 — Intelligent RFQ Engine
+## Build 0.9.3 — Procurement Intelligence Engine
 
 ### Added
 
-- Flexible RFQ header recognition using exact and fuzzy matching.
-- Canonical column mapping for supplier, price, MOQ, lead time, payment, incoterms, service, quality, ESG, currency, unit, material, and plant fields.
-- Unit normalization for kg, MT, piece, meter, and liter.
-- Duplicate supplier detection.
-- Missing-cell and numeric-conversion diagnostics.
-- Unmapped-column preservation.
-- RFQ upload quality score and review warnings.
-- Intelligent normalization integrated into CSV/Excel loading.
-- Regression tests and RFQ-engine documentation.
+- Executive decision engine with confidence, rationale, and executive recommendation.
+- Procurement strategy engine.
+- Supplier allocation optimizer supporting governed dual-source splits.
+- Supplier-level negotiation intelligence.
+- Procurement risk intelligence with severity, evidence, and mitigation.
+- Scenario engine covering price, lead time, MOQ, capacity, currency, freight, and ESG shocks.
+- AI Explainability 2.0.
+- Board-ready executive decision narrative.
+- New Procurement Intelligence dashboard tab.
+- Regression tests and procurement intelligence documentation.
 
 ### QA Notes
 
-- Missing required fields block scoring after mapping.
-- Unknown columns are preserved rather than discarded.
-- CI and live alternate-template upload validation are pending.
+- Decision logic is deterministic and rule-guided.
+- Existing functionality is preserved by additive integration.
+- CI and live dashboard validation are pending.
+
+## Build 0.9.2 — Intelligent RFQ Engine
+
+- Added flexible header recognition, canonical mapping, unit normalization, diagnostics, upload quality scoring, tests, and documentation.
 
 ## Build 0.9.1 — Multi-Category Foundation
 
