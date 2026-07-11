@@ -10,70 +10,56 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.9.6.1 — Executive-Readable Supplier Intelligence UX Hotfix
+Build 1.0 RC1.1 — Final Executive Polish
 
 ## Current Status
 
-Implementation completed — GitHub Actions, Streamlit smoke test and live category validation pending
+Implementation completed — latest GitHub Actions and live polish retest pending
 
 ## Canonical Source of Truth
 
 GitHub repository: pratikoperations/AI-Procurement-Copilot
 
-## Build Objective
+## Release Freeze
 
-Remove developer-style structured output from the application and prevent financial, ESG or innovation conclusions from overstating weak evidence.
+Feature development is frozen. Build 1.0 RC1.1 changes only executive terminology, chart labels, category headings, recommendation wording, tests, and release records. No business logic, scoring model, formula, or architecture change is permitted.
 
-## Implemented Scope
+## Final Polish Completed
 
-- Executive-readable Supplier Intelligence overview
-- Metric cards, score matrices, comparison tables and responsive charts
-- Readable Performance, Financial, ESG, Innovation and SRM views
-- Readable Supplier 360 profile sections
-- Readable recommendation and comparison matrices
-- Supplier 360 readable report download
-- Machine-readable audit data retained as download-only
-- Financial evidence-completeness caps and due-diligence status
-- ESG evidence-completeness caps and verification status
-- Innovation evidence-completeness caps and verification status
-- Reusable UI component library
-- UI output audit and regression tests
-
-## Category Status
-
-- Packaging Procurement: Existing workflow preserved; live hotfix validation pending
-- Raw Material Procurement: Existing workflow preserved; live hotfix validation pending
+- Replaced snake-case chart legends with executive labels.
+- Standardized score and TCO axis titles.
+- Replaced technical recommendation explanations with role-specific business language.
+- Corrected Raw Material should-cost heading.
+- Standardized Supplier RFQ Decision Snapshot and negotiation headings.
+- Added regression tests for executive terminology.
+- Closed VAL-006 through VAL-009 after CI and live mobile validation.
+- Recorded three non-blocking RC1 UX findings as fixed, with retest pending.
 
 ## Validation Status
 
-- Builds 0.1–0.9.6: Previously CI validated
-- Build 0.9.6.1 implementation: Complete
-- Raw structured Supplier Intelligence display: Removed
-- Financial evidence governance: Implemented
-- ESG evidence governance: Implemented
-- Innovation evidence governance: Implemented
-- New UI and governance tests: Added
-- GitHub Actions for Build 0.9.6.1: Pending
-- Streamlit smoke test: Pending
-- Live Packaging Supplier Intelligence review: Pending
-- Live Raw Material Supplier Intelligence review: Pending
-- Gemini independent review: Pending
-- Perplexity methodology review: Pending
-- Human procurement review: Pending / not waived
-- Portfolio Edition v1.0 approval: Not granted
+- Builds 0.1–0.9.6: CI validated.
+- Build 0.9.6.1: CI validated and live mobile validation completed.
+- Packaging Supplier Intelligence: Live validated.
+- Raw Material route and safety gate: Live validated; blocked recommendation behavior observed correctly.
+- Performance, Financial, ESG, Innovation, and SRM views: Live validated.
+- VAL-001 through VAL-009: Closed.
+- Build 1.0 RC1.1 implementation: Complete.
+- Build 1.0 RC1.1 GitHub Actions: Pending.
+- Build 1.0 RC1.1 Streamlit polish retest: Pending.
+- Gemini independent review: Pending.
+- Perplexity methodology review: Pending.
+- Human procurement review: Pending / not waived.
+- Portfolio Edition v1.0 approval: Not yet granted.
 
 ## Open Release Gates
 
-1. Build 0.9.6.1 GitHub Actions green
-2. Streamlit startup and smoke test green
-3. Packaging Supplier Intelligence visually validated
-4. Raw Material Supplier Intelligence visually validated
-5. VAL-006 and VAL-007 closed after retest
-6. Gemini and Perplexity reviews completed and dispositioned
-7. Human review completed or formally waived
-8. No open Critical or unmitigated Major defect
-9. Final readiness score at least 9.0/10
+1. Latest Build 1.0 RC1.1 GitHub Actions green.
+2. Live confirmation that executive chart labels, recommendation wording, and Raw Material heading are updated.
+3. Downloaded Excel/CSV/TXT files open successfully.
+4. Gemini and Perplexity findings dispositioned.
+5. Human review completed or formally waived.
+6. Final v1.0 release-readiness approval and tag.
 
 ## Next Milestone
 
-Validate Build 0.9.6.1 in GitHub Actions and the deployed Streamlit application. Do not begin Build 1.0.
+Validate Build 1.0 RC1.1, then prepare the `v1.0.0` release tag. Do not resume feature development.
