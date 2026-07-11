@@ -1,28 +1,37 @@
 # Build History
 
-## Build 0.9.2 — Intelligent RFQ Engine
+## Build 0.9.3 — Procurement Intelligence Engine
 
-**Status:** Completed — CI and Live Upload Validation Pending  
-**Objective:** Accept varied supplier RFQ templates and convert them into a governed canonical schema.
+**Status:** Completed — CI and Live Dashboard Validation Pending  
+**Objective:** Convert procurement analytics into deterministic, explainable decision intelligence.
 
 ### Completed
 
-- Added intelligent header recognition and fuzzy mapping.
-- Added canonical RFQ schema conversion.
-- Added unit normalization and numeric conversion diagnostics.
-- Added duplicate, missing-data, and unmapped-column analysis.
-- Added RFQ upload quality scoring and validation messages.
-- Integrated normalization into CSV and Excel loading.
+- Added executive decision engine and AI Explainability 2.0.
+- Added sourcing strategy recommendation.
+- Added supplier allocation optimizer.
+- Added supplier-level negotiation intelligence.
+- Added procurement risk intelligence.
+- Added scenario simulation and recomputation.
+- Added board-ready executive decision narrative.
+- Added Procurement Intelligence dashboard tab.
 - Added regression tests and documentation.
-- Updated project governance records.
 
 ### Outcome
 
-The application can now accept common variations such as Vendor Name, Unit Rate, Minimum Order Quantity, Delivery Days, Credit Terms, Delivery Terms, and UOM without requiring manual renaming. Weak or incomplete uploads remain visible and are blocked before supplier scoring when required information is missing.
+The application now recommends a supplier, strategy, allocation, negotiation priorities, risk mitigations, and scenario-adjusted decisions rather than only presenting analytics.
 
 ### Next
 
-Build 0.9.3 — Procurement Intelligence Engine.
+Build 0.9.4 — Category-Specific Cost and Risk Engines.
+
+---
+
+## Build 0.9.2 — Intelligent RFQ Engine
+
+**Status:** Completed — CI Validated
+
+- Added intelligent header recognition, canonical mapping, unit normalization, diagnostics, upload quality scoring, tests, and documentation.
 
 ---
 
