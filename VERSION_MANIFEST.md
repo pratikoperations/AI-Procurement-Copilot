@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.9.3 — Procurement Intelligence Engine
+Build 0.9.3.1 — Category Profile Integration Hotfix
 
 ## Build Status
 
-Completed — CI and Live Dashboard Validation Pending
+Implemented — CI and Live Deployment Validation Pending
 
 ## Active Category Engines
 
@@ -23,11 +23,18 @@ Completed — CI and Live Dashboard Validation Pending
 
 ## Current Scope
 
-The application includes category routing, intelligent RFQ normalization, production packaging analysis, raw-material foundation preview, should-cost, TCO, risk, ESG, performance, deterministic executive recommendation, sourcing strategy, optimized allocation, negotiation intelligence, procurement risk intelligence, scenario recomputation, explainability, executive narrative, exports, tests, CI, and public Streamlit deployment.
+The application includes category routing, intelligent RFQ normalization, production packaging analysis, procurement intelligence, explainability, exports, tests, CI, public Streamlit deployment, and a defensive category-profile integration contract.
+
+## Hotfix Baseline
+
+- Default category profile available
+- Sidebar always returns `category_profile`
+- `app.py` uses safe profile access
+- Regression tests cover missing and partial metadata
 
 ## Next Planned Build
 
-Build 0.9.4 — Category-Specific Cost and Risk Engines
+Build 0.9.4 — only after hotfix CI and live deployment validation
 
 ## Recovery Note
 
