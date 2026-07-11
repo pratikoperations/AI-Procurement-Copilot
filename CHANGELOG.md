@@ -2,53 +2,44 @@
 
 All meaningful project changes are recorded here.
 
-## Build 0.9.5 — Supplier Intelligence Platform
+## Build 0.9.6 — Independent Validation and Real-World Stress Testing
 
 ### Added
 
-- Supplier 360 profile engine with transparent default tracking.
-- Extended supplier performance intelligence.
-- Financial health indicator engine with due-diligence safeguards.
-- ESG maturity intelligence.
-- Innovation maturity intelligence.
-- SRM classification and governance recommendations.
-- Explainable supplier recommendation rankings.
-- Side-by-side supplier comparison.
-- Executive supplier narrative.
-- Supplier Intelligence dashboard tab.
-- Supplier comparison CSV, Supplier 360 JSON, and narrative TXT exports.
-- Packaging and Raw Material compatibility tests.
+- Data-confidence engine measuring supplied, defaulted, inferred and missing-critical data.
+- Recommendation eligibility gate with Eligible, Eligible With Conditions, Human Review Required, Insufficient Data and Blocked states.
+- Business-rule validator for price, volume, percentages, capacity, allocation, currency, UOM and contradictory statuses.
+- Safe executive-output withholding when validation does not permit final award language.
+- Formula, assumption, decision-rule and traceability registers.
+- Known model limitations and model-risk statement.
+- Adversarial, boundary, eligibility, data-confidence, rule and real-world file tests.
+- Fourteen synthetic packaging, raw-material and edge-case validation files.
+- Expected-result matrix and validation defect register.
+- Gemini, Perplexity and human-review framework.
+- Release-readiness scorecard and validation reports.
 
-### QA Notes
+### Changed
 
-- Recommendations are deterministic and human-governed.
-- Missing supplier facts are explicitly defaulted and listed.
-- Financial outputs are indicators, not audited financial claims.
-- CI and live Streamlit validation are pending.
+- `app.py` now displays data confidence, eligibility and business-rule status before recommendation outputs.
+- Blocked or insufficient-data cases no longer display polished final-award language.
+- Demo data and uploaded unverified data are visibly distinguished.
+
+### Validation Notes
+
+- Internal implementation is complete.
+- Latest CI, live Streamlit validation, Gemini review, Perplexity review and human review remain pending.
+- Portfolio Edition v1.0 is not yet approved.
+
+## Build 0.9.5 — Supplier Intelligence Platform
+
+- Added Supplier 360, extended performance, financial indicators, ESG, innovation, SRM, recommendations, comparison, narrative, exports and tests.
+- CI validated.
 
 ## Build 0.9.4 — Category-Specific Cost and Risk Engines
 
-- Added production raw-material should-cost, risk, TCO, scoring, routing, demo data, tests, and documentation.
-- Promoted Raw Material Procurement to Active.
-- CI validated after aligning the historical category test.
-
-## Build 0.9.3.1 — Category Profile Integration Hotfix
-
-- Eliminated the startup `category_profile` error and preserved explicit category units.
+- Added production raw-material should-cost, risk, TCO, category-aware scoring and routing.
 - CI validated.
 
-## Build 0.9.3 — Procurement Intelligence Engine
+## Builds 0.1–0.9.3.1
 
-- Added executive decision, strategy, allocation, negotiation, risk, scenario, explainability, dashboard, tests, and documentation.
-
-## Build 0.9.2 — Intelligent RFQ Engine
-
-- Added flexible header recognition, canonical mapping, unit normalization, diagnostics, upload quality scoring, tests, and documentation.
-
-## Build 0.9.1 — Multi-Category Foundation
-
-- Added category routing, packaging/raw-material engine profiles, commodity metadata, selectors, guardrails, tests, and documentation.
-
-## Builds 0.1–0.8.1
-
-Completed repository foundation, packaging intelligence, executive outputs, QA, CI, exports, deployment, and stabilization.
+Completed repository foundation, packaging intelligence, executive outputs, CI, deployment stabilization, multi-category foundation, Intelligent RFQ, Procurement Intelligence and integration hotfixes.
