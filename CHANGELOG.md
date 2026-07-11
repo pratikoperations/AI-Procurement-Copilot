@@ -2,26 +2,26 @@
 
 All meaningful project changes are recorded here.
 
-## Build 0.9.3 — Procurement Intelligence Engine
+## Build 0.9.3.1 — Category Profile Integration Hotfix
 
-### Added
+### Fixed
 
-- Executive decision engine with confidence, rationale, and executive recommendation.
-- Procurement strategy engine.
-- Supplier allocation optimizer supporting governed dual-source splits.
-- Supplier-level negotiation intelligence.
-- Procurement risk intelligence with severity, evidence, and mitigation.
-- Scenario engine covering price, lead time, MOQ, capacity, currency, freight, and ESG shocks.
-- AI Explainability 2.0.
-- Board-ready executive decision narrative.
-- New Procurement Intelligence dashboard tab.
-- Regression tests and procurement intelligence documentation.
+- Eliminated startup `KeyError: 'category_profile'`.
+- Added a reusable default category profile.
+- Guaranteed the sidebar return contract includes `category_profile`.
+- Added defensive profile normalization in `app.py`.
+- Added regression tests for normal, partial, and missing profile cases.
+- Added hotfix documentation and governance updates.
 
 ### QA Notes
 
-- Decision logic is deterministic and rule-guided.
-- Existing functionality is preserved by additive integration.
-- CI and live dashboard validation are pending.
+- No procurement logic was changed.
+- Build 0.9.3 functionality is preserved.
+- CI and live deployment validation are pending.
+
+## Build 0.9.3 — Procurement Intelligence Engine
+
+- Added executive decision, strategy, allocation, negotiation, risk, scenario, explainability, dashboard, tests, and documentation.
 
 ## Build 0.9.2 — Intelligent RFQ Engine
 
