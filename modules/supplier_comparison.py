@@ -1,4 +1,4 @@
-"""Supplier Intelligence orchestration and side-by-side comparison."""
+"""Supplier Intelligence orchestration and executive-readable comparison."""
 
 import pandas as pd
 
@@ -26,15 +26,21 @@ def build_supplier_intelligence(scored_df, category, commodity):
 
     rows = []
     for profile in profiles:
+        financial = profile["financial"]
+        esg = profile["esg"]
+        innovation = profile["innovation"]
         rows.append({
             "Supplier": profile["supplier_name"],
             "Quoted Price USD": profile["quoted_price"],
             "Risk-Adjusted TCO USD": profile["adjusted_tco"],
             "Risk Score": profile["risk_score"],
             "Performance Score": profile["performance"]["overall_supplier_performance_score"],
-            "ESG Score": profile["esg"]["esg_maturity_score"],
-            "Innovation Score": profile["innovation"]["innovation_score"],
-            "Financial Health Score": profile["financial"]["financial_stability_score"],
+            "Financial Assessment": financial.get("assessment_status", "Not assessed"),
+            "Financial Health Score": financial.get("displayed_financial_score", financial.get("financial_stability_score", 0)),
+            "ESG Maturity": esg.get("esg_maturity_level", "Not assessed"),
+            "ESG Score": esg.get("displayed_esg_score", esg.get("esg_maturity_score", 0)),
+            "Innovation Maturity": innovation.get("innovation_maturity_level", "Not assessed"),
+            "Innovation Score": innovation.get("displayed_innovation_score", innovation.get("innovation_score", 0)),
             "Capacity": profile["capacity"],
             "Lead Time Days": profile["lead_time"],
             "MOQ": profile["moq"],
