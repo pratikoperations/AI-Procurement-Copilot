@@ -1,8 +1,7 @@
 """Executive-readable Supplier Intelligence UI contract tests."""
 
 from pathlib import Path
-
-from modules.ui_components import build_readable_supplier_report, humanize_label
+from modules.ui_components import build_readable_supplier_report, format_display_value, humanize_label
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -11,6 +10,25 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_humanize_label_removes_snake_case():
     assert humanize_label("financial_stability_score") == "Financial Stability Score"
     assert "_" not in humanize_label("srm_classification")
+
+
+def test_format_display_value_preserves_string_values():
+    assert format_display_value("Raw Material Procurement") == "Raw Material Procurement"
+    assert format_display_value("PET Resin") == "PET Resin"
+
+
+def test_format_display_value_joins_collections_only():
+    assert format_display_value(["Packaging Procurement", "Raw Material Procurement"]) == "Packaging Procurement, Raw Material Procurement"
+    assert format_display_value(("PET Resin", "HDPE")) == "PET Resin, HDPE"
+    assert format_display_value(None) == "Not provided"
+
+
+def test_supplier_ui_does_not_join_scalar_profile_strings():
+    source = (ROOT / "modules" / "supplier_intelligence_ui.py").read_text(encoding="utf-8")
+    assert '", ".join(map(str, profile.get("approved_categories"' not in source
+    assert '", ".join(map(str, profile.get("commodity_coverage"' not in source
+    assert 'format_display_value(profile.get("approved_categories"))' in source
+    assert 'format_display_value(profile.get("commodity_coverage"))' in source
 
 
 def test_readable_report_contains_business_labels_not_payload_syntax():
