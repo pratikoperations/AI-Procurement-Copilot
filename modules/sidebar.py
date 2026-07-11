@@ -2,6 +2,7 @@
 
 import streamlit as st
 
+from modules.category_engine import get_category_profile
 from modules.config import DEFAULT_FX_RATE, SUPPORTED_CATEGORIES, FUTURE_CATEGORIES
 
 
@@ -21,6 +22,20 @@ def render_sidebar():
         SUPPORTED_CATEGORIES,
         index=0,
     )
+
+    base_profile = get_category_profile(category)
+    commodity = st.sidebar.selectbox(
+        "Commodity / Material",
+        base_profile["commodities"],
+        index=0,
+    )
+    category_profile = get_category_profile(category, commodity)
+
+    if category_profile["engine_status"] != "Active":
+        st.sidebar.warning(
+            "Raw-material architecture is available as a foundation preview. "
+            "Full category-specific scoring is planned for Build 0.9.4."
+        )
 
     with st.sidebar.expander("Future Category Engines"):
         for item in FUTURE_CATEGORIES:
@@ -48,6 +63,8 @@ def render_sidebar():
     return {
         "data_source": data_source,
         "category": category,
+        "commodity": commodity,
+        "category_profile": category_profile,
         "fx_rate": fx_rate,
         "display_currency": display_currency,
         "annual_volume": annual_volume,
