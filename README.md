@@ -1,13 +1,27 @@
 # AI Procurement Copilot
 
-**Edition:** Portfolio Edition v1.0  
-**Current Build:** Build 1.0 RC1.2 — Export Integrity and Category-Aware Communication Hotfix  
-**Status:** Release Candidate Validation Pending  
+**Release:** Portfolio Edition v1.0.0  
+**Status:** Stable  
 **Repository Owner:** pratikoperations
 
 ## Objective
 
-AI Procurement Copilot is an interview-ready procurement decision-support project covering category-specific should-cost, TCO, risk, Procurement Intelligence, Supplier 360, SRM, data-confidence governance, recommendation eligibility, category-aware communication, and executive reporting.
+AI Procurement Copilot is an interview-ready procurement decision-support platform covering category-specific should-cost, TCO, risk, Procurement Intelligence, Supplier 360, SRM, data-confidence governance, recommendation eligibility, category-aware communication, scenario testing, and executive reporting.
+
+## Release Position
+
+Portfolio Edition v1.0.0 is the first stable release.
+
+The release was approved after:
+
+- Green GitHub Actions
+- Regression and Streamlit smoke testing
+- Packaging and Raw Material live validation
+- Supplier Intelligence and Supplier 360 review
+- Scenario-engine retesting
+- Direct inspection of readable CSV, TXT, and Excel exports
+- Validation of machine-readable audit separation
+- Closure of all known Major and Critical release defects
 
 ## Build Philosophy
 
@@ -22,15 +36,17 @@ The platform is transparent, rule-guided, auditable, and human-controlled. It do
 - Auditable FX rate and comparison basis
 - Category-specific should-cost, TCO, risk, and scoring
 - Procurement Intelligence and Supplier Intelligence
+- Supplier 360, performance, financial, ESG, innovation, and SRM views
 - Evidence-governed Financial, ESG, Innovation, and long-term recommendation roles
 - Category-aware supplier emails and executive memos
 - Recommendation eligibility and business-rule validation
 - Safe withholding of final-award language
+- Scenario stress testing and allocation recommendations
 - Business-readable CSV/Excel/TXT reports
 - Separate machine-readable audit downloads
 - Adversarial, external-file, UI, governance, currency, communication, export, and consistency tests
 
-## RC1.2 Integrity Controls
+## Stable Release Integrity Controls
 
 - PET Resin uses kg throughout the standard demo.
 - No non-USD value is stored in a USD-labelled comparison field.
@@ -41,6 +57,9 @@ The platform is transparent, rule-guided, auditable, and human-controlled. It do
 - Insufficient-evidence suppliers cannot receive unsupported Most Innovative, Most Sustainable, Best Strategic Partner, or Best Long-Term Supplier roles.
 - Exit Candidate and Development Candidate cannot be assigned to the same supplier.
 - Visible risk terminology is Risk Resilience Score.
+- Readable exports clearly distinguish RFQ scores from governed Supplier 360 scores.
+- Freight stress changes unit and annual TCO for Packaging and Raw Material scenarios.
+- Scenario rendering supports governed and legacy schema labels.
 
 ## Run Locally
 
@@ -55,33 +74,26 @@ streamlit run app.py
 python -m pytest
 ```
 
-## Key Validation Assets
+## Key Release Assets
 
+- `RELEASE_NOTES.md`
+- `PROJECT_STATUS.md`
+- `VERSION_MANIFEST.md`
+- `BUILD_HISTORY.md`
+- `docs/RC_BUILD_ARCHIVE.md`
+- `validation/FINAL_MANUAL_VALIDATION_RC1.2.3.md`
 - `validation/VALIDATION_DEFECT_REGISTER.md`
 - `validation/RELEASE_READINESS_SCORECARD.md`
-- `validation/RC1_MANUAL_VALIDATION_CHECKLIST.md`
-- `validation/RC1_MANUAL_DEFECT_LOG.md`
-- `docs/BUILD_1.0_RC1.2_HOTFIX.md`
-- `docs/RC1_DOWNLOAD_CONTENT_AUDIT.md`
-- `docs/CURRENCY_AND_UNIT_GOVERNANCE.md`
-- `docs/CATEGORY_AWARE_COMMUNICATION_STANDARD.md`
-
-## Current Release Position
-
-RC1.2 implementation is complete. Portfolio Edition v1.0 remains untagged until:
-
-1. RC1.2 GitHub Actions are green.
-2. Streamlit loads Packaging and Raw Material workflows.
-3. Standard PET Resin demo no longer falsely blocks on currency.
-4. Downloaded Excel, CSV, TXT, and audit files open and match on-screen status.
-5. RC1-DEF-005 through RC1-DEF-011 are closed after retest.
-6. Independent reviews are completed or formally waived.
-7. Final release-readiness score remains at least 9.0/10.
+- `docs/FUTURE_TIME_AWARE_ANALYTICS.md`
 
 ## Model Risk Statement
 
 AI Procurement Copilot is a decision-support and portfolio demonstration system. It does not autonomously approve suppliers, execute awards, replace due diligence, or substitute for commercial, legal, quality, financial, compliance, sustainability, treasury, tax, or executive review.
 
+## Next Planned Release
+
+Version 1.1 is reserved for Time-Aware Procurement Analytics and remains a separate backlog and development stream. No Version 1.1 implementation is included in v1.0.0.
+
 ## Operating Standard
 
-GitHub is the canonical source of truth. Feature development remains frozen until Portfolio Edition v1.0 release approval.
+GitHub is the canonical source of truth. Stable-release maintenance must be limited to documented fixes. New features belong in a separate Version 1.1 development branch.
