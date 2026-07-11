@@ -2,30 +2,30 @@
 
 All meaningful project changes are recorded here.
 
-## Build 0.9.6.1 — Executive-Readable Supplier Intelligence UX Hotfix
-
-### Added
-
-- Reusable executive UI components for cards, matrices, charts, evidence, actions and governance notes.
-- Readable Performance, Financial, ESG, Innovation and SRM views.
-- Financial evidence-completeness governance and displayed-score caps.
-- ESG evidence-completeness governance and maturity caps.
-- Innovation evidence-completeness governance and maturity caps.
-- Readable Supplier 360 report download.
-- UI output audit and regression tests.
+## Build 1.0 RC1.1 — Final Executive Polish
 
 ### Changed
 
-- Removed visible raw structured output from Supplier Intelligence.
-- Replaced developer-style payloads with executive-readable content.
-- Renamed machine-readable downloads to audit-data labels.
-- Supplier comparison now uses governed displayed scores and evidence statuses.
+- Replaced technical chart legends with executive labels.
+- Standardized score and TCO axis titles.
+- Replaced generic deterministic-comparison wording with recommendation-specific business explanations.
+- Corrected Raw Material Cost & Risk heading to `Raw Material Should-Cost Model`.
+- Standardized visible headings including Supplier RFQ Decision Snapshot and Negotiation Simulator and Playbook.
+- Added regression checks for executive terminology and category-aware headings.
 
 ### Validation Notes
 
-- VAL-006 to VAL-009 recorded.
-- Implementation completed.
-- GitHub Actions, Streamlit smoke test and live Packaging/Raw Material validation remain pending.
+- No business logic, scoring, formulas, or architecture changed.
+- VAL-006 through VAL-009 are closed after CI and live mobile retest.
+- RC1-UX-001 through RC1-UX-003 are fixed; latest CI and live polish retest remain pending.
+- Feature freeze remains active.
+
+## Build 0.9.6.1 — Executive-Readable Supplier Intelligence UX Hotfix
+
+- Replaced raw structured Supplier Intelligence output with executive-readable cards, charts, matrices, evidence lists and action plans.
+- Added evidence-governance caps for Financial, ESG and Innovation outputs.
+- Added readable Supplier 360 report and UI regression tests.
+- CI and live mobile validation passed.
 
 ## Build 0.9.6 — Independent Validation and Real-World Stress Testing
 
