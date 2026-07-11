@@ -2,29 +2,45 @@
 
 All meaningful project changes are recorded here.
 
-## Build 1.0 RC1.1 — Final Executive Polish
+## Build 1.0 RC1.2 — Export Integrity and Category-Aware Communication Hotfix
+
+### Added
+
+- Currency and unit governance with original and normalized quotation fields.
+- Category-aware supplier communication for Packaging and Raw Material procurement.
+- Eligibility-aware executive memo and supplier email wording.
+- Governed recommendation roles using displayed scores and evidence sufficiency.
+- Classification precedence between Exit Candidate and Development Candidate.
+- Business-readable supplier score and comparison reports.
+- Export consistency, communication, currency, recommendation, and precedence tests.
+- Download content audit and governance documentation.
 
 ### Changed
+
+- Corrected Raw Material synthetic demo currency and unit metadata.
+- Standardized PET Resin to kg.
+- Renamed visible risk terminology to Risk Resilience Score.
+- Separated business-readable downloads from machine-readable audit data.
+- Prevented unsupported Most Innovative, Most Sustainable, Best Strategic Partner, and Best Long-Term Supplier claims.
+- Added no-qualified-supplier outcomes when evidence is insufficient.
+
+### Validation Notes
+
+- Feature freeze remains active.
+- RC1-DEF-005 through RC1-DEF-011 corrective implementation completed.
+- GitHub Actions, Streamlit smoke testing, and manual download inspection remain pending.
+
+## Build 1.0 RC1.1 — Final Executive Polish
 
 - Replaced technical chart legends with executive labels.
 - Standardized score and TCO axis titles.
 - Replaced generic deterministic-comparison wording with recommendation-specific business explanations.
-- Corrected Raw Material Cost & Risk heading to `Raw Material Should-Cost Model`.
-- Standardized visible headings including Supplier RFQ Decision Snapshot and Negotiation Simulator and Playbook.
-- Added regression checks for executive terminology and category-aware headings.
-
-### Validation Notes
-
-- No business logic, scoring, formulas, or architecture changed.
-- VAL-006 through VAL-009 are closed after CI and live mobile retest.
-- RC1-UX-001 through RC1-UX-003 are fixed; latest CI and live polish retest remain pending.
-- Feature freeze remains active.
+- Corrected Raw Material should-cost heading.
 
 ## Build 0.9.6.1 — Executive-Readable Supplier Intelligence UX Hotfix
 
 - Replaced raw structured Supplier Intelligence output with executive-readable cards, charts, matrices, evidence lists and action plans.
 - Added evidence-governance caps for Financial, ESG and Innovation outputs.
-- Added readable Supplier 360 report and UI regression tests.
 - CI and live mobile validation passed.
 
 ## Build 0.9.6 — Independent Validation and Real-World Stress Testing
@@ -32,16 +48,6 @@ All meaningful project changes are recorded here.
 - Added data-confidence, recommendation eligibility, business-rule validation, adversarial tests, external-file validation, defect governance and release controls.
 - Quality Checks #150–#208 confirmed green.
 
-## Build 0.9.5 — Supplier Intelligence Platform
+## Earlier Builds
 
-- Added Supplier 360, performance, financial indicators, ESG, innovation, SRM, recommendations, comparison, narrative, exports and tests.
-- CI validated.
-
-## Build 0.9.4 — Category-Specific Cost and Risk Engines
-
-- Added production raw-material should-cost, risk, TCO, category-aware scoring and routing.
-- CI validated.
-
-## Builds 0.1–0.9.3.1
-
-Completed repository foundation, packaging intelligence, executive outputs, CI, deployment stabilization, multi-category foundation, Intelligent RFQ, Procurement Intelligence and integration hotfixes.
+Completed repository foundation, packaging and raw-material engines, executive outputs, CI, deployment stabilization, multi-category architecture, Intelligent RFQ, Procurement Intelligence, and Supplier Intelligence.
