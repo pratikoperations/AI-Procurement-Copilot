@@ -4,7 +4,7 @@ from modules.category_engine import get_supported_categories
 
 APP_NAME = "AI Procurement Copilot"
 EDITION = "Portfolio Edition v1.0"
-BUILD = "Build 1.0 RC1.1 - Final Executive Polish"
+BUILD = "Build 1.0 RC1.2 - Export Integrity and Category-Aware Communication Hotfix"
 STATUS = "Release Candidate Validation Pending"
 
 DEFAULT_FX_RATE = 83
