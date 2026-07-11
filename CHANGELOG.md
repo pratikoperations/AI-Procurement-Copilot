@@ -2,6 +2,22 @@
 
 All meaningful project changes are recorded here.
 
+## Build 1.0 RC1.2.1 — Supplier 360 Display Formatting Hotfix
+
+### Fixed
+
+- Corrected Approved Categories and Commodity Coverage rendering in Supplier 360 profiles.
+- Strings are now displayed directly instead of being split character by character.
+- Lists, tuples, and sets are joined as readable comma-separated values.
+- Applied the same safe display formatting to reusable key-value profile components.
+- Added regression coverage for scalar and collection display behavior.
+
+### Validation Notes
+
+- No business logic, scoring, recommendation, or architecture changes.
+- Release freeze remains active.
+- GitHub Actions and live Streamlit retest remain pending.
+
 ## Build 1.0 RC1.2 — Export Integrity and Category-Aware Communication Hotfix
 
 ### Added
@@ -28,7 +44,8 @@ All meaningful project changes are recorded here.
 
 - Feature freeze remains active.
 - RC1-DEF-005 through RC1-DEF-011 corrective implementation completed.
-- GitHub Actions, Streamlit smoke testing, and manual download inspection remain pending.
+- GitHub Actions and Streamlit smoke testing passed after regression correction.
+- Final manual download inspection remains in progress.
 
 ## Build 1.0 RC1.1 — Final Executive Polish
 
