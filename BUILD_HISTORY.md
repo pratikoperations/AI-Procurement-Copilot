@@ -1,33 +1,45 @@
 # Build History
 
-## Build 1.0 RC1.1 — Final Executive Polish
+## Build 1.0 RC1.2 — Export Integrity and Category-Aware Communication Hotfix
 
-**Status:** Implementation completed — latest CI and live retest pending  
-**Objective:** Close the remaining executive-UX findings without changing business logic.
+**Status:** Implementation completed — CI, Streamlit, and manual download retest pending  
+**Objective:** Correct release-blocking inconsistencies between screen outputs, supplier communications, recommendation rankings, and downloadable reports.
 
 ### Completed
 
-- Replaced technical chart labels with executive terminology.
-- Standardized visible axis and legend titles.
-- Replaced generic recommendation explanations with role-specific business rationale.
-- Corrected Raw Material should-cost heading.
-- Standardized visible dashboard and negotiation headings.
-- Added executive terminology regression tests.
-- Closed VAL-006 through VAL-009 after successful CI and live mobile validation.
-- Preserved feature freeze, scoring models, formulas, and architecture.
+- Added original and normalized currency governance.
+- Added explicit FX rate, UOM, and comparison basis.
+- Corrected synthetic demo metadata and standardized PET Resin to kg.
+- Added category-aware and eligibility-aware supplier communication.
+- Governed recommendation roles using displayed scores and evidence status.
+- Prevented unsupported ESG, innovation, strategic-partner, and long-term awards.
+- Enforced Exit Candidate and Development Candidate separation.
+- Renamed visible risk terminology to Risk Resilience Score.
+- Added readable supplier score and comparison exports.
+- Preserved separate machine-readable audit exports.
+- Added six focused regression-test files and download content audit documentation.
 
 ### Remaining gates
 
-- Latest Build 1.0 RC1.1 GitHub Actions green
-- Live polish retest on Streamlit
-- Export files opened and inspected
-- Gemini and Perplexity reviews dispositioned
-- Human review completed or formally waived
+- Latest RC1.2 GitHub Actions green
+- Streamlit smoke test for Packaging and Raw Material
+- Manual opening and review of all report downloads
+- Closure of RC1-DEF-005 through RC1-DEF-011 after retest
+- Independent reviews completed or formally waived
 - Final `v1.0.0` release approval
 
 ### Next
 
-Validate RC1.1, then create the Portfolio Edition v1.0 release tag. Do not add features.
+Validate RC1.2. Do not tag v1.0.0 and do not add features.
+
+---
+
+## Build 1.0 RC1.1 — Final Executive Polish
+
+**Status:** Implemented
+
+- Replaced technical chart labels and recommendation wording.
+- Standardized category headings and executive terminology.
 
 ---
 
@@ -37,7 +49,6 @@ Validate RC1.1, then create the Portfolio Edition v1.0 release tag. Do not add f
 
 - Replaced raw structured output with executive-readable Supplier Intelligence.
 - Added Financial, ESG, and Innovation evidence-governance safeguards.
-- Added readable Supplier 360 reports and UI regression tests.
 
 ---
 
@@ -49,22 +60,6 @@ Validate RC1.1, then create the Portfolio Edition v1.0 release tag. Do not add f
 
 ---
 
-## Build 0.9.5 — Supplier Intelligence Platform
+## Earlier Builds
 
-**Status:** Completed — CI Validated
-
-- Added Supplier 360, performance, financial, ESG, innovation, SRM, comparison, recommendations, narratives, exports and tests.
-
----
-
-## Build 0.9.4 — Category-Specific Cost and Risk Engines
-
-**Status:** Completed — CI Validated
-
-- Added production raw-material should-cost, risk, TCO, scoring and routing.
-
----
-
-## Builds 0.1–0.9.3.1
-
-Completed repository foundation, packaging engines, executive outputs, QA, CI, exports, deployment, multi-category architecture, Intelligent RFQ, Procurement Intelligence and stabilization hotfixes.
+Completed repository foundation, category engines, executive outputs, Procurement Intelligence, Supplier Intelligence, CI, deployment, and validation governance.
