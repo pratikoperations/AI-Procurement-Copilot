@@ -18,11 +18,16 @@ def build_supplier_intelligence(scored_df, category, commodity):
         profile["moq"] = float(row.get("MOQ", 0))
         profile["payment_terms"] = str(row.get("Payment Terms", "Not provided"))
         profile["capacity"] = float(row.get("Supplier Capacity", profile["annual_capacity"]))
+        profile["original_currency"] = str(row.get("Original Currency", row.get("Currency", "USD")))
+        profile["normalized_currency"] = str(row.get("Normalized Currency", "USD"))
+        profile["unit_of_measure"] = str(row.get("Unit of Measure", row.get("Unit", "Not provided")))
 
     recommendations = generate_supplier_recommendations(profiles)
     status_map = {}
     for rec in recommendations:
-        status_map.setdefault(rec["Supplier"], []).append(rec["Recommendation"])
+        supplier = rec.get("Supplier")
+        if supplier and supplier != "No Qualified Supplier":
+            status_map.setdefault(supplier, []).append(rec["Recommendation"])
 
     rows = []
     for profile in profiles:
@@ -31,20 +36,24 @@ def build_supplier_intelligence(scored_df, category, commodity):
         innovation = profile["innovation"]
         rows.append({
             "Supplier": profile["supplier_name"],
-            "Quoted Price USD": profile["quoted_price"],
-            "Risk-Adjusted TCO USD": profile["adjusted_tco"],
-            "Risk Score": profile["risk_score"],
+            "Quoted Price (USD)": profile["quoted_price"],
+            "Risk-Adjusted TCO (USD)": profile["adjusted_tco"],
+            "Risk Resilience Score": profile["risk_score"],
             "Performance Score": profile["performance"]["overall_supplier_performance_score"],
             "Financial Assessment": financial.get("assessment_status", "Not assessed"),
-            "Financial Health Score": financial.get("displayed_financial_score", financial.get("financial_stability_score", 0)),
+            "Financial Indicator": financial.get("displayed_financial_score", financial.get("financial_stability_score", 0)),
+            "ESG Assessment": esg.get("assessment_status", "Not assessed"),
             "ESG Maturity": esg.get("esg_maturity_level", "Not assessed"),
             "ESG Score": esg.get("displayed_esg_score", esg.get("esg_maturity_score", 0)),
+            "Innovation Assessment": innovation.get("assessment_status", "Not assessed"),
             "Innovation Maturity": innovation.get("innovation_maturity_level", "Not assessed"),
             "Innovation Score": innovation.get("displayed_innovation_score", innovation.get("innovation_score", 0)),
             "Capacity": profile["capacity"],
             "Lead Time Days": profile["lead_time"],
             "MOQ": profile["moq"],
             "Payment Terms": profile["payment_terms"],
+            "Unit of Measure": profile["unit_of_measure"],
+            "Normalized Currency": profile["normalized_currency"],
             "SRM Classification": profile["srm"]["srm_classification"],
             "Supplier 360 Score": profile["overall_supplier360_score"],
             "Recommendation Status": "; ".join(status_map.get(profile["supplier_name"], ["Qualified for comparison"])),
