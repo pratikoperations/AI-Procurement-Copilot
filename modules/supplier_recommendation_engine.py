@@ -1,5 +1,7 @@
 """Explainable supplier recommendation rankings governed by evidence quality."""
 
+GOVERNANCE_TEXT = "Transparent, rule-guided, auditable, and not black-box AI."
+
 RECOMMENDATION_EXPLANATIONS = {
     "Best Value Supplier": "Highest overall value after balancing cost, performance, governance, and business risk.",
     "Lowest Cost Supplier": "Lowest normalized commercial price before risk and total-cost adjustments.",
@@ -49,6 +51,7 @@ def _result(role, winner=None, evidence_status="Sufficient", confidence="Medium"
             "Human Review Status": "Required",
             "Trade-Off": "The role remains unassigned until evidence and governance conditions are met.",
             "Qualification Condition": condition,
+            "Governance": GOVERNANCE_TEXT,
         }
     return {
         "Recommendation": role,
@@ -59,6 +62,7 @@ def _result(role, winner=None, evidence_status="Sufficient", confidence="Medium"
         "Human Review Status": "Required",
         "Trade-Off": "This role-specific recommendation remains subject to commercial, legal, quality, compliance, and governance approval.",
         "Qualification Condition": condition,
+        "Governance": GOVERNANCE_TEXT,
     }
 
 
