@@ -25,7 +25,7 @@ from modules.exports import (
     build_readable_supplier_comparison, build_readable_supplier_scores,
     dataframe_to_csv_bytes, text_to_bytes,
 )
-from modules.negotiation import generate_negotiation_playbook, simulate_negotiation
+from modules.negotiation import generate_negotiation_playbook, govern_negotiation_brief, simulate_negotiation
 from modules.negotiation_engine import build_negotiation_intelligence
 from modules.procurement_intelligence_ui import render_procurement_intelligence
 from modules.recommendation import best_value_decision, executive_value_breakdown, recommendation_confidence
@@ -147,6 +147,7 @@ assurance = run_validation_assurance(
 data_confidence = assurance["data_confidence"]
 business_rules = assurance["business_rules"]
 eligibility = assurance["eligibility"]
+playbook_text = govern_negotiation_brief(playbook_text, eligibility)
 
 raw_executive_memo = generate_executive_memo(
     scored_df, allocation_df, value_metrics, confidence, eligibility, data_confidence
