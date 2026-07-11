@@ -1,13 +1,14 @@
 # =====================================================
 # AI PROCUREMENT COPILOT
 # Portfolio Edition v1.0
-# Build 0.8 — Portfolio Edition v1.0 Release Candidate
+# Build 0.9.1 — Multi-Category Foundation
 # =====================================================
 
 import streamlit as st
 
 from modules.allocation import recommend_allocation
-from modules.config import APP_NAME, EDITION, STATUS
+from modules.category_engine import is_production_ready
+from modules.config import APP_NAME, BUILD, EDITION, STATUS
 from modules.data_loader import get_demo_suppliers, load_uploaded_rfq
 from modules.dashboard import (
     render_allocation,
@@ -48,16 +49,42 @@ st.set_page_config(
 )
 
 assumptions = render_sidebar()
+profile = assumptions["category_profile"]
 
 st.title(APP_NAME)
 st.subheader(EDITION)
 st.caption(
-    "Transparent, rule-guided procurement decision intelligence for RFQ analysis, packaging should-cost, TCO, risk, ESG, allocation, negotiation, and executive recommendations."
+    "Transparent, category-aware procurement decision intelligence for RFQ analysis, "
+    "should-cost, TCO, risk, ESG, allocation, negotiation, and executive recommendations."
 )
 
-st.success(
-    "Portfolio Edition v1.0 Release Candidate — regression tests, export tests, and automated Streamlit smoke testing are configured in GitHub Actions."
-)
+st.success(f"{BUILD} — category routing and commodity metadata are now active.")
+
+with st.expander("Selected Category Intelligence", expanded=True):
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Category", profile["category"])
+    c2.metric("Commodity", profile["selected_commodity"])
+    c3.metric("Engine Status", profile["engine_status"])
+    st.write(f"**Cost model:** {profile['cost_model']}")
+    st.write(f"**Risk model:** {profile['risk_model']}")
+    st.write("**Primary cost drivers:** " + ", ".join(profile["primary_cost_drivers"]))
+    st.write("**Risk signals:** " + ", ".join(profile["risk_signals"]))
+    st.caption(profile["implementation_note"])
+
+if not is_production_ready(assumptions["category"]):
+    st.info(
+        "The Raw Material Procurement engine is available as a transparent architecture preview in Build 0.9.1. "
+        "Its commodity-specific should-cost, risk, TCO, and scoring logic will be implemented in Build 0.9.4. "
+        "Select Packaging Procurement to run the current production workflow."
+    )
+    st.markdown("---")
+    st.header("Raw Material Foundation Preview")
+    st.write(
+        "The category contract, commodity library, cost-driver metadata, and risk-signal metadata are active. "
+        "This preview intentionally does not reuse packaging calculations for raw materials."
+    )
+    st.caption(f"Application status: {STATUS}")
+    st.stop()
 
 uploaded_file = None
 if assumptions["data_source"] == "Upload RFQ CSV/Excel":
@@ -179,10 +206,11 @@ with analysis_tab:
 
     with st.expander("Visible Risk Assumptions"):
         st.write(
-            "Risk scoring is rule-guided and auditable. Current factors include payment terms, incoterms, lead time, MOQ, OTIF, and quality PPM."
+            "Risk scoring is rule-guided and auditable. Current factors include payment terms, incoterms, "
+            "lead time, MOQ, OTIF, and quality PPM."
         )
         st.write(
-            "The risk-adjusted TCO model converts structured supplier risk into an expected monetary value penalty rather than hiding risk inside an unexplained total score."
+            "The risk-adjusted TCO model converts structured supplier risk into an expected monetary value penalty."
         )
 
 with strategy_tab:
@@ -200,7 +228,8 @@ with executive_tab:
     st.header("AI-Style Explainability Panel")
     st.write(explainability_text)
     st.caption(
-        "This recommendation is transparent, rule-guided, auditable, and procurement-controlled. It is not a black-box AI award decision."
+        "This recommendation is transparent, rule-guided, auditable, and procurement-controlled. "
+        "It is not a black-box AI award decision."
     )
 
 with downloads_tab:
@@ -259,11 +288,9 @@ with interview_tab:
     )
 
     st.info(
-        "Interview positioning: this is a procurement decision-support product, not an autonomous award engine. Human judgment, governance, and auditability remain central."
+        "Interview positioning: this is a procurement decision-support product, not an autonomous award engine. "
+        "Human judgment, governance, and auditability remain central."
     )
 
 st.markdown("---")
-st.caption(
-    "Build 0.8 — Portfolio Edition v1.0 Release Candidate | "
-    f"Application status: {STATUS}"
-)
+st.caption(f"{BUILD} | Application status: {STATUS}")
