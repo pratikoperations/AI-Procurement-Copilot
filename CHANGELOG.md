@@ -2,6 +2,25 @@
 
 All meaningful project changes will be recorded here.
 
+## Build 0.8 — Portfolio Edition v1.0 Release Candidate
+
+### Added
+
+- Export regression tests covering CSV, TXT, JSON, and Excel outputs.
+- Automated Streamlit health smoke test.
+- GitHub Actions workflow extended to run regression, export, compile, and Streamlit smoke checks.
+- Portfolio resume and LinkedIn assets.
+- Seven-minute interview demo script.
+- Screenshot capture guide and naming standard.
+- Release-candidate labels in `app.py` and `modules/config.py`.
+- Build 0.8 QA report and updated project status.
+
+### QA Notes
+
+- Core CI was green before Build 0.8.
+- Build 0.8 adds broader automated coverage.
+- Latest Build 0.8 workflow result, manual visual review, sample upload, and download-button verification remain pending.
+
 ## Build 0.7 — Defect Remediation, Visual Polish, Downloadable Outputs, and Release-Candidate Preparation
 
 ### Added
@@ -17,7 +36,8 @@ All meaningful project changes will be recorded here.
 
 - Static integration review completed.
 - Export logic added and connected.
-- GitHub Actions result, local Streamlit visual review, sample upload, and download-button verification remain pending.
+- GitHub Actions import-path defect remediated.
+- Latest Build 0.7 workflow runs passed.
 
 ## Build 0.6 — UX Refinement, Testing, Documentation, and Portfolio Polish
 
@@ -35,8 +55,7 @@ All meaningful project changes will be recorded here.
 ### QA Notes
 
 - Static integration review completed.
-- Automated tests and compile checks are configured in GitHub Actions.
-- Workflow result and local visual review remain pending confirmation.
+- Automated tests and compile checks configured in GitHub Actions.
 
 ## Build 0.5 — Executive Communication Layer
 
@@ -55,7 +74,6 @@ All meaningful project changes will be recorded here.
 
 - Static integration review completed.
 - Documentation updated.
-- Runtime Streamlit launch and regression testing remain pending local or hosted execution.
 
 ## Build 0.4 — Decision Intelligence, Allocation, Scenario Simulation, and Negotiation
 
@@ -93,7 +111,7 @@ Build 0.4 brings the app closer to the uploaded V9.5 base plan while keeping the
 
 ### Notes
 
-Build 0.3 turns the app from a skeleton into a working procurement analytics engine. Decision intelligence, allocation, scenario stress testing, and negotiation are planned for Build 0.4.
+Build 0.3 turns the app from a skeleton into a working procurement analytics engine.
 
 ## Build 0.2 — Streamlit Framework and Modular Application Skeleton
 
@@ -110,7 +128,7 @@ Build 0.3 turns the app from a skeleton into a working procurement analytics eng
 
 ### Notes
 
-Build 0.2 creates the application skeleton. Full procurement engine logic begins in Build 0.3.
+Build 0.2 creates the application skeleton.
 
 ## Build 0.1 — Repository Foundation
 
@@ -124,4 +142,4 @@ Build 0.2 creates the application skeleton. Full procurement engine logic begins
 
 ### Notes
 
-No application logic has been added yet. Build 0.1 is focused on repository safety, documentation, recovery, and governance.
+Build 0.1 focused on repository safety, documentation, recovery, and governance.
