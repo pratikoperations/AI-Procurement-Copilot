@@ -26,6 +26,11 @@ IMPORTANT_FIELDS = [
     "Supplier Capacity",
 ]
 
+# Supplier 360 introduces descriptive and governance fields beyond the RFQ schema.
+# This denominator prevents those transparent defaults from overwhelming otherwise
+# usable RFQ completeness while still applying a material confidence penalty.
+EXTENDED_GOVERNANCE_FIELD_ALLOWANCE = 20
+
 
 def _is_present(value) -> bool:
     if value is None:
@@ -78,8 +83,9 @@ def calculate_data_confidence(
                 missing_critical_cells += 1
 
     actual_pct = actual_cells / total_cells * 100
-    defaulted_pct = min(len(defaulted) / max(len(considered), 1) * 100, 100)
-    inferred_pct = min(len(inferred) / max(len(considered), 1) * 100, 100)
+    governance_denominator = len(considered) + EXTENDED_GOVERNANCE_FIELD_ALLOWANCE
+    defaulted_pct = min(len(defaulted) / max(governance_denominator, 1) * 100, 100)
+    inferred_pct = min(len(inferred) / max(governance_denominator, 1) * 100, 100)
     missing_critical_pct = missing_critical_cells / max(len(dataframe) * len(CRITICAL_FIELDS), 1) * 100
 
     score = actual_pct - defaulted_pct * 0.35 - inferred_pct * 0.20 - missing_critical_pct * 0.80
