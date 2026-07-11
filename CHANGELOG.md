@@ -2,29 +2,35 @@
 
 All meaningful project changes are recorded here.
 
-## Build 0.9.4 — Category-Specific Cost and Risk Engines
+## Build 0.9.5 — Supplier Intelligence Platform
 
 ### Added
 
-- Production raw-material should-cost engine.
-- Commodity-aware raw-material risk model.
-- Delivered, working-capital, duty, volatility, and risk-adjusted raw-material TCO.
-- Category-aware supplier scoring weights and engine routing.
-- Raw-material synthetic demo data for supported commodities.
-- Category should-cost router.
-- Active Raw Material Procurement workflow in Streamlit.
-- Category-specific regression tests and documentation.
-
-### Changed
-
-- Raw Material Procurement promoted from Foundation Preview to Active.
-- Category selection now controls demo data, should-cost, TCO, risk, and scoring.
+- Supplier 360 profile engine with transparent default tracking.
+- Extended supplier performance intelligence.
+- Financial health indicator engine with due-diligence safeguards.
+- ESG maturity intelligence.
+- Innovation maturity intelligence.
+- SRM classification and governance recommendations.
+- Explainable supplier recommendation rankings.
+- Side-by-side supplier comparison.
+- Executive supplier narrative.
+- Supplier Intelligence dashboard tab.
+- Supplier comparison CSV, Supplier 360 JSON, and narrative TXT exports.
+- Packaging and Raw Material compatibility tests.
 
 ### QA Notes
 
-- Existing packaging tests remain part of the regression suite.
-- New raw-material tests added.
-- CI and live multi-category validation are pending.
+- Recommendations are deterministic and human-governed.
+- Missing supplier facts are explicitly defaulted and listed.
+- Financial outputs are indicators, not audited financial claims.
+- CI and live Streamlit validation are pending.
+
+## Build 0.9.4 — Category-Specific Cost and Risk Engines
+
+- Added production raw-material should-cost, risk, TCO, scoring, routing, demo data, tests, and documentation.
+- Promoted Raw Material Procurement to Active.
+- CI validated after aligning the historical category test.
 
 ## Build 0.9.3.1 — Category Profile Integration Hotfix
 
