@@ -17,6 +17,43 @@ Correct release-blocking defects found during manual review of downloaded report
 - Separated business-readable reports from machine-readable audit data.
 - Added cross-output consistency tests.
 
+## Regression failure investigation
+
+The first RC1.2 quality-check runs failed in `tests/test_download_consistency.py::test_blocked_memo_withholds_award_language`.
+
+### Root cause
+
+`generate_executive_memo()` used:
+
+```python
+eligibility.get("status", award_status(recommended, confidence))
+```
+
+Python evaluates function arguments before calling `dict.get()`. Therefore `award_status()` executed even when `eligibility["status"]` already contained `Blocked`. The blocked-path test intentionally used a minimal supplier record without `total_score`, causing a `KeyError` before the governed blocked memo could be produced.
+
+### Fix
+
+The fallback is now evaluated lazily:
+
+```python
+status = eligibility.get("status")
+if not status:
+    status = award_status(recommended, confidence)
+```
+
+This preserves the eligibility decision and avoids unnecessary access to award-scoring fields when the recommendation is already blocked.
+
+## Validation result
+
+A controlled pull-request workflow verification completed successfully:
+
+- Python compilation: Passed
+- Complete regression suite: Passed
+- Streamlit smoke test: Passed
+- No additional failures introduced
+
+Temporary diagnostic pull requests were closed without merging and did not alter application logic on `main`.
+
 ## Release rule
 
-The build remains a release candidate until GitHub Actions, Streamlit smoke testing, and manual opening of all downloadable files are complete.
+The code-level RC1.2 regression gate is clear. The build remains a release candidate until live Streamlit validation and manual opening of all downloadable files are complete.
