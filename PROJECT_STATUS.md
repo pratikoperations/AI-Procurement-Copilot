@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 1.0 RC1.2 — Export Integrity and Category-Aware Communication Hotfix
+Build 1.0 RC1.2.1 — Supplier 360 Display Formatting Hotfix
 
 ## Current Status
 
-Implementation completed — GitHub Actions, Streamlit smoke test, and manual download retest pending
+Implementation and automated validation completed. Final manual release validation remains in progress.
 
 ## Canonical Source of Truth
 
@@ -22,33 +22,34 @@ GitHub repository: pratikoperations/AI-Procurement-Copilot
 
 ## Release Freeze
 
-Feature development remains frozen. RC1.2 corrects validated release defects only: currency/unit integrity, category-aware communication, evidence-governed recommendations, classification precedence, risk terminology, and readable exports.
+Feature development remains frozen. RC1.2 and RC1.2.1 corrected validated release defects only. No new business feature is authorized before v1.0 release approval.
 
-## RC1.2 Scope Completed
+## RC1.2 and RC1.2.1 Scope Completed
 
 - Explicit original and normalized currency fields
 - Auditable FX rate and comparison basis
 - Corrected Packaging and Raw Material demo metadata
 - PET Resin standardized to kg
 - Category-aware supplier clarification emails
-- Eligibility-aware memo, email, narrative, and audit package
+- Eligibility-aware memo, email, narrative, negotiation brief, and audit package
 - Governed recommendation roles using displayed scores and evidence sufficiency
 - No-qualified-supplier outcome when evidence is insufficient
 - Exit Candidate precedence over Development Candidate
 - Visible Risk Resilience Score terminology
 - Business-readable supplier score and comparison reports
 - Separate machine-readable audit downloads
-- New currency, communication, recommendation, classification, export, and consistency tests
-- Download content audit and governance documentation
+- Corrected Supplier 360 Approved Categories and Commodity Coverage display formatting
+- Regression coverage for scalar and collection display behavior
 
 ## Validation Status
 
 - Builds 0.1–0.9.6.1: Completed and previously CI/live validated as recorded
 - Build 1.0 RC1.1: Executive polish implemented
-- Build 1.0 RC1.2 implementation: Complete
-- RC1.2 GitHub Actions: Pending
-- RC1.2 Streamlit smoke test: Pending
-- RC1.2 manual file download review: Pending
+- Build 1.0 RC1.2: Completed and CI validated
+- Build 1.0 RC1.2.1: Completed and CI validated
+- Packaging manual validation: In progress
+- PET Resin manual validation: In progress
+- Downloaded file review: In progress
 - Gemini independent review: Pending
 - Perplexity methodology review: Pending
 - Human procurement review: Pending / not waived
@@ -56,16 +57,36 @@ Feature development remains frozen. RC1.2 corrects validated release defects onl
 
 ## Open Release Gates
 
-1. Latest Build 1.0 RC1.2 GitHub Actions green
-2. Streamlit shows the RC1.2 build label and loads both categories
-3. PET Resin demo no longer falsely blocks on currency
-4. Supplier email is category-aware and eligibility-aware
-5. Recommendation rankings show no-qualified-supplier outcomes when evidence is insufficient
-6. Excel, CSV, TXT, and audit downloads open and match on-screen status
-7. RC1-DEF-005 through RC1-DEF-011 closed after retest
-8. Independent reviews completed or formally waived
-9. Final release-readiness approval and `v1.0.0` tag
+1. Complete live Packaging workflow review
+2. Complete live PET Resin workflow review
+3. Confirm Supplier 360 formatting correction in the deployed application
+4. Open and inspect every readable and machine-readable download
+5. Confirm screen, memo, email, narrative, CSV, and Excel outputs remain consistent
+6. Close remaining manual-validation findings
+7. Complete or formally waive independent reviews
+8. Approve final release-readiness score
+9. Create the `v1.0.0` tag only after all gates are complete
+
+## Post-v1.0 Approved Backlog
+
+### Version 1.1 — Time-Aware Procurement Analytics
+
+Documentation has been completed for future date-range and period-comparison analytics across RFQ, performance, SRM, spend, savings, risk, ESG, innovation, contracts, commodity costs, procurement operations, and supplier development.
+
+Planned capabilities include:
+
+- All Available Data and Custom Date Range
+- Month, quarter, and year presets
+- Period-over-period, QoQ, and YoY comparisons
+- Rolling 3-month and 12-month analytics
+- Module-specific governing date fields
+- Incomplete-period and missing-date safeguards
+- Reporting-period metadata in screens and exports
+
+Reference: `docs/FUTURE_TIME_AWARE_ANALYTICS.md`
+
+**Important:** This is a documentation-only backlog record. It does not alter the current application, data schema, calculations, tests, or release behavior.
 
 ## Next Milestone
 
-Validate RC1.2 and manually inspect every download. Do not tag v1.0.0 yet and do not resume feature development.
+Complete final manual validation of Build 1.0 RC1.2.1. Do not tag v1.0.0 yet and do not resume feature development.
