@@ -14,7 +14,7 @@ Build 0.8 — Portfolio Edition v1.0 Release Candidate
 
 ## Current Status
 
-Build 0.8 Completed — Final Workflow Confirmation and Manual Visual Review Pending
+Build 0.8 Completed — CI Validated, Manual Visual Review Pending
 
 ## Canonical Source of Truth
 
@@ -43,14 +43,15 @@ Complete final defect closure, expand automated validation to include exports an
 
 ## Latest Completed Action
 
-Build 0.8 added export regression tests, automated Streamlit health testing, Portfolio Edition v1.0 release-candidate labels, portfolio positioning assets, a seven-minute demo script, and screenshot capture standards.
+Build 0.8 added export regression tests, automated Streamlit health testing, Portfolio Edition v1.0 release-candidate labels, portfolio positioning assets, a seven-minute demo script, and screenshot capture standards. The latest Build 0.8 Quality Checks runs are green.
 
 ## QA Status
 
 - Static integration review: Completed
-- Core regression tests: Previously green
-- Export regression tests: Added; latest workflow result pending confirmation
-- Streamlit smoke test: Added; latest workflow result pending confirmation
+- Core regression tests: Passed
+- Export regression tests: Passed
+- Streamlit smoke test: Passed
+- GitHub Actions workflow: Green
 - Local visual review: Pending
 - Sample RFQ upload review: Pending
 - Download-button manual review: Pending
@@ -58,4 +59,4 @@ Build 0.8 added export regression tests, automated Streamlit health testing, Por
 
 ## Next Milestone
 
-Portfolio Edition v1.0 Release Freeze — after green Build 0.8 Quality Checks and final manual visual validation
+Portfolio Edition v1.0 Release Freeze — after final manual visual validation, sample upload test, download review, and screenshot capture
