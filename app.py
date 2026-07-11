@@ -1,5 +1,6 @@
 """AI Procurement Copilot — Portfolio Edition v1.0."""
 
+import json
 import streamlit as st
 
 from modules.allocation import recommend_allocation
@@ -32,6 +33,8 @@ from modules.scenario_engine import SCENARIOS, run_intelligence_scenario
 from modules.scoring import enrich_supplier_scores
 from modules.sidebar import render_sidebar
 from modules.strategy_engine import recommend_strategy
+from modules.supplier_comparison import build_supplier_intelligence
+from modules.supplier_intelligence_ui import render_supplier_intelligence
 from modules.validation import validate_rfq_dataframe, validate_scored_output
 
 st.set_page_config(page_title=APP_NAME, page_icon="🤖", layout="wide", initial_sidebar_state="expanded")
@@ -42,8 +45,8 @@ assumptions["category_profile"] = profile
 
 st.title(APP_NAME)
 st.subheader(EDITION)
-st.caption("Transparent, category-aware procurement decision intelligence for RFQ analysis, should-cost, TCO, risk, ESG, allocation, negotiation, and executive recommendations.")
-st.success(f"{BUILD} — category-specific packaging and raw-material engines are active.")
+st.caption("Transparent, category-aware procurement decision intelligence for RFQ analysis, should-cost, TCO, risk, supplier intelligence, ESG, allocation, negotiation, and executive recommendations.")
+st.success(f"{BUILD} — Supplier Intelligence Platform is active.")
 
 with st.expander("Selected Category Intelligence", expanded=True):
     c1, c2, c3 = st.columns(3)
@@ -122,19 +125,22 @@ executive_narrative = generate_executive_narrative(
     value_metrics["estimated_ebitda_opportunity_usd"],
 )
 
+supplier_intelligence = build_supplier_intelligence(scored_df, assumptions["category"], assumptions["commodity"])
 executive_memo = generate_executive_memo(scored_df, allocation_df, value_metrics, confidence)
 supplier_email = generate_supplier_email(recommended, should_cost["target_unit_cost_usd"], assumptions["annual_volume"])
 explainability_text = generate_explainability_panel(recommended)
 interview_talking_points = generate_interview_talking_points()
 excel_package = build_excel_workbook(scored_df, should_cost_df, allocation_df, scenario_df)
 json_package = build_decision_package_json(recommended, value_metrics, allocation_df, scenario_df, negotiation_result)
+supplier_profiles_json = json.dumps(supplier_intelligence["profiles"], indent=2, default=str).encode("utf-8")
 
 render_executive_dashboard(scored_df, assumptions, confidence)
 st.markdown("---")
 
 tabs = st.tabs([
     "1. Decision Summary", "2. Cost & Risk", "3. Scenarios & Negotiation",
-    "4. Procurement Intelligence", "5. Executive Outputs", "6. Downloads", "7. Interview Guide",
+    "4. Procurement Intelligence", "5. Supplier Intelligence", "6. Executive Outputs",
+    "7. Downloads", "8. Interview Guide",
 ])
 
 with tabs[0]:
@@ -166,6 +172,9 @@ with tabs[3]:
     )
 
 with tabs[4]:
+    render_supplier_intelligence(supplier_intelligence)
+
+with tabs[5]:
     st.header("Executive Sourcing Memo")
     st.text_area("Generated executive sourcing memo", executive_memo, height=520)
     st.header("Supplier Clarification Email")
@@ -174,7 +183,7 @@ with tabs[4]:
     st.write(explainability_text)
     st.caption("Transparent, rule-guided, auditable, procurement-controlled, and not a black-box award decision.")
 
-with tabs[5]:
+with tabs[6]:
     st.header("Download Decision Package")
     c1, c2, c3 = st.columns(3)
     c1.download_button("Download Excel Analysis", excel_package, "ai_procurement_copilot_analysis.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
@@ -184,11 +193,15 @@ with tabs[5]:
     c4.download_button("Download Supplier Scores CSV", dataframe_to_csv_bytes(scored_df), "supplier_scores.csv", "text/csv")
     c5.download_button("Download Allocation CSV", dataframe_to_csv_bytes(allocation_df), "supplier_allocation.csv", "text/csv")
     c6.download_button("Download Decision JSON", json_package, "procurement_decision_package.json", "application/json")
+    c7, c8, c9 = st.columns(3)
+    c7.download_button("Download Supplier Comparison CSV", dataframe_to_csv_bytes(supplier_intelligence["comparison_df"]), "supplier_comparison.csv", "text/csv")
+    c8.download_button("Download Supplier 360 JSON", supplier_profiles_json, "supplier_360_profiles.json", "application/json")
+    c9.download_button("Download Supplier Narrative", text_to_bytes(supplier_intelligence["executive_narrative"]), "executive_supplier_narrative.txt", "text/plain")
 
-with tabs[6]:
+with tabs[7]:
     st.header("Interview Talking Points")
     st.write(interview_talking_points)
-    st.info("Positioning: a category-aware procurement decision-support product with transparent, auditable human governance.")
+    st.info("Positioning: a category-aware procurement and Supplier 360 decision-support product with transparent, auditable human governance.")
 
 st.markdown("---")
 st.caption(f"{BUILD} | Application status: {STATUS}")
