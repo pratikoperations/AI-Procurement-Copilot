@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.9.6 — Independent Validation and Real-World Stress Testing
+Build 0.9.6.1 — Executive-Readable Supplier Intelligence UX Hotfix
 
 ## Current Status
 
-Build 0.9.6 Implemented and CI Validated — Live Validation, Independent Reviews and Human Review Pending
+Implementation completed — GitHub Actions, Streamlit smoke test and live category validation pending
 
 ## Canonical Source of Truth
 
@@ -22,57 +22,58 @@ GitHub repository: pratikoperations/AI-Procurement-Copilot
 
 ## Build Objective
 
-Validate logic, data quality, recommendation safety, allocation feasibility and external-file robustness before Portfolio Edition v1.0 release consideration.
+Remove developer-style structured output from the application and prevent financial, ESG or innovation conclusions from overstating weak evidence.
 
 ## Implemented Scope
 
-- Formula, assumption, decision-rule and traceability registers
-- Data-confidence engine
-- Recommendation eligibility gate
-- Business-rule validator
-- Safe executive-narrative withholding
-- Currency, UOM, percentage, price, volume and capacity controls
-- Adversarial and boundary tests
-- Fourteen synthetic external-file validation datasets
-- Real-world file regression tests
-- Expected-result matrix
-- Independent Gemini and Perplexity review prompts
-- Human review template and findings register
-- Validation defect register
-- Release-readiness scorecard
-- Model-risk statement
-- Validation and external-file reports
+- Executive-readable Supplier Intelligence overview
+- Metric cards, score matrices, comparison tables and responsive charts
+- Readable Performance, Financial, ESG, Innovation and SRM views
+- Readable Supplier 360 profile sections
+- Readable recommendation and comparison matrices
+- Supplier 360 readable report download
+- Machine-readable audit data retained as download-only
+- Financial evidence-completeness caps and due-diligence status
+- ESG evidence-completeness caps and verification status
+- Innovation evidence-completeness caps and verification status
+- Reusable UI component library
+- UI output audit and regression tests
 
 ## Category Status
 
-- Packaging Procurement: Active and CI validated under Build 0.9.6
-- Raw Material Procurement: Active and CI validated under Build 0.9.6
+- Packaging Procurement: Existing workflow preserved; live hotfix validation pending
+- Raw Material Procurement: Existing workflow preserved; live hotfix validation pending
 
 ## Validation Status
 
-- Internal safety-control implementation: Complete
-- Internal audit registers: Complete
-- Regression, adversarial and file tests: CI validated
-- GitHub Quality Checks #150–#208: Confirmed green by project owner
-- Synthetic external-file library: Complete
-- Internal validation defects VAL-001 to VAL-005: Fixed and CI retested
-- Live Streamlit validation: Pending
+- Builds 0.1–0.9.6: Previously CI validated
+- Build 0.9.6.1 implementation: Complete
+- Raw structured Supplier Intelligence display: Removed
+- Financial evidence governance: Implemented
+- ESG evidence governance: Implemented
+- Innovation evidence governance: Implemented
+- New UI and governance tests: Added
+- GitHub Actions for Build 0.9.6.1: Pending
+- Streamlit smoke test: Pending
+- Live Packaging Supplier Intelligence review: Pending
+- Live Raw Material Supplier Intelligence review: Pending
 - Gemini independent review: Pending
 - Perplexity methodology review: Pending
 - Human procurement review: Pending / not waived
-- Provisional release-readiness score: 9.2/10
 - Portfolio Edition v1.0 approval: Not granted
 
 ## Open Release Gates
 
-1. Packaging and Raw Material live workflows validated
-2. Gemini findings completed and dispositioned
-3. Perplexity findings completed and dispositioned
-4. Human review completed or formally waived
-5. Final confirmation that no open Critical defects remain after external review
-6. Final confirmation that no unmitigated Major defects remain
-7. Final score at least 9.0/10
+1. Build 0.9.6.1 GitHub Actions green
+2. Streamlit startup and smoke test green
+3. Packaging Supplier Intelligence visually validated
+4. Raw Material Supplier Intelligence visually validated
+5. VAL-006 and VAL-007 closed after retest
+6. Gemini and Perplexity reviews completed and dispositioned
+7. Human review completed or formally waived
+8. No open Critical or unmitigated Major defect
+9. Final readiness score at least 9.0/10
 
 ## Next Milestone
 
-Complete live application validation, then execute independent Gemini and Perplexity reviews. Do not begin Build 1.0 until all release gates close.
+Validate Build 0.9.6.1 in GitHub Actions and the deployed Streamlit application. Do not begin Build 1.0.
