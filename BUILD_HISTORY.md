@@ -1,36 +1,50 @@
 # Build History
 
-## Build 1.0 RC1.2 — Export Integrity and Category-Aware Communication Hotfix
+## Build 1.0 RC1.2.2 — Export Score Consistency and Scenario Integrity Hotfix
 
-**Status:** Implementation completed — CI, Streamlit, and manual download retest pending  
-**Objective:** Correct release-blocking inconsistencies between screen outputs, supplier communications, recommendation rankings, and downloadable reports.
+**Status:** Implementation completed — CI, Streamlit, and manual retest pending  
+**Objective:** Correct readable score ambiguity, freight-scenario integrity, and residual risk terminology defects.
 
 ### Completed
 
-- Added original and normalized currency governance.
-- Added explicit FX rate, UOM, and comparison basis.
-- Corrected synthetic demo metadata and standardized PET Resin to kg.
-- Added category-aware and eligibility-aware supplier communication.
-- Governed recommendation roles using displayed scores and evidence status.
-- Prevented unsupported ESG, innovation, strategic-partner, and long-term awards.
-- Enforced Exit Candidate and Development Candidate separation.
-- Renamed visible risk terminology to Risk Resilience Score.
-- Added readable supplier score and comparison exports.
-- Preserved separate machine-readable audit exports.
-- Added six focused regression-test files and download content audit documentation.
+- Differentiated RFQ and governed Supplier Intelligence scores in readable exports.
+- Added governed Supplier 360 score fields to readable supplier score reports.
+- Corrected freight stress treatment for delivered-price suppliers.
+- Added category-aware scenario TCO headings.
+- Replaced Risk Score with Risk Resilience Score in readable scenario exports.
+- Added Packaging and Raw Material freight-scenario regression tests.
+- Preserved feature freeze and existing score weightings.
 
 ### Remaining gates
 
-- Latest RC1.2 GitHub Actions green
-- Streamlit smoke test for Packaging and Raw Material
-- Manual opening and review of all report downloads
-- Closure of RC1-DEF-005 through RC1-DEF-011 after retest
-- Independent reviews completed or formally waived
-- Final `v1.0.0` release approval
+- Latest GitHub Actions green
+- Streamlit smoke test
+- Manual Supplier Scores Report retest
+- Manual Scenarios worksheet retest
+- Confirmation that Freight +50% changes unit and annual TCO
+- Closure of RC1-DEF-012 through RC1-DEF-014
+- Final release approval
 
 ### Next
 
-Validate RC1.2. Do not tag v1.0.0 and do not add features.
+Validate RC1.2.2. Do not tag v1.0.0 and do not add features.
+
+---
+
+## Build 1.0 RC1.2.1 — Supplier 360 Display Formatting Hotfix
+
+**Status:** Completed and CI validated
+
+- Corrected character-by-character rendering of Approved Categories and Commodity Coverage.
+- Added safe scalar and collection formatting with regression coverage.
+
+---
+
+## Build 1.0 RC1.2 — Export Integrity and Category-Aware Communication Hotfix
+
+**Status:** Completed and CI validated; manual download validation continued
+
+- Added currency, unit, communication, recommendation, classification, and export-governance controls.
 
 ---
 
