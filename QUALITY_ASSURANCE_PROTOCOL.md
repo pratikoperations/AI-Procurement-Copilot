@@ -2,64 +2,97 @@
 
 ## Purpose
 
-This protocol defines the quality gate for every AI Procurement Copilot build.
+This protocol defines the technical, procurement, data-quality, model-risk and release gates for every AI Procurement Copilot build.
 
 ## Build Quality Gates
 
-Every build must be assessed against the following gates before moving to the next build.
-
-| Gate | Check | Pass Criteria |
+| Gate | Check | Pass criteria |
 |---|---|---|
-| G1 | GitHub Commit | All meaningful changes committed to GitHub |
-| G2 | App Runs | `streamlit run app.py` launches without errors |
+| G1 | GitHub record | All meaningful changes committed and recoverable |
+| G2 | App startup | `streamlit run app.py` launches without errors |
 | G3 | Imports | All modules import successfully |
-| G4 | Functional Test | New features work with synthetic demo data |
-| G5 | Regression Test | Previous build features still work |
-| G6 | Code Quality | Modular, readable, no obvious duplicate logic |
-| G7 | Procurement Logic | Outputs are commercially sensible and explainable |
-| G8 | Interview Quality | Feature can be explained in a senior procurement interview |
-| G9 | Documentation | PROJECT_STATUS, CHANGELOG, BUILD_HISTORY updated |
-| G10 | Recovery | Project can be resumed from GitHub alone |
+| G4 | Functional test | New features work with category-appropriate demo data |
+| G5 | Regression test | Previous functionality remains intact |
+| G6 | Code quality | Modular, readable and without obvious duplicated logic |
+| G7 | Procurement logic | Outputs are commercially sensible, traceable and explainable |
+| G8 | Data confidence | Missing, defaulted and inferred data is visible |
+| G9 | Recommendation safety | Invalid or insufficient data cannot produce final award language |
+| G10 | Allocation feasibility | Allocation totals 100% and does not exceed verified capacity |
+| G11 | External files | Canonical, alternate, incomplete, invalid and large files behave as expected |
+| G12 | Documentation | Status, changelog, history, version, QA and validation evidence updated |
+| G13 | Independent review | External AI and human findings are dispositioned |
+| G14 | Recovery | Project can be resumed from GitHub alone |
 
 ## Scoring Framework
 
-Each completed build should be reviewed across:
+Score each build from 0–10 across:
 
-- Architecture: /10
-- Code Quality: /10
-- Procurement Logic: /10
-- User Experience: /10
-- Documentation: /10
-- Interview Readiness: /10
-- Maintainability: /10
+- Architecture
+- Code quality
+- Formula correctness
+- Procurement logic
+- Input validation
+- Recommendation safety
+- Allocation feasibility
+- External-file robustness
+- Data-confidence transparency
+- Explainability
+- User experience
+- Documentation
+- Interview readiness
+- Maintainability
+- Live deployment stability
 
 ## Minimum Acceptance Threshold
 
-Target score: **8.5 / 10** or higher.
+Normal build target: **8.5/10** or higher.
 
-If a build falls below 8.5, create a remediation task before proceeding to the next major release milestone.
+Portfolio Edition v1.0 release target: **9.0/10** or higher, with allocation feasibility at **10/10** and recommendation safety at **9/10** or higher.
+
+## Build 0.9.6 Required Controls
+
+Before displaying a final recommendation, verify:
+
+- Required RFQ data is valid.
+- Quoted price and annual volume are positive.
+- Percentages and operational metrics are within valid ranges.
+- Currency and UOM are explicit and consistent.
+- Supplier capacity meets demand.
+- Allocation totals 100% and is supplier-feasible.
+- At least one supplier meets the configured risk threshold.
+- Data-confidence status is visible.
+- Recommendation eligibility is visible.
+- Blocked and insufficient-data cases withhold final award language.
+- Demo data is distinguished from uploaded unverified data.
 
 ## Release v1.0 Acceptance Criteria
 
-Before Portfolio Edition v1.0 release:
+- Packaging and Raw Material workflows run end to end.
+- Supplier Intelligence and Procurement Intelligence remain functional.
+- Realistic and adversarial file tests pass.
+- Formula, assumption and decision-rule registers are current.
+- No open Critical defects remain.
+- No unmitigated Major defects remain.
+- GitHub Actions are green.
+- Streamlit smoke and manual deployment checks pass.
+- Gemini independent validation is completed and dispositioned.
+- Perplexity methodology validation is completed and dispositioned.
+- Human procurement review is completed or formally waived with written residual-risk acceptance.
+- Final release-readiness score is at least 9.0/10.
 
-- App runs end-to-end with synthetic demo data.
-- RFQ upload works with the sample CSV.
-- Should-cost model is visible and auditable.
-- TCO output is explainable.
-- Risk assumptions are visible.
-- ESG and performance scoring are visible.
-- Lowest-price vs best-value logic is clear.
-- Allocation recommendation is visible.
-- Scenario stress test works.
-- Negotiation playbook is generated.
-- Executive memo is generated.
-- Supplier email is generated.
-- AI explainability panel is generated.
-- Interview talking points are available.
-- Documentation is updated.
-- Recovery manifest is current.
+## Defect Governance
+
+Every accepted Critical or Major finding requires:
+
+1. Defect-register entry
+2. Reproduction steps
+3. Corrective commit
+4. Regression test
+5. Retest evidence
+6. Release-blocker decision
+
+Rejected findings require written rationale.
 
 ## Governance Principle
 
-No feature is considered complete until it is committed, documented, and recoverable from GitHub.
+No feature or release is complete until it is committed, tested, documented, recoverable, independently challenged and approved under human procurement governance.
