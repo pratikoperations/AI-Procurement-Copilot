@@ -15,6 +15,18 @@ def humanize_label(value: str) -> str:
     return " ".join(word.upper() if word.lower() in {"esg", "srm", "ai", "tco", "otif", "ppm", "epr", "pcr"} else word.capitalize() for word in text.split())
 
 
+def format_display_value(value) -> str:
+    """Render scalar and collection values without splitting strings character by character."""
+    if value in (None, "", []):
+        return "Not provided"
+    if isinstance(value, str):
+        return value
+    if isinstance(value, (list, tuple, set)):
+        items = [str(item).strip() for item in value if str(item).strip()]
+        return ", ".join(items) if items else "Not provided"
+    return str(value)
+
+
 def render_metric_card(label, value, help_text=None):
     st.metric(humanize_label(label), value, help=help_text)
 
@@ -142,7 +154,7 @@ def render_key_value_matrix(title: str, values: dict, columns=2):
         for container, (label, value) in zip(row, items[start:start + columns]):
             with container:
                 st.markdown(f"**{humanize_label(label)}**")
-                st.write("Not provided" if value in (None, "", []) else str(value))
+                st.write(format_display_value(value))
 
 
 def build_readable_supplier_report(profile: dict) -> str:
