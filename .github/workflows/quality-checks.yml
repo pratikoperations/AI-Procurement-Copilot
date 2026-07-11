@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHONPATH: ${{ github.workspace }}
+    outputs:
+      pytest_summary: ${{ steps.pytest.outputs.summary }}
 
     steps:
       - name: Check out repository
@@ -28,7 +30,30 @@ jobs:
         run: python -m compileall -q app.py modules tests
 
       - name: Run regression tests
-        run: python -m pytest -q --tb=short
+        id: pytest
+        shell: bash
+        run: |
+          set +e
+          python -m pytest -q --tb=short > pytest.log 2>&1
+          status=$?
+          {
+            echo 'summary<<EOF'
+            tail -n 80 pytest.log
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+          cat pytest.log
+          exit $status
 
       - name: Run Streamlit smoke test
         run: bash scripts/streamlit_smoke_test.sh
+
+  report:
+    if: always()
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print concise pytest summary
+        run: |
+          cat <<'EOF'
+          ${{ needs.test.outputs.pytest_summary }}
+          EOF
