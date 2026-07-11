@@ -1,38 +1,43 @@
 # Build History
 
-## Build 0.9.6.1 — Executive-Readable Supplier Intelligence UX Hotfix
+## Build 1.0 RC1.1 — Final Executive Polish
 
-**Status:** Implementation completed — CI and live validation pending  
-**Objective:** Remove developer-style structured output and align displayed supplier intelligence with evidence quality.
+**Status:** Implementation completed — latest CI and live retest pending  
+**Objective:** Close the remaining executive-UX findings without changing business logic.
 
 ### Completed
 
-- Added reusable executive UI components.
-- Replaced raw structured Supplier Intelligence output with cards, score matrices, charts, evidence lists and action plans.
-- Added financial evidence-completeness governance and score caps.
-- Added ESG evidence-completeness governance and maturity caps.
-- Added innovation evidence-completeness governance and maturity caps.
-- Added readable Supplier 360 report download.
-- Retained machine-readable audit data as download-only.
-- Added UI-output and evidence-governance regression tests.
-- Recorded VAL-006 to VAL-009.
-
-### Outcome
-
-Supplier Intelligence now presents procurement meaning rather than internal object structure. Low-evidence financial, ESG and innovation results are explicitly provisional and cannot appear as verified leading performance.
+- Replaced technical chart labels with executive terminology.
+- Standardized visible axis and legend titles.
+- Replaced generic recommendation explanations with role-specific business rationale.
+- Corrected Raw Material should-cost heading.
+- Standardized visible dashboard and negotiation headings.
+- Added executive terminology regression tests.
+- Closed VAL-006 through VAL-009 after successful CI and live mobile validation.
+- Preserved feature freeze, scoring models, formulas, and architecture.
 
 ### Remaining gates
 
-- Green Build 0.9.6.1 GitHub Actions
-- Streamlit smoke test
-- Live Packaging Supplier Intelligence validation
-- Live Raw Material Supplier Intelligence validation
-- Closure of VAL-006 to VAL-009 after retest
-- Gemini, Perplexity and human review
+- Latest Build 1.0 RC1.1 GitHub Actions green
+- Live polish retest on Streamlit
+- Export files opened and inspected
+- Gemini and Perplexity reviews dispositioned
+- Human review completed or formally waived
+- Final `v1.0.0` release approval
 
 ### Next
 
-Validate Build 0.9.6.1. Build 1.0 remains blocked.
+Validate RC1.1, then create the Portfolio Edition v1.0 release tag. Do not add features.
+
+---
+
+## Build 0.9.6.1 — Executive-Readable Supplier Intelligence UX Hotfix
+
+**Status:** Completed — CI and live mobile validated
+
+- Replaced raw structured output with executive-readable Supplier Intelligence.
+- Added Financial, ESG, and Innovation evidence-governance safeguards.
+- Added readable Supplier 360 reports and UI regression tests.
 
 ---
 
