@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.8 — Portfolio Edition v1.0 Release Candidate
+Build 0.8.1 — Deployment Stabilization
 
 ## Current Status
 
-Build 0.8 Completed — CI Validated, Manual Visual Review Pending
+Build 0.8.1 Completed — Streamlit Cloud Redeployment Validation Pending
 
 ## Canonical Source of Truth
 
@@ -22,7 +22,7 @@ GitHub repository: pratikoperations/AI-Procurement-Copilot
 
 ## Build Objective
 
-Complete final defect closure, expand automated validation to include exports and Streamlit health, prepare screenshot and interview assets, and promote the project to Portfolio Edition v1.0 Release Candidate.
+Stabilize Streamlit Community Cloud deployment after a native segmentation fault by pinning Python and dependency versions, aligning cloud and CI environments, and removing deprecated Streamlit width usage.
 
 ## Scope Locked for v1.0
 
@@ -40,23 +40,24 @@ Complete final defect closure, expand automated validation to include exports an
 - Automated Streamlit smoke test
 - Downloadable Excel, CSV, TXT, and JSON outputs
 - Portfolio, resume, LinkedIn, demo, and screenshot guidance
+- Reproducible Python 3.11 deployment environment
 
 ## Latest Completed Action
 
-Build 0.8 added export regression tests, automated Streamlit health testing, Portfolio Edition v1.0 release-candidate labels, portfolio positioning assets, a seven-minute demo script, and screenshot capture standards. The latest Build 0.8 Quality Checks runs are green.
+Build 0.8.1 pinned Python 3.11 for Streamlit Cloud, pinned stable dependency versions, aligned CI and deployment runtime expectations, replaced deprecated `use_container_width` arguments with `width="stretch"`, and documented the deployment incident.
 
 ## QA Status
 
-- Static integration review: Completed
-- Core regression tests: Passed
-- Export regression tests: Passed
-- Streamlit smoke test: Passed
-- GitHub Actions workflow: Green
+- GitHub Actions before stabilization: Green
+- Python runtime pin: Added
+- Dependency lock: Added
+- Streamlit deprecation cleanup: Completed
+- New CI run after stabilization: Pending confirmation
+- Streamlit Cloud redeployment: Pending
 - Local visual review: Pending
 - Sample RFQ upload review: Pending
 - Download-button manual review: Pending
-- Screenshot capture: Pending
 
 ## Next Milestone
 
-Portfolio Edition v1.0 Release Freeze — after final manual visual validation, sample upload test, download review, and screenshot capture
+Portfolio Edition v1.0 Release Freeze — after green Build 0.8.1 Quality Checks and successful Streamlit Cloud deployment validation
