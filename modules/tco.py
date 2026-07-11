@@ -16,6 +16,25 @@ def freight_factor_for_incoterm(incoterm, max_freight_exposure=0.06):
     return factors.get(incoterm, max_freight_exposure * 0.60)
 
 
+def freight_cost_factor_for_scenario(
+    incoterm,
+    freight_shock,
+    max_freight_exposure=0.06,
+    embedded_freight_share=0.02,
+):
+    """Return scenario freight factor, including pass-through exposure for delivered quotes.
+
+    DDP prices already include baseline freight, so base-case incremental freight remains zero.
+    During an explicit freight shock, a transparent embedded freight share is stressed to
+    represent supplier pass-through rather than treating delivered pricing as risk-free.
+    """
+    direct_factor = freight_factor_for_incoterm(incoterm, max_freight_exposure)
+    shock = max(float(freight_shock or 0.0), 0.0)
+    if direct_factor == 0:
+        return embedded_freight_share * shock
+    return direct_factor * (1 + shock)
+
+
 def calculate_supplier_tco(
     row,
     annual_volume,
@@ -35,7 +54,13 @@ def calculate_supplier_tco(
     scenario_price = base_price * (raw_ratio * (1 + raw_material_shock) + (1 - raw_ratio))
 
     incoterm = normalize_incoterm(row.get("Incoterms", "DDP"))
-    freight_cost = scenario_price * freight_factor_for_incoterm(incoterm, max_freight_exposure) * (1 + freight_shock)
+    freight_factor = freight_cost_factor_for_scenario(
+        incoterm,
+        freight_shock,
+        max_freight_exposure=max_freight_exposure,
+        embedded_freight_share=float(row.get("Embedded Freight Share", 0.02)),
+    )
+    freight_cost = scenario_price * freight_factor
 
     moq = max(extract_number(row.get("MOQ", 10000), 10000), 1.0)
     lead_days = max(extract_number(row.get("Lead Time Days", 30), 30), 1.0)
