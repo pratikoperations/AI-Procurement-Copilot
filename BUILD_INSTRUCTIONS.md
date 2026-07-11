@@ -2,57 +2,82 @@
 
 ## Purpose
 
-This file explains how to resume and continue the project if chat history is lost.
+This file is the mandatory starting point for every future build session. The project must be resumable from GitHub without relying on prior chat context.
 
-## Recovery Start Point
+## Session Start Checklist
 
-Always begin by reading these files in order:
+1. Open `PROJECT_STATUS.md`.
+2. Open `docs/MASTER_BUILD_ARCHITECTURE.md`.
+3. Open `RECOVERY_MANIFEST.md`.
+4. Read the latest entries in `ACTIVITY_LOG.md`, `BUILD_HISTORY.md`, `DECISION_LOG.md`, and `CHANGELOG.md`.
+5. Read the latest build-specific QA report.
+6. Verify the default branch, working branch, latest commit, current build number, and unresolved CI or validation items.
+7. Confirm the exact acceptance criteria for the next build unit.
 
-1. `PROJECT_STATUS.md`
-2. `VERSION_MANIFEST.md`
-3. `BUILD_HISTORY.md`
-4. `CHANGELOG.md`
-5. `DECISION_LOG.md`
-6. `ROADMAP.md`
-7. `ARCHITECTURE.md`
-8. `PROJECT_BUILD_PLAN.md`
+## Build Execution Standard
 
-## Build Rules
+- Work in one coherent build unit at a time.
+- Preserve existing functionality unless the build explicitly replaces it.
+- Keep deterministic calculations separate from AI-generated text.
+- Add or update tests with every logic change.
+- Do not silently change business assumptions, scoring weights, units, thresholds, or defaults.
+- Record material design decisions in `DECISION_LOG.md`.
+- Record all build activity in `ACTIVITY_LOG.md`.
 
-1. GitHub is the canonical source of truth.
-2. No major work should exist only in chat.
-3. Every meaningful milestone must be committed.
-4. Each milestone should update project status, changelog, and build history.
-5. Major decisions must be recorded in the decision log.
-6. The app should remain runnable after each completed build milestone.
-7. Build in logical batches, not massive single updates.
+## Commit Standard
 
-## Development Sequence
+After every meaningful update:
 
-```text
-Plan architecture
-Design/update folder structure
-Generate or update code
-Validate logic
-Update documentation
-Commit to GitHub
-Update build status
-Proceed to next batch
-```
+1. Run applicable tests and checks.
+2. Inspect the changed files and full diff.
+3. Update mandatory governance files.
+4. Commit using: `Build <ID>: <concise outcome>`.
+5. Push the branch.
+6. Re-fetch or inspect the GitHub commit to confirm the intended files are present.
+7. Check CI status when applicable.
+8. Store the QA result in GitHub.
 
-## Local Run Command
+A local or chat-only update is not considered complete.
 
-After application code is added:
+## Mandatory Quality Check
 
-```bash
-pip install -r requirements.txt
-streamlit run app.py
-```
+Each update must record:
 
-## Current Build
+- Scope tested
+- Tests run
+- Result
+- Known limitations
+- Regression status
+- CI status
+- Reviewer or validation status
+- Next action
 
-Build 0.1 — Repository Foundation
+## Completion Rule
 
-## Next Build
+A build is complete only when:
 
-Build 0.2 — Streamlit Framework and Modular Application Skeleton
+- Acceptance criteria are met
+- Tests pass
+- Documentation is synchronized
+- Recovery documentation is current
+- GitHub contains the committed implementation and QA evidence
+- The repository can independently explain what changed, why, and what comes next
+
+## Failure and Recovery Rule
+
+If a build fails or remains incomplete:
+
+- Do not overwrite the previous stable state.
+- Record the failure in `ACTIVITY_LOG.md` and the build QA report.
+- Record the last known good commit in `RECOVERY_MANIFEST.md`.
+- Create a corrective build ID rather than hiding or deleting the failed attempt.
+
+## Source-of-Truth Rule
+
+When chat content conflicts with GitHub, the latest quality-checked GitHub record governs unless a new explicit decision is committed to the repository.
+
+## Current Position
+
+- Current build: Build 0.9.5 — Supplier Intelligence Platform
+- Pending gate: CI and live Supplier Intelligence validation
+- Next controlled expansion after Portfolio Edition v1.0 hardening: Packaging Value Engineering Scope A
