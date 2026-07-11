@@ -14,7 +14,7 @@ Build 0.9.2 — Intelligent RFQ Engine
 
 ## Current Status
 
-Build 0.9.2 Completed — CI and Live Upload Validation Pending
+Build 0.9.2 Completed — CI Validated, Live Upload Validation Pending
 
 ## Canonical Source of Truth
 
@@ -49,7 +49,8 @@ Make RFQ uploads resilient to different supplier templates by recognizing header
 - Intelligent RFQ tests added
 - Invalid files blocked before scoring
 - Unmapped columns preserved
-- GitHub Actions result: Pending
+- GitHub Actions result: Green
+- Build 0.9.2 regression suite: Passed
 - Live alternate-template upload review: Pending
 
 ## Next Milestone
