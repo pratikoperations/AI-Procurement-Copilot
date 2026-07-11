@@ -29,6 +29,28 @@ TCO_LABELS = {
     "annual_tco_inr": "Annual TCO (INR)",
 }
 
+SCENARIO_ANNUAL_TCO_CANDIDATES = (
+    "Annual TCO (USD)",
+    "Annual TCO USD",
+    "annual_tco_usd",
+)
+
+SCENARIO_SUPPLIER_CANDIDATES = (
+    "Winning Supplier",
+    "Supplier",
+)
+
+
+def resolve_scenario_column(columns, candidates, field_name):
+    """Resolve a governed scenario column while retaining backward compatibility."""
+    for candidate in candidates:
+        if candidate in columns:
+            return candidate
+    raise KeyError(
+        f"Scenario output is missing required {field_name}. "
+        f"Expected one of: {', '.join(candidates)}"
+    )
+
 
 def render_executive_dashboard(scored_df, assumptions, confidence=None):
     st.subheader("Executive Dashboard")
@@ -144,9 +166,29 @@ def render_allocation(allocation_df, assumptions):
 def render_scenario_table(scenario_df, assumptions):
     st.header("Multi-Scenario Stress Test")
     display = scenario_df.copy()
-    display["Annual TCO INR"] = display["Annual TCO USD"] * assumptions["fx_rate"]
+
+    annual_tco_column = resolve_scenario_column(
+        display.columns,
+        SCENARIO_ANNUAL_TCO_CANDIDATES,
+        "annual TCO column",
+    )
+    supplier_column = resolve_scenario_column(
+        display.columns,
+        SCENARIO_SUPPLIER_CANDIDATES,
+        "supplier column",
+    )
+
+    display["Annual TCO (INR)"] = display[annual_tco_column] * assumptions["fx_rate"]
     st.dataframe(display, width="stretch", hide_index=True)
-    fig = px.bar(display, x="Scenario", y="Annual TCO USD", color="Winning Supplier", title="Scenario Stress Test: Winning Supplier and Annual TCO", labels={"Annual TCO USD": "Annual TCO (USD)"})
+
+    fig = px.bar(
+        display,
+        x="Scenario",
+        y=annual_tco_column,
+        color=supplier_column,
+        title="Scenario Stress Test: Winning Supplier and Annual TCO",
+        labels={annual_tco_column: "Annual TCO (USD)", supplier_column: "Winning Supplier"},
+    )
     fig.update_layout(legend_title_text="Winning Supplier", margin=dict(l=10, r=10, t=55, b=10))
     st.plotly_chart(fig, width="stretch")
 
