@@ -10,11 +10,11 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 1.0 RC1.1 — Final Executive Polish
+Build 1.0 RC1.2 — Export Integrity and Category-Aware Communication Hotfix
 
 ## Current Status
 
-Implementation completed — latest GitHub Actions and live polish retest pending
+Implementation completed — GitHub Actions, Streamlit smoke test, and manual download retest pending
 
 ## Canonical Source of Truth
 
@@ -22,44 +22,50 @@ GitHub repository: pratikoperations/AI-Procurement-Copilot
 
 ## Release Freeze
 
-Feature development is frozen. Build 1.0 RC1.1 changes only executive terminology, chart labels, category headings, recommendation wording, tests, and release records. No business logic, scoring model, formula, or architecture change is permitted.
+Feature development remains frozen. RC1.2 corrects validated release defects only: currency/unit integrity, category-aware communication, evidence-governed recommendations, classification precedence, risk terminology, and readable exports.
 
-## Final Polish Completed
+## RC1.2 Scope Completed
 
-- Replaced snake-case chart legends with executive labels.
-- Standardized score and TCO axis titles.
-- Replaced technical recommendation explanations with role-specific business language.
-- Corrected Raw Material should-cost heading.
-- Standardized Supplier RFQ Decision Snapshot and negotiation headings.
-- Added regression tests for executive terminology.
-- Closed VAL-006 through VAL-009 after CI and live mobile validation.
-- Recorded three non-blocking RC1 UX findings as fixed, with retest pending.
+- Explicit original and normalized currency fields
+- Auditable FX rate and comparison basis
+- Corrected Packaging and Raw Material demo metadata
+- PET Resin standardized to kg
+- Category-aware supplier clarification emails
+- Eligibility-aware memo, email, narrative, and audit package
+- Governed recommendation roles using displayed scores and evidence sufficiency
+- No-qualified-supplier outcome when evidence is insufficient
+- Exit Candidate precedence over Development Candidate
+- Visible Risk Resilience Score terminology
+- Business-readable supplier score and comparison reports
+- Separate machine-readable audit downloads
+- New currency, communication, recommendation, classification, export, and consistency tests
+- Download content audit and governance documentation
 
 ## Validation Status
 
-- Builds 0.1–0.9.6: CI validated.
-- Build 0.9.6.1: CI validated and live mobile validation completed.
-- Packaging Supplier Intelligence: Live validated.
-- Raw Material route and safety gate: Live validated; blocked recommendation behavior observed correctly.
-- Performance, Financial, ESG, Innovation, and SRM views: Live validated.
-- VAL-001 through VAL-009: Closed.
-- Build 1.0 RC1.1 implementation: Complete.
-- Build 1.0 RC1.1 GitHub Actions: Pending.
-- Build 1.0 RC1.1 Streamlit polish retest: Pending.
-- Gemini independent review: Pending.
-- Perplexity methodology review: Pending.
-- Human procurement review: Pending / not waived.
-- Portfolio Edition v1.0 approval: Not yet granted.
+- Builds 0.1–0.9.6.1: Completed and previously CI/live validated as recorded
+- Build 1.0 RC1.1: Executive polish implemented
+- Build 1.0 RC1.2 implementation: Complete
+- RC1.2 GitHub Actions: Pending
+- RC1.2 Streamlit smoke test: Pending
+- RC1.2 manual file download review: Pending
+- Gemini independent review: Pending
+- Perplexity methodology review: Pending
+- Human procurement review: Pending / not waived
+- Portfolio Edition v1.0 approval: Not granted
 
 ## Open Release Gates
 
-1. Latest Build 1.0 RC1.1 GitHub Actions green.
-2. Live confirmation that executive chart labels, recommendation wording, and Raw Material heading are updated.
-3. Downloaded Excel/CSV/TXT files open successfully.
-4. Gemini and Perplexity findings dispositioned.
-5. Human review completed or formally waived.
-6. Final v1.0 release-readiness approval and tag.
+1. Latest Build 1.0 RC1.2 GitHub Actions green
+2. Streamlit shows the RC1.2 build label and loads both categories
+3. PET Resin demo no longer falsely blocks on currency
+4. Supplier email is category-aware and eligibility-aware
+5. Recommendation rankings show no-qualified-supplier outcomes when evidence is insufficient
+6. Excel, CSV, TXT, and audit downloads open and match on-screen status
+7. RC1-DEF-005 through RC1-DEF-011 closed after retest
+8. Independent reviews completed or formally waived
+9. Final release-readiness approval and `v1.0.0` tag
 
 ## Next Milestone
 
-Validate Build 1.0 RC1.1, then prepare the `v1.0.0` release tag. Do not resume feature development.
+Validate RC1.2 and manually inspect every download. Do not tag v1.0.0 yet and do not resume feature development.
