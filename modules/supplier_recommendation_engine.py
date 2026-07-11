@@ -70,29 +70,31 @@ def generate_supplier_recommendations(profiles):
     suppliers = [_flat(profile) for profile in profiles]
     results = []
 
+    exit_candidate = min(suppliers, key=lambda x: x["supplier360"])
+    exit_name = exit_candidate["supplier_name"]
+    non_exit = [x for x in suppliers if x["supplier_name"] != exit_name]
+
     best_value = max(suppliers, key=lambda x: x["supplier360"] * 0.45 + x["performance"] * 0.25 + x["strategic"] * 0.20 + x["financial"] * 0.10)
     results.append(_result("Best Value Supplier", best_value, "Governed scores used"))
     results.append(_result("Lowest Cost Supplier", min(suppliers, key=lambda x: x["price"] if x["price"] else float("inf")), "Commercial data supplied"))
     results.append(_result("Lowest Risk Supplier", max(suppliers, key=lambda x: x["risk"] * 0.5 + x["financial"] * 0.25 + x["performance"] * 0.25), "Governed scores used"))
     results.append(_result("Best Performer", max(suppliers, key=lambda x: x["performance"]), "Operational evidence available"))
 
-    qualified_innovation = [x for x in suppliers if x["innovation_status"] != "Insufficient Data" and x["innovation_completeness"] >= 40 and x["classification"] != "Exit Candidate"]
+    qualified_innovation = [x for x in non_exit if x["innovation_status"] != "Insufficient Data" and x["innovation_completeness"] >= 40 and x["classification"] != "Exit Candidate"]
     results.append(_result("Most Innovative Supplier", max(qualified_innovation, key=lambda x: x["innovation"]) if qualified_innovation else None, "Verified innovation evidence required", condition="Innovation completeness must be at least 40%."))
 
-    qualified_esg = [x for x in suppliers if x["esg_status"] != "Insufficient Data" and x["esg_completeness"] >= 40 and x["classification"] != "Exit Candidate"]
+    qualified_esg = [x for x in non_exit if x["esg_status"] != "Insufficient Data" and x["esg_completeness"] >= 40 and x["classification"] != "Exit Candidate"]
     results.append(_result("Most Sustainable Supplier", max(qualified_esg, key=lambda x: x["esg"]) if qualified_esg else None, "Verified ESG evidence required", condition="ESG completeness must be at least 40%."))
 
-    strategic_candidates = [x for x in suppliers if x["classification"] != "Exit Candidate" and x["financial_status"] != "Insufficient Data"]
+    strategic_candidates = [x for x in non_exit if x["classification"] != "Exit Candidate" and x["financial_status"] != "Insufficient Data"]
     results.append(_result("Best Strategic Partner", max(strategic_candidates, key=lambda x: x["strategic"]) if strategic_candidates else None, "Financial and strategic evidence required", condition="Supplier cannot be an Exit Candidate and must have sufficient financial evidence."))
 
     long_term_candidates = [x for x in strategic_candidates if x["esg_status"] != "Insufficient Data" and x["innovation_status"] != "Insufficient Data"]
     long_term = max(long_term_candidates, key=lambda x: x["supplier360"] * 0.30 + x["financial"] * 0.20 + x["performance"] * 0.20 + x["esg"] * 0.10 + x["innovation"] * 0.10 + x["strategic"] * 0.10) if long_term_candidates else None
     results.append(_result("Best Long-Term Supplier", long_term, "Multi-dimensional evidence required", condition="Financial, ESG, and innovation evidence must be sufficient."))
 
-    exit_candidate = min(suppliers, key=lambda x: x["supplier360"])
     results.append(_result("Exit Candidate", exit_candidate, "Lowest governed Supplier 360 profile", condition="Corrective-action and governance review required."))
-    development_pool = [x for x in suppliers if x["supplier_name"] != exit_candidate["supplier_name"]]
-    development = min(development_pool, key=lambda x: abs(x["supplier360"] - 55)) if development_pool else None
+    development = min(non_exit, key=lambda x: abs(x["supplier360"] - 55)) if non_exit else None
     results.append(_result("Development Candidate", development, "Capability-development opportunity", condition="Development plan required before strategic award."))
 
     return results
