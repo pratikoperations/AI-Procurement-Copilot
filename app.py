@@ -1,14 +1,14 @@
 # =====================================================
 # AI PROCUREMENT COPILOT
 # Portfolio Edition v1.0
-# Build 0.9.3 — Procurement Intelligence Engine
+# Build 0.9.3.1 — Category Profile Integration Hotfix
 # =====================================================
 
 import streamlit as st
 
 from modules.allocation import recommend_allocation
 from modules.allocation_optimizer import optimize_allocation
-from modules.category_engine import is_production_ready
+from modules.category_engine import ensure_category_profile, is_production_ready
 from modules.config import APP_NAME, BUILD, EDITION, STATUS
 from modules.data_loader import get_demo_suppliers, load_uploaded_rfq
 from modules.dashboard import (
@@ -56,7 +56,8 @@ st.set_page_config(
 )
 
 assumptions = render_sidebar()
-profile = assumptions["category_profile"]
+profile = ensure_category_profile(assumptions.get("category_profile"))
+assumptions["category_profile"] = profile
 
 st.title(APP_NAME)
 st.subheader(EDITION)
