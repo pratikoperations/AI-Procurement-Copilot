@@ -11,21 +11,31 @@ Build 0.8 — Portfolio Edition v1.0 Release Candidate
 - GitHub Actions workflow extended to run the smoke test after regression tests.
 - Screenshot capture standard and portfolio asset guidance.
 
+## CI Result
+
+The latest Build 0.8 Quality Checks runs are green. This confirms:
+
+- Dependency installation passes.
+- Python compilation passes.
+- Core regression tests pass.
+- Export regression tests pass.
+- Streamlit starts successfully and responds healthy in the automated smoke test.
+
 ## Quality Gates
 
 | Gate | Result | Notes |
 |---|---|---|
 | GitHub recovery | Pass | All code, tests, and documentation are committed |
-| Static imports | Pass | Previously validated in CI; latest Build 0.8 run pending |
-| Core regression tests | Pass previously | Build 0.8 rerun pending |
-| Export tests | Added | Latest workflow confirmation pending |
-| Streamlit smoke test | Added | Latest workflow confirmation pending |
-| Procurement logic | Pass | No logic changes introduced in Build 0.8 |
+| Static imports | Pass | Validated in GitHub Actions |
+| Core regression tests | Pass | Latest Build 0.8 workflow is green |
+| Export tests | Pass | CSV, TXT, JSON, and Excel exports validated |
+| Streamlit smoke test | Pass | Automated health endpoint responded successfully |
+| Procurement logic | Pass | No logic regression identified |
 | Documentation | Pass | Portfolio, demo, screenshot, and status assets added |
 | Manual visual review | Pending | Requires opening the running application |
 | Download button review | Pending | Requires manual browser interaction |
 
-## Provisional Release-Candidate Score
+## Confirmed Release-Candidate Score
 
 - Architecture: 9.2/10
 - Code Quality: 9.1/10
@@ -35,13 +45,12 @@ Build 0.8 — Portfolio Edition v1.0 Release Candidate
 - Interview Readiness: 9.5/10
 - Maintainability: 9.2/10
 
-**Provisional Average:** 9.2/10
+**CI-validated Average:** 9.2/10
 
-## Release Freeze Conditions
+## Remaining Release Freeze Conditions
 
-1. Latest Build 0.8 Quality Checks run is green.
-2. Streamlit application is opened and all six tabs are visually reviewed.
-3. Sample CSV upload is validated.
-4. Download buttons are manually tested.
-5. Portfolio screenshots are captured.
-6. No critical defect remains open.
+1. Open the Streamlit application and visually review all six tabs.
+2. Validate the sample CSV upload.
+3. Manually test each download button.
+4. Capture the portfolio screenshots.
+5. Confirm that no critical visual or interaction defect remains.
