@@ -10,46 +10,47 @@ Portfolio Edition v1.0
 
 ## Current Build
 
-Build 0.9.3.1 — Category Profile Integration Hotfix
+Build 0.9.4 — Category-Specific Cost and Risk Engines
 
 ## Current Status
 
-Hotfix Implemented — CI and Live Deployment Validation Pending
+Build 0.9.4 Completed — CI and Live Multi-Category Validation Pending
 
 ## Canonical Source of Truth
 
 GitHub repository: pratikoperations/AI-Procurement-Copilot
 
-## Hotfix Objective
+## Build Objective
 
-Eliminate the deployed Streamlit startup failure caused by an unguarded `category_profile` lookup while preserving all Build 0.9.3 capabilities.
+Activate production-grade raw-material should-cost, TCO, risk, scoring, demo data, and application routing while preserving the packaging workflow.
 
 ## Completed Scope
 
-- Added reusable default category profile
-- Added category-profile completion and fallback helper
-- Guaranteed `category_profile` in the sidebar return contract
-- Added defensive fallback in `app.py`
-- Added regression tests for normal, partial, and missing profiles
-- Added hotfix documentation
+- Raw-material should-cost engine
+- Raw-material risk engine
+- Raw-material TCO engine
+- Category-aware scoring weights and routing
+- Category-aware demo data
+- Category should-cost router
+- Raw Material engine promoted to Active
+- App integration for packaging and raw-material workflows
+- Regression tests
+- Category-specific documentation
 
-## Preserved Scope
+## Category Status
 
-- Procurement Intelligence Engine
-- Packaging workflow
-- Raw Material foundation preview
-- Intelligent RFQ Engine
-- Decision, strategy, allocation, negotiation, risk, scenario, and explainability modules
+- Packaging Procurement: Active
+- Raw Material Procurement: Active
 
 ## QA Status
 
-- Root cause identified: unguarded sidebar/app integration contract
-- Code remediation: Complete
-- Regression coverage: Added
+- Build 0.9.3.1 hotfix: CI validated
+- Packaging workflow preservation: Covered by existing regression suite
+- Raw-material engine tests: Added
 - GitHub Actions result: Pending
-- Streamlit smoke test: Pending latest workflow
-- Live deployment validation: Pending
+- Live packaging workflow review: Pending
+- Live raw-material workflow review: Pending
 
 ## Next Milestone
 
-Build 0.9.4 — only after this hotfix is CI validated and the deployed app opens successfully
+Build 0.9.5 — Executive Decision Intelligence and Release Preparation
