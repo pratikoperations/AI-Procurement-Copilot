@@ -49,7 +49,7 @@ def render_supplier_snapshot(scored_df):
         "esg_score",
         "total_score",
     ]
-    st.dataframe(scored_df[display_cols], use_container_width=True, hide_index=True)
+    st.dataframe(scored_df[display_cols], width="stretch", hide_index=True)
 
     fig = px.bar(
         scored_df,
@@ -58,7 +58,7 @@ def render_supplier_snapshot(scored_df):
         barmode="group",
         title="Quoted Price vs Risk-Adjusted TCO Unit Cost",
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     fig_score = px.bar(
         scored_df,
@@ -67,14 +67,14 @@ def render_supplier_snapshot(scored_df):
         barmode="group",
         title="Supplier Risk, Performance, ESG, and Total Score",
     )
-    st.plotly_chart(fig_score, use_container_width=True)
+    st.plotly_chart(fig_score, width="stretch")
 
 
 def render_should_cost_section(should_cost_df, target_unit_cost, assumptions):
     """Render packaging should-cost build-up."""
     st.header("Packaging Should-Cost Model")
     st.metric("Should-Cost Target", unit_cost(target_unit_cost, assumptions["display_currency"], assumptions["fx_rate"]))
-    st.dataframe(should_cost_df, use_container_width=True, hide_index=True)
+    st.dataframe(should_cost_df, width="stretch", hide_index=True)
 
     fig = px.bar(
         should_cost_df,
@@ -83,7 +83,7 @@ def render_should_cost_section(should_cost_df, target_unit_cost, assumptions):
         title="Packaging Should-Cost Component Build-Up",
         text_auto=".4f",
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 def render_tco_breakdown(scored_df, assumptions):
@@ -102,7 +102,7 @@ def render_tco_breakdown(scored_df, assumptions):
     ]
     tco_df = scored_df[cols].copy()
     tco_df["annual_tco_inr"] = tco_df["annual_tco_usd"] * assumptions["fx_rate"]
-    st.dataframe(tco_df, use_container_width=True, hide_index=True)
+    st.dataframe(tco_df, width="stretch", hide_index=True)
 
 
 def render_executive_value(value_metrics, assumptions):
@@ -121,7 +121,7 @@ def render_allocation(allocation_df, assumptions):
     st.header("Constraint-Style Supplier Allocation")
     display = allocation_df.copy()
     display["Estimated Annual TCO INR"] = display["Estimated Annual TCO USD"] * assumptions["fx_rate"]
-    st.dataframe(display, use_container_width=True, hide_index=True)
+    st.dataframe(display, width="stretch", hide_index=True)
 
     fig = px.pie(
         display,
@@ -129,7 +129,7 @@ def render_allocation(allocation_df, assumptions):
         values="Recommended Allocation %",
         title="Recommended Supplier Allocation",
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 def render_scenario_table(scenario_df, assumptions):
@@ -137,7 +137,7 @@ def render_scenario_table(scenario_df, assumptions):
     st.header("Multi-Scenario Stress Test")
     display = scenario_df.copy()
     display["Annual TCO INR"] = display["Annual TCO USD"] * assumptions["fx_rate"]
-    st.dataframe(display, use_container_width=True, hide_index=True)
+    st.dataframe(display, width="stretch", hide_index=True)
 
     fig = px.bar(
         display,
@@ -146,7 +146,7 @@ def render_scenario_table(scenario_df, assumptions):
         color="Winning Supplier",
         title="Scenario Stress Test: Winning Supplier and Annual TCO",
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 def render_negotiation(playbook_text, negotiation_result):
