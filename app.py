@@ -220,7 +220,7 @@ with tabs[0]:
         st.error(f"Final award recommendation withheld: {eligibility['reason']}")
         for issue in eligibility["failed_checks"]:
             st.write(f"- {issue}")
-    render_supplier_snapshot(scored_df)
+    render_supplier_snapshot(scored_df, assumptions)
 
 with tabs[1]:
     st.subheader(f"{assumptions['category']} — {assumptions['commodity']}")
@@ -235,7 +235,7 @@ with tabs[1]:
 with tabs[2]:
     render_allocation(allocation_df, assumptions)
     render_scenario_table(scenario_df, assumptions)
-    render_negotiation(playbook_text, negotiation_result)
+    render_negotiation(playbook_text, negotiation_result, assumptions)
 
 with tabs[3]:
     if eligibility["recommendation_allowed"]:
