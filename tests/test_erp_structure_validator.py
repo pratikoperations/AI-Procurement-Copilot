@@ -115,11 +115,20 @@ def test_header_helpers_are_deterministic():
     )
 
 
-def test_adversarial_sample_is_structurally_blocked():
-    summary = load_erp_workbook(
-        "data/erp_samples/erp_adversarial_procurement_workbook.xlsx"
+def test_deterministic_adversarial_structure_is_blocked():
+    summary = _summary(
+        missing_sheet="Receipts",
+        duplicate_header_sheet="Supplier_Master",
+        include_unknown=True,
     )
     result = validate_workbook_structure(summary)
 
     assert result.status == BLOCKED
-    assert result.blocking_count > 0
+    assert result.blocking_count == 2
+    assert result.missing_sheets == ("Receipts",)
+    assert result.unknown_sheets == ("Notes",)
+    assert {finding.code for finding in result.findings} == {
+        "MISSING_REQUIRED_SHEET",
+        "UNKNOWN_SHEET",
+        "DUPLICATE_HEADER",
+    }
