@@ -1,0 +1,17 @@
+{
+  "profile_id": "CUSTOM_ERP_TEMPLATE",
+  "profile_version": "1.0",
+  "erp_family": "Custom",
+  "erp_product": "Unspecified",
+  "status": "Draft",
+  "instructions": "Map each source column to one canonical field. Do not use executable transformations.",
+  "sheet_mappings": {
+    "Supplier_Master": {},
+    "RFQ_Quotes": {},
+    "Purchase_Orders": {},
+    "Receipts": {},
+    "Supplier_Performance": {},
+    "Material_Master": {},
+    "Cost_Drivers": {}
+  }
+}
