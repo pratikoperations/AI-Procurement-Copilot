@@ -2,6 +2,7 @@ import io
 import json
 
 import pandas as pd
+import pytest
 
 from modules.exports import (
     build_decision_package_json,
@@ -135,7 +136,7 @@ def test_readable_supplier_scores_inr_and_both_modes_do_not_mutate_source():
     assert "Annual TCO (USD)" not in inr.columns
     assert inr.loc[0, "Annual TCO (INR)"] == 83000.0
     assert both.loc[0, "Risk-Adjusted TCO (USD)"] == 1.1
-    assert both.loc[0, "Risk-Adjusted TCO (INR)"] == 91.3
+    assert both.loc[0, "Risk-Adjusted TCO (INR)"] == pytest.approx(91.3)
     assert both.loc[0, "Normalized Currency"] == "USD"
     pd.testing.assert_frame_equal(source, original)
 
