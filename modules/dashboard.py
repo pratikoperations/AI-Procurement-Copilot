@@ -3,6 +3,7 @@
 import plotly.express as px
 import streamlit as st
 
+from modules.unit_display import format_annual_volume, quantity_basis_caption
 from modules.utils import (
     build_currency_display_frame,
     currency_label,
@@ -43,6 +44,11 @@ def _chart_currency(currency):
     return "INR" if normalize_display_currency(currency) == "INR" else "USD"
 
 
+def _quantity_basis(assumptions=None):
+    values = assumptions or {}
+    return quantity_basis_caption(values.get("annual_volume", 0), values.get("annual_volume_unit", "unit"))
+
+
 def resolve_scenario_column(columns, candidates, field_name):
     """Resolve a governed scenario column while retaining backward compatibility."""
     for candidate in candidates:
@@ -61,7 +67,10 @@ def render_executive_dashboard(scored_df, assumptions, confidence=None):
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Category Engine", assumptions["category"])
-    c2.metric("Annual Volume", f"{assumptions['annual_volume']:,.0f}")
+    c2.metric(
+        "Annual Volume",
+        format_annual_volume(assumptions["annual_volume"], assumptions.get("annual_volume_unit", "unit")),
+    )
     c3.metric("Recommended Supplier", recommended["Supplier"])
     c4.metric("Award Confidence", f"{confidence}/100" if confidence is not None else "Pending")
 
@@ -79,6 +88,7 @@ def render_executive_dashboard(scored_df, assumptions, confidence=None):
 
 def render_supplier_snapshot(scored_df, assumptions=None):
     st.header("Supplier RFQ Decision Snapshot")
+    st.caption(_quantity_basis(assumptions))
     currency, fx_rate = _display_settings(assumptions)
     display_cols = [
         "Supplier", "Quoted Unit Price USD", "scenario_unit_price_usd",
@@ -183,6 +193,7 @@ def render_executive_value(value_metrics, assumptions):
 
 def render_allocation(allocation_df, assumptions):
     st.header("Recommended Supplier Allocation")
+    st.caption(_quantity_basis(assumptions))
     currency, fx_rate = _display_settings(assumptions)
     display = build_currency_display_frame(allocation_df.copy(), {
         "Estimated Annual TCO USD": "Estimated Annual TCO",
@@ -195,6 +206,7 @@ def render_allocation(allocation_df, assumptions):
 
 def render_scenario_table(scenario_df, assumptions):
     st.header("Multi-Scenario Stress Test")
+    st.caption(_quantity_basis(assumptions))
     currency, fx_rate = _display_settings(assumptions)
     annual_tco_column = resolve_scenario_column(scenario_df.columns, SCENARIO_ANNUAL_TCO_CANDIDATES, "annual TCO column")
     supplier_column = resolve_scenario_column(scenario_df.columns, SCENARIO_SUPPLIER_CANDIDATES, "supplier column")

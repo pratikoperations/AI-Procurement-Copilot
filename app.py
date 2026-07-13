@@ -45,6 +45,7 @@ st.set_page_config(page_title=APP_NAME, page_icon="🤖", layout="wide", initial
 assumptions = render_sidebar()
 profile = ensure_category_profile(assumptions.get("category_profile"))
 assumptions["category_profile"] = profile
+assumptions.setdefault("annual_volume_unit", profile.get("unit", "unit"))
 
 st.title(APP_NAME)
 st.subheader(EDITION)
@@ -158,7 +159,7 @@ supplier_narrative = safe_executive_text(
     eligibility, supplier_intelligence["executive_narrative"], supplier_intelligence["executive_narrative"]
 )
 supplier_intelligence["executive_narrative"] = supplier_narrative
-unit = str(recommended.get("Unit of Measure", recommended.get("Unit", "piece")))
+unit = assumptions["annual_volume_unit"]
 supplier_email = generate_supplier_email(
     recommended,
     should_cost["target_unit_cost_usd"],
@@ -172,19 +173,27 @@ explainability_text = generate_explainability_panel(recommended)
 interview_talking_points = generate_interview_talking_points()
 display_currency = assumptions["display_currency"]
 fx_rate = assumptions["fx_rate"]
+volume = assumptions["annual_volume"]
+volume_unit = assumptions["annual_volume_unit"]
 readable_scores = build_readable_supplier_scores(
     scored_df, data_confidence, eligibility,
     display_currency=display_currency, fx_rate=fx_rate,
+    annual_volume=volume, annual_volume_unit=volume_unit,
 )
 readable_comparison = build_readable_supplier_comparison(
     supplier_intelligence["comparison_df"], data_confidence, eligibility,
     display_currency=display_currency, fx_rate=fx_rate,
+    annual_volume=volume, annual_volume_unit=volume_unit,
 )
-readable_allocation = build_readable_allocation(allocation_df, display_currency, fx_rate)
+readable_allocation = build_readable_allocation(
+    allocation_df, display_currency, fx_rate,
+    annual_volume=volume, annual_volume_unit=volume_unit,
+)
 excel_package = build_excel_workbook(
     scored_df, should_cost_df, allocation_df, scenario_df,
     readable_scores, readable_comparison,
     display_currency=display_currency, fx_rate=fx_rate,
+    annual_volume=volume, annual_volume_unit=volume_unit,
 )
 json_package = build_decision_package_json(recommended, value_metrics, allocation_df, scenario_df, negotiation_result, eligibility)
 supplier_profiles_json = json.dumps(supplier_intelligence["profiles"], indent=2, default=str).encode("utf-8")
