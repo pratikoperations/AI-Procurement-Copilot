@@ -165,12 +165,63 @@ def test_readable_allocation_supports_usd_inr_both_without_double_conversion():
     assert source.loc[0, "Estimated Annual TCO INR"] == 999999.0
 
 
+def test_should_cost_and_scenarios_support_all_display_modes():
+    should_cost = pd.DataFrame([{"Component": "Resin", "Unit Cost USD": 2.0, "Annual Impact USD": 1000.0, "Annual Impact INR": 1.0}])
+    scenario = pd.DataFrame([{"Scenario": "Base", "Winning Supplier": "A", "Annual TCO (USD)": 1000.0}])
+    should_inr = build_readable_should_cost(should_cost, "INR", 83)
+    scenario_both = build_readable_scenarios(scenario, "Both", 83)
+    assert should_inr.loc[0, "Unit Cost (INR)"] == 166.0
+    assert should_inr.loc[0, "Annual Impact (INR)"] == 83000.0
+    assert scenario_both.loc[0, "Annual TCO (USD)"] == 1000.0
+    assert scenario_both.loc[0, "Annual TCO (INR)"] == 83000.0
+
+
+def test_excel_readable_sheets_follow_currency_and_audit_sheet_stays_canonical():
+    scored = _scores()
+    should_cost = pd.DataFrame([{"Component": "Resin", "Unit Cost USD": 2.0}])
+    allocation = pd.DataFrame([{"Supplier": "A", "Recommended Allocation %": 100, "Estimated Annual TCO USD": 1000.0}])
+    scenarios = pd.DataFrame([{"Scenario": "Base", "Winning Supplier": "A", "Annual TCO (USD)": 1000.0}])
+    readable_scores = build_readable_supplier_scores(scored, CONFIDENCE, ELIGIBILITY, display_currency="INR", fx_rate=83)
+    readable_comparison = build_readable_supplier_comparison(
+        pd.DataFrame([{"Supplier": "A", "Risk-Adjusted TCO (USD)": 2.0}]),
+        CONFIDENCE,
+        ELIGIBILITY,
+        "INR",
+        83,
+    )
+    workbook = build_excel_workbook(
+        scored,
+        should_cost,
+        allocation,
+        scenarios,
+        readable_scores,
+        readable_comparison,
+        display_currency="INR",
+        fx_rate=83,
+    )
+    sheets = pd.read_excel(io.BytesIO(workbook), sheet_name=None)
+    assert "Annual TCO (INR)" in sheets["Supplier Scores Report"].columns
+    assert "Risk-Adjusted TCO (INR)" in sheets["Supplier Comparison"].columns
+    assert "Unit Cost (INR)" in sheets["Should Cost"].columns
+    assert "Estimated Annual TCO (INR)" in sheets["Allocation"].columns
+    assert "Annual TCO (INR)" in sheets["Scenarios"].columns
+    assert "annual_tco_usd" in sheets["Audit Supplier Scores"].columns
+    assert sheets["Audit Supplier Scores"].loc[0, "annual_tco_usd"] == 1000.0
+
+
+def test_json_audit_payload_is_display_mode_independent():
+    scored = _scores()
+    allocation = pd.DataFrame([{"Supplier": "A", "Estimated Annual TCO USD": 1000.0}])
+    scenarios = pd.DataFrame([{"Scenario": "Base", "Annual TCO (USD)": 1000.0}])
+    payload_a = build_decision_package_json(scored.iloc[0], {"value_usd": 10}, allocation, scenarios, {"annual_saving_usd": 5})
+    payload_b = build_decision_package_json(scored.iloc[0], {"value_usd": 10}, allocation, scenarios, {"annual_saving_usd": 5})
+    assert json.loads(payload_a.decode("utf-8")) == json.loads(payload_b.decode("utf-8"))
+
+
 def test_should_cost_usd_mode_preserves_canonical_values():
     source = _should_cost()
     original = source.copy(deep=True)
-
     result = build_readable_should_cost(source, "USD", 83)
-
     assert result.loc[0, "Unit Cost (USD)"] == 2.0
     assert result.loc[0, "Annual Impact (USD)"] == 1000.0
     assert "Unit Cost (INR)" not in result.columns
@@ -180,9 +231,7 @@ def test_should_cost_usd_mode_preserves_canonical_values():
 
 def test_should_cost_inr_mode_converts_from_usd_once():
     source = _should_cost()
-
     result = build_readable_should_cost(source, "INR", 83)
-
     assert "Unit Cost (USD)" not in result.columns
     assert "Annual Impact (USD)" not in result.columns
     assert result.loc[0, "Unit Cost (INR)"] == 166.0
@@ -193,9 +242,7 @@ def test_should_cost_inr_mode_converts_from_usd_once():
 def test_should_cost_both_mode_has_both_currencies_without_double_conversion():
     source = _should_cost()
     original = source.copy(deep=True)
-
     result = build_readable_should_cost(source, "Both", 83)
-
     assert result.loc[0, "Unit Cost (USD)"] == 2.0
     assert result.loc[0, "Unit Cost (INR)"] == 166.0
     assert result.loc[0, "Annual Impact (USD)"] == 1000.0
@@ -206,9 +253,7 @@ def test_should_cost_both_mode_has_both_currencies_without_double_conversion():
 def test_scenarios_usd_mode_preserves_canonical_value():
     source = _scenarios()
     original = source.copy(deep=True)
-
     result = build_readable_scenarios(source, "USD", 83)
-
     assert result.loc[0, "Annual TCO (USD)"] == 1000.0
     assert "Annual TCO (INR)" not in result.columns
     pd.testing.assert_frame_equal(source, original)
@@ -216,7 +261,6 @@ def test_scenarios_usd_mode_preserves_canonical_value():
 
 def test_scenarios_inr_mode_converts_correctly():
     result = build_readable_scenarios(_scenarios(), "INR", 83)
-
     assert "Annual TCO (USD)" not in result.columns
     assert result.loc[0, "Annual TCO (INR)"] == 83000.0
 
@@ -224,9 +268,7 @@ def test_scenarios_inr_mode_converts_correctly():
 def test_scenarios_both_mode_has_both_currencies_and_preserves_source():
     source = _scenarios()
     original = source.copy(deep=True)
-
     result = build_readable_scenarios(source, "Both", 83)
-
     assert result.loc[0, "Annual TCO (USD)"] == 1000.0
     assert result.loc[0, "Annual TCO (INR)"] == 83000.0
     pd.testing.assert_frame_equal(source, original)
@@ -234,7 +276,6 @@ def test_scenarios_both_mode_has_both_currencies_and_preserves_source():
 
 def test_excel_workbook_usd_mode_uses_usd_readable_columns_and_canonical_audit():
     sheets = _read_workbook("USD")
-
     assert "Annual TCO (USD)" in sheets["Supplier Scores Report"].columns
     assert "Risk-Adjusted TCO (USD)" in sheets["Supplier Comparison"].columns
     assert "Unit Cost (USD)" in sheets["Should Cost"].columns
@@ -245,7 +286,6 @@ def test_excel_workbook_usd_mode_uses_usd_readable_columns_and_canonical_audit()
 
 def test_excel_workbook_inr_mode_uses_only_inr_readable_columns_and_canonical_audit():
     sheets = _read_workbook("INR")
-
     governed_columns = {
         "Supplier Scores Report": ("Annual TCO (INR)", "Annual TCO (USD)"),
         "Supplier Comparison": ("Risk-Adjusted TCO (INR)", "Risk-Adjusted TCO (USD)"),
@@ -261,7 +301,6 @@ def test_excel_workbook_inr_mode_uses_only_inr_readable_columns_and_canonical_au
 
 def test_excel_workbook_both_mode_uses_both_readable_columns_and_canonical_audit():
     sheets = _read_workbook("Both")
-
     expected_pairs = {
         "Supplier Scores Report": ("Annual TCO (USD)", "Annual TCO (INR)"),
         "Supplier Comparison": ("Risk-Adjusted TCO (USD)", "Risk-Adjusted TCO (INR)"),
@@ -277,14 +316,8 @@ def test_excel_workbook_both_mode_uses_both_readable_columns_and_canonical_audit
 
 def test_excel_workbook_default_currency_is_usd():
     scored = _scores()
-    workbook = build_excel_workbook(
-        scored,
-        _should_cost(),
-        _allocation(),
-        _scenarios(),
-    )
+    workbook = build_excel_workbook(scored, _should_cost(), _allocation(), _scenarios())
     sheets = pd.read_excel(io.BytesIO(workbook), sheet_name=None)
-
     assert "Annual TCO (USD)" in sheets["Supplier Scores Report"].columns
     assert "Unit Cost (USD)" in sheets["Should Cost"].columns
     assert "Estimated Annual TCO (USD)" in sheets["Allocation"].columns
@@ -296,7 +329,6 @@ def test_json_audit_builder_has_no_display_currency_dependency_and_preserves_usd
     scored = _scores()
     allocation = pd.DataFrame([{"Supplier": "A", "Estimated Annual TCO USD": 1000.0}])
     scenarios = pd.DataFrame([{"Scenario": "Base", "Annual TCO (USD)": 1000.0}])
-
     payload = build_decision_package_json(
         scored.iloc[0],
         {"value_usd": 10},
@@ -305,7 +337,6 @@ def test_json_audit_builder_has_no_display_currency_dependency_and_preserves_usd
         {"annual_saving_usd": 5},
     )
     decoded = json.loads(payload.decode("utf-8"))
-
     assert decoded["recommended_supplier"]["annual_tco_usd"] == 1000.0
     assert decoded["recommended_supplier"]["adjusted_tco_unit_usd"] == 1.1
     assert decoded["allocation"][0]["Estimated Annual TCO USD"] == 1000.0
