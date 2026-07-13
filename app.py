@@ -22,8 +22,8 @@ from modules.executive_outputs import (
 )
 from modules.exports import (
     build_decision_package_json, build_excel_workbook,
-    build_readable_supplier_comparison, build_readable_supplier_scores,
-    dataframe_to_csv_bytes, text_to_bytes,
+    build_readable_allocation, build_readable_supplier_comparison,
+    build_readable_supplier_scores, dataframe_to_csv_bytes, text_to_bytes,
 )
 from modules.negotiation import generate_negotiation_playbook, govern_negotiation_brief, simulate_negotiation
 from modules.negotiation_engine import build_negotiation_intelligence
@@ -170,9 +170,22 @@ supplier_email = generate_supplier_email(
 )
 explainability_text = generate_explainability_panel(recommended)
 interview_talking_points = generate_interview_talking_points()
-readable_scores = build_readable_supplier_scores(scored_df, data_confidence, eligibility)
-readable_comparison = build_readable_supplier_comparison(supplier_intelligence["comparison_df"], data_confidence, eligibility)
-excel_package = build_excel_workbook(scored_df, should_cost_df, allocation_df, scenario_df, readable_scores, readable_comparison)
+display_currency = assumptions["display_currency"]
+fx_rate = assumptions["fx_rate"]
+readable_scores = build_readable_supplier_scores(
+    scored_df, data_confidence, eligibility,
+    display_currency=display_currency, fx_rate=fx_rate,
+)
+readable_comparison = build_readable_supplier_comparison(
+    supplier_intelligence["comparison_df"], data_confidence, eligibility,
+    display_currency=display_currency, fx_rate=fx_rate,
+)
+readable_allocation = build_readable_allocation(allocation_df, display_currency, fx_rate)
+excel_package = build_excel_workbook(
+    scored_df, should_cost_df, allocation_df, scenario_df,
+    readable_scores, readable_comparison,
+    display_currency=display_currency, fx_rate=fx_rate,
+)
 json_package = build_decision_package_json(recommended, value_metrics, allocation_df, scenario_df, negotiation_result, eligibility)
 supplier_profiles_json = json.dumps(supplier_intelligence["profiles"], indent=2, default=str).encode("utf-8")
 
@@ -270,7 +283,7 @@ with tabs[6]:
     c3.download_button("Download Supplier Email", text_to_bytes(supplier_email), "supplier_clarification_email.txt", "text/plain")
     c4, c5, c6 = st.columns(3)
     c4.download_button("Download Supplier Scores Report", dataframe_to_csv_bytes(readable_scores), "supplier_scores_report.csv", "text/csv")
-    c5.download_button("Download Allocation Report", dataframe_to_csv_bytes(allocation_df), "supplier_allocation_report.csv", "text/csv")
+    c5.download_button("Download Allocation Report", dataframe_to_csv_bytes(readable_allocation), "supplier_allocation_report.csv", "text/csv")
     c6.download_button("Decision Machine-Readable Audit Data", json_package, "procurement_decision_audit.json", "application/json")
     c7, c8, c9 = st.columns(3)
     c7.download_button("Download Supplier Comparison Report", dataframe_to_csv_bytes(readable_comparison), "supplier_comparison_report.csv", "text/csv")
