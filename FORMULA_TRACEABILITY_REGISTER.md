@@ -56,7 +56,7 @@ All rules below are authoritative in `modules/raw_material_risk.py::calculate_ra
 | `fx_risk` | `Currency`: 10 unless currency is `INR` or `LOCAL`; otherwise 0 | `USD` | Foreign-exchange exposure | Missing value uses USD and therefore a penalty of 10 |
 | `logistics_risk` | `Lead Time Days`: >60 →12; >40 →8; >25 →3; else 0 | 30 | Logistics and replenishment exposure | Missing/unparseable value uses 30 and therefore a penalty of 3 |
 | `commercial_risk` | `Payment Terms`: any advance →12; otherwise payment days <30 →5; else 0 | `Net 30` | Advance-payment and short-credit exposure | Missing/unparseable value uses Net 30 and therefore 0 |
-| `incoterm_risk` | `Incoterms`: EXW →10; FOB →7; CIF →3; otherwise 0 | `DDP` | Delivery-term exposure | Missing/unrecognised value normalizes to DDP/UNKNOWN path and receives 0 in this rule |
+| `incoterm_risk` | `Incoterms`: EXW →10; FOB →7; CIF →3; otherwise 0 | `DDP` | Delivery-term exposure | Missing value uses DDP; unrecognised text normalizes to UNKNOWN; both receive 0 in this rule |
 
 **Risk labels:** `Low Risk` when `risk_score >= 75`; `Medium Risk` when `risk_score >= 50` and below 75; otherwise `High Risk`.
 
@@ -87,7 +87,7 @@ Authority: `modules/recommendation_eligibility.py::evaluate_recommendation_eligi
 | No scored suppliers | `scored_df` is `None` or empty | Adds `No scored suppliers are available.`; status `Blocked` | Missing dataframe is blocked |
 | Minimum risk threshold | `risk_score` column exists and no supplier has `risk_score >= min_risk_score` | Adds minimum-risk failure; status `Blocked` | `min_risk_score` defaults to 0; if column is absent this check is not applied |
 | Any failed check | `failed_checks` is non-empty | `status = Blocked`; recommendation and final-award language both disallowed | Takes precedence over confidence thresholds |
-| Confidence below 50 | `data_confidence_score < 50` with no failed checks | `status = Insufficient Data` | Missing/unparseable score defaults to 0 and therefore Insufficient Data unless already Blocked |
+| Confidence below 50 | `data_confidence_score < 50` with no failed checks | `status = Insufficient Data` | Missing score key defaults to 0; a present non-numeric value raises during `float(...)` conversion and is not silently defaulted |
 | Confidence 50 to below 70 | `50 <= score < 70` | `status = Human Review Required` | Recommendation analysis allowed; final-award language disallowed |
 | Conditions or confidence below 85 | Non-blocking business issues, RFQ warnings, or `70 <= score < 85` | `status = Eligible With Conditions` | Human approval and listed conditions remain mandatory |
 | Strong eligible result | No prior condition and `score >= 85` | `status = Eligible` | Human approval still mandatory |
