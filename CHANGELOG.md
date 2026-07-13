@@ -2,6 +2,24 @@
 
 All meaningful project changes are recorded here.
 
+## Unreleased — Cross-LLM Portability Foundation
+
+### Added
+
+- Portability risk assessment.
+- AI and human developer handoff guide.
+- Project architecture and protected business-rule documentation.
+- Governed data dictionary and missing-data rules.
+- Reproducible setup, deployment, and troubleshooting guides.
+- Contribution workflow for AI-generated changes.
+- Environment-variable template with no real credentials.
+- Test-structure and regression-coverage guidance.
+
+### Changed
+
+- Documentation now makes GitHub, rather than AI conversation history, the explicit source of truth.
+- No application logic, formula, threshold, dependency, or runtime behaviour changed.
+
 ## Version 1.0.0 — Stable Portfolio Edition
 
 ### Released
