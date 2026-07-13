@@ -8,6 +8,20 @@
 
 AI Procurement Copilot is an interview-ready procurement decision-support platform covering category-specific should-cost, TCO, risk, Procurement Intelligence, Supplier 360, SRM, data-confidence governance, recommendation eligibility, category-aware communication, scenario testing, and executive reporting.
 
+## Portability and Source of Truth
+
+GitHub is the canonical source of truth. The application can run and be maintained without access to prior ChatGPT conversations. ChatGPT, Claude, Gemini, coding agents, and human developers must begin with:
+
+1. `AI_HANDOFF_GUIDE.md`
+2. `PORTABILITY_RISK_ASSESSMENT.md`
+3. `PROJECT_ARCHITECTURE.md`
+4. `BUSINESS_RULES.md`
+5. `DATA_DICTIONARY.md`
+6. `SETUP_GUIDE.md`
+7. `CONTRIBUTING.md`
+
+The stable v1.0.0 application runtime does not require ChatGPT. Future external AI-provider integrations must use environment-based credentials and separate validation.
+
 ## Release Position
 
 Portfolio Edition v1.0.0 is the first stable release.
@@ -67,6 +81,8 @@ The platform is transparent, rule-guided, auditable, and human-controlled. It do
 pip install -r requirements.txt
 streamlit run app.py
 ```
+
+Detailed setup instructions are in `SETUP_GUIDE.md`.
 
 ## Run Tests
 
