@@ -41,6 +41,27 @@ This register documents formulas and decision rules verified directly from Portf
 | Lead-time buffer | >45 days 1.5%; >30 0.75%; >21 0.3%; else 0 of scenario price | Continuity buffer | `modules/tco.py::calculate_supplier_tco` |
 | Adjusted packaging TCO | Sum of scenario price, freight, inventory, working-capital impact, risk penalty and lead-time buffer; annual TCO = unit TCO × effective volume | Comparable annual economics | `modules/tco.py::calculate_supplier_tco` |
 
+## Raw-Material Risk Engine
+
+All rules below are authoritative in `modules/raw_material_risk.py::calculate_raw_material_risk`. Each penalty is added; the risk resilience score is `normalize_score(100 - sum(penalties))`. Output fields are `risk_score`, `risk_category`, and the ten named penalty fields.
+
+| Penalty output | Input and exact threshold | Default when absent | Business purpose | Missing-data behaviour |
+|---|---|---|---|---|
+| `commodity_volatility_risk` | `Commodity Volatility %`: >30 →20; >20 →12; >10 →6; else 0 | 15 | Commodity-price instability | Missing value uses 15 and therefore a penalty of 6 |
+| `import_dependency_risk` | `Import Dependency %`: >80 →20; >50 →12; >25 →5; else 0 | 50 | Imported-supply exposure | Missing value uses 50 and therefore a penalty of 5 |
+| `concentration_risk` | `Supplier Concentration %`: >80 →20; >60 →12; >40 →5; else 0 | 50 | Supply-base concentration | Missing value uses 50 and therefore a penalty of 5 |
+| `substitution_risk` | `Substitute Available`: 15 when value is not one of `yes`, `y`, `true`, `1`; otherwise 0 | `Yes` | Lack of qualified alternatives | Missing value defaults to available and therefore 0 |
+| `capacity_risk` | `Capacity Buffer %`: <5 →15; <10 →8; <20 →3; else 0 | 10 | Capacity headroom | Missing value uses 10 and therefore a penalty of 3 |
+| `quality_risk` | `Quality PPM`: >2,000 →15; >1,200 →8; >700 →3; else 0 | 1,000 | Defect exposure | Missing value uses 1,000 and therefore a penalty of 3 |
+| `fx_risk` | `Currency`: 10 unless currency is `INR` or `LOCAL`; otherwise 0 | `USD` | Foreign-exchange exposure | Missing value uses USD and therefore a penalty of 10 |
+| `logistics_risk` | `Lead Time Days`: >60 →12; >40 →8; >25 →3; else 0 | 30 | Logistics and replenishment exposure | Missing/unparseable value uses 30 and therefore a penalty of 3 |
+| `commercial_risk` | `Payment Terms`: any advance →12; otherwise payment days <30 →5; else 0 | `Net 30` | Advance-payment and short-credit exposure | Missing/unparseable value uses Net 30 and therefore 0 |
+| `incoterm_risk` | `Incoterms`: EXW →10; FOB →7; CIF →3; otherwise 0 | `DDP` | Delivery-term exposure | Missing/unrecognised value normalizes to DDP/UNKNOWN path and receives 0 in this rule |
+
+**Risk labels:** `Low Risk` when `risk_score >= 75`; `Medium Risk` when `risk_score >= 50` and below 75; otherwise `High Risk`.
+
+**Related tests:** raw-material scoring, TCO, scenario, category-engine, validation and regression tests that exercise `calculate_raw_material_risk` directly or through `modules/scoring.py::enrich_supplier_scores` and `modules/raw_material_tco.py::calculate_raw_material_tco`. Any rule change requires a targeted boundary test for every affected threshold plus the full regression suite.
+
 ## Raw-Material TCO
 
 | Rule | Exact implementation | Defaults / thresholds | Authority |
@@ -53,6 +74,29 @@ This register documents formulas and decision rules verified directly from Portf
 | Failure risk | `((100-risk_score)/100)*0.25`; penalty = `scenario_price*failure_probability*0.65` | Fixed multipliers | Same function |
 | Volatility buffer | `scenario_price*(Commodity Volatility %/100)*0.10` | Volatility default 15% | Same function |
 | Adjusted raw-material TCO | Sum of scenario price, freight, duty, inventory, working capital, risk penalty and volatility buffer; annual TCO = unit TCO × effective volume | USD comparison basis after normalization | Same function |
+
+## Recommendation Eligibility Gate
+
+Authority: `modules/recommendation_eligibility.py::evaluate_recommendation_eligibility`, orchestrated by `modules/validation_assurance.py::run_validation_assurance`. Inputs are RFQ validation, business-rule results, data-confidence result, scored supplier dataframe, annual volume and configured minimum risk score. Outputs include status, reason, failed checks, remediation, recommendation permissions and human-approval warnings.
+
+| Decision rule | Exact implementation | Result / output | Missing or invalid behaviour |
+|---|---|---|---|
+| Invalid RFQ | `rfq_validation.is_valid` is false | Adds RFQ errors to `failed_checks`; status ultimately `Blocked` | Missing/false validity is treated as invalid |
+| Blocking business rules | `business_rules.blocking_issues` is non-empty | Adds all blocking issues; status ultimately `Blocked` | Missing list behaves as empty |
+| Invalid annual volume | Conversion fails or `annual_volume <= 0` | Adds `Annual volume is not valid.`; status `Blocked` | Non-numeric and missing values become 0 |
+| No scored suppliers | `scored_df` is `None` or empty | Adds `No scored suppliers are available.`; status `Blocked` | Missing dataframe is blocked |
+| Minimum risk threshold | `risk_score` column exists and no supplier has `risk_score >= min_risk_score` | Adds minimum-risk failure; status `Blocked` | `min_risk_score` defaults to 0; if column is absent this check is not applied |
+| Any failed check | `failed_checks` is non-empty | `status = Blocked`; recommendation and final-award language both disallowed | Takes precedence over confidence thresholds |
+| Confidence below 50 | `data_confidence_score < 50` with no failed checks | `status = Insufficient Data` | Missing/unparseable score defaults to 0 and therefore Insufficient Data unless already Blocked |
+| Confidence 50 to below 70 | `50 <= score < 70` | `status = Human Review Required` | Recommendation analysis allowed; final-award language disallowed |
+| Conditions or confidence below 85 | Non-blocking business issues, RFQ warnings, or `70 <= score < 85` | `status = Eligible With Conditions` | Human approval and listed conditions remain mandatory |
+| Strong eligible result | No prior condition and `score >= 85` | `status = Eligible` | Human approval still mandatory |
+| `recommendation_allowed` | Status in `Eligible`, `Eligible With Conditions`, `Human Review Required` | Allows analytical recommendation display | False for `Blocked` and `Insufficient Data` |
+| `final_award_language_allowed` | Status in `Eligible`, `Eligible With Conditions` | Allows governed final-award wording | False for `Human Review Required`, `Insufficient Data`, and `Blocked` |
+
+The returned `confidence_category` defaults to `Insufficient Data` when absent. Every status includes a non-autonomy warning, and every award, allocation, classification and contract decision retains mandatory human approval.
+
+**Related tests:** recommendation-eligibility, validation-assurance, business-rule, data-confidence, executive-output, communication, export and end-to-end regression tests that exercise `evaluate_recommendation_eligibility` directly or through `run_validation_assurance`. Threshold changes require explicit boundary tests at 50, 70 and 85, plus tests for every blocking condition and both permission flags.
 
 ## RFQ Recognition and Data Quality
 
