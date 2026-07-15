@@ -1,50 +1,82 @@
 # Decision Log
 
-This file records major project decisions and their rationale.
+This file records major project decisions and their rationale. Earlier verified decisions are preserved; recovery decisions are appended.
 
 ## DEC-001 — Use GitHub as Canonical Source of Truth
+**Decision:** GitHub is the master location for code, documentation, plans, logs and recovery instructions.
 
-**Decision:** GitHub will be the master storage location for all project files, source code, documentation, build plans, logs, and recovery instructions.
+## DEC-002 — Portfolio Edition v1.0
+**Decision:** The first stable public release is Portfolio Edition v1.0.0.
 
-**Why:** Prevents loss of work if chat context is lost. Enables version history, recovery, and professional project governance.
+## DEC-003 — Category Expansion
+**Decision:** Packaging was the initial engine; raw-material capability was subsequently included in the stable release through the modular category architecture.
 
-## DEC-002 — Build as Portfolio Edition v1.0
-
-**Decision:** The first public release will be named Portfolio Edition v1.0.
-
-**Why:** This is clearer and more credible than continuing internal version labels such as V9.5.
-
-## DEC-003 — Packaging First, Raw Materials Later
-
-**Decision:** v1.0 will implement the Packaging Procurement Engine first. v1.1 will add a Raw Material Procurement Engine.
-
-**Why:** Packaging is the strongest domain-fit for the first build. Raw materials should be added through the same category-engine architecture after the platform foundation is stable.
-
-## DEC-004 — Transparent Rule-Guided AI-Ready Architecture
-
-**Decision:** Award logic will remain deterministic, visible, and auditable. AI will support extraction, drafting, explanation, and summarization, not autonomous award decisions.
-
-**Why:** Procurement decisions require governance, explainability, accountability, and human control.
+## DEC-004 — Transparent Rule-Guided Architecture
+**Decision:** Award logic remains deterministic, visible and auditable. AI may assist extraction, drafting, explanation and summarization, but may not autonomously approve supplier awards.
 
 ## DEC-005 — Modular Architecture
+**Decision:** Maintain a modular product rather than a single-use Streamlit script.
 
-**Decision:** Build as a modular software product, not a single-use Streamlit script.
+## DEC-006 — Defer Time-Aware Procurement Analytics
+**Decision:** Date-range and historical period analytics remain deferred until explicitly authorized after the stable release.
 
-**Why:** Modular design improves maintainability, extensibility, interview credibility, and future conversion to other interfaces.
-
-## DEC-006 — Defer Time-Aware Procurement Analytics Until After v1.0
-
-**Decision:** Date-range selection, historical trend analysis, period-over-period comparison, quarter-over-quarter comparison, year-over-year comparison, and rolling-period analytics will be implemented only after Portfolio Edition v1.0 is released. The recommended target is Version 1.1 — Time-Aware Procurement Analytics.
-
-**Why:** Time-aware analytics has high procurement value but requires historical data, governing date fields, schema changes, period-comparison rules, export metadata, and safeguards against false precision. Adding it during the release-candidate phase would break the feature freeze and reopen calculation, UX, export, and regression risk.
-
-**Design constraints:**
-
+Design constraints:
 - Every module must declare its governing date field.
-- Missing dates must never be silently assigned to the current period.
+- Missing dates must not be silently assigned.
 - Incomplete periods must be labelled.
-- Comparisons must be suppressed when prior-period data is not comparable.
-- Screens and exports must disclose the reporting period and data coverage.
-- Snapshot data and historical data must be clearly distinguished.
+- Non-comparable periods must suppress comparisons.
+- Screens and exports must disclose reporting period and coverage.
 
-**Reference:** `docs/FUTURE_TIME_AWARE_ANALYTICS.md`
+## DEC-007 — Preserve Portfolio Edition v1.0.0
+- Date: 2026-07-15
+- Decision: Keep `main` as the canonical stable Portfolio Edition v1.0.0 line.
+- Basis: Stable release documents and validation history.
+- Consequence: No feature development may be merged directly into `main`; only documented defects, security fixes and deployment fixes are eligible.
+
+## DEC-008 — Recognize Version 1.1 as real but partial
+- Date: 2026-07-15
+- Decision: Recognize `v1.1-development` as an existing branch with partial ERP intake implementation.
+- Basis: GitHub compare resolves the branch as 27 commits ahead of the common release base and shows schema, mapping, loader, validator, samples, specifications and focused tests.
+- Consequence: Main documentation describing all v1.1 work as future-only is incomplete. Sprint 1 is not accepted as complete.
+
+## DEC-009 — Reject unsupported completion claims
+- Date: 2026-07-15
+- Decision: Treat claims of Sprint 1 batches 1–6 completion, complete upload pipeline, validation reporting, upload UI and `147 passed, 0 failed, 1 warning` as non-authoritative until repository evidence exists.
+- Consequence: Classify these items as `REPORTED BUT NOT FOUND`.
+
+## DEC-010 — Treat currency corrections as v1.0.1 maintenance
+- Date: 2026-07-15
+- Decision: Keep currency-display corrections on `maintenance/v1.0.1`.
+- Basis: Merged PRs #5–#7 target that branch and preserve calculations, rankings, audit metadata and selector behavior.
+- Consequence: Full tests and live validation are mandatory before promotion.
+
+## DEC-011 — Supplier selector is not an unimplemented feature
+- Date: 2026-07-15
+- Decision: Classify the reported missing supplier selector as `REPORTED BUT NOT FOUND`.
+- Basis: Main contains `st.selectbox("Select Supplier 360 Profile", supplier_names, index=0)` and selects the matching profile.
+- Consequence: Runtime validation remains required; do not build a duplicate selector without reproducing a specific defect.
+
+## DEC-012 — Branch Strategy
+1. Preserve `main`.
+2. Validate and reconcile `maintenance/v1.0.1` first.
+3. Establish an approved v1.0.1 maintenance baseline.
+4. Rebase or reconstruct `v1.1-development` from that baseline before further feature work.
+
+## DEC-013 — Documentation Recovery Branch
+- Date: 2026-07-15
+- Decision: Recovery-control changes only occur on `docs/project-recovery-2026-07-15`, created from main SHA `39bfc2d0c75e58c883fdcec797f66dff2edd9eec`.
+- Consequence: Recovery PR remains documentation-only and draft until reviewed.
+
+## DEC-014 — Approved Next Build
+- Date: 2026-07-15
+- Decision: Authorize only Recovery Build R1: exact SHA capture, test/deployment verification, maintenance reconciliation and v1.0.1 closure planning.
+- Excluded: ERP feature implementation, new analytics, new AI providers and architectural expansion.
+
+## DEC-015 — Mandatory Project-Memory Updates
+Every substantive build must update:
+- `PROJECT_STATUS.md`
+- `PROJECT_ACTIVITY_LOG.md`
+- `PENDING_WORK_REGISTER.md`
+- `PROJECT_RECOVERY_MANIFEST.md`
+
+A build lacking these updates is not governance-complete.
