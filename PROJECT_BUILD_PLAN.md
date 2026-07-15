@@ -4,18 +4,18 @@
 Deliver an auditable, human-controlled procurement decision-support application that improves supplier comparison, should-cost, TCO, risk, scenario, negotiation and executive decision quality without representing automated recommendations as supplier-award approval.
 
 ## Release Roadmap
-| Release | Objective | Status |
-|---|---|---|
-| Portfolio Edition v1.0.0 | Stable interview-ready procurement decision support | Released and frozen |
-| Maintenance v1.0.1 | Correct documented currency/display defects without adding features | Validation and reconciliation required |
-| Version 1.1 Sprint 1 | Safe ERP workbook intake, mapping and validation foundation | Verified partial |
-| Version 1.1 later sprints | Normalization, analysis handoff, reporting and governed UI | Deferred pending baseline approval |
+| Release | Objective | Classification | Evidence / approval state |
+|---|---|---|---|
+| Portfolio Edition v1.0.0 | Stable interview-ready procurement decision support | VERIFIED COMPLETE | Released and frozen |
+| Maintenance v1.0.1 | Correct documented currency/display defects without adding features | IMPLEMENTED BUT UNTESTED | Validation and reconciliation required |
+| Version 1.1 Sprint 1 | Safe ERP workbook intake, mapping and validation foundation | VERIFIED PARTIAL | Baseline and acceptance reconciliation required |
+| Version 1.1 later sprints | Normalization, analysis handoff, reporting and governed UI | DEFERRED | Pending baseline and owner approval |
 
 ## Build Phases
 ### Phase 0 — Recovery and Baseline Control
 - Reconcile branch history, tests, deployment and documentation.
 - Acceptance: exact branch SHAs recorded; full tests and smoke checks evidenced; discrepancies classified.
-- Approval gate: project owner accepts the development baseline.
+- Approval gate: project owner accepts the development baseline and explicitly authorizes the next build.
 
 ### Phase 1 — v1.0.1 Maintenance Closure
 Work packages:
@@ -35,7 +35,7 @@ Acceptance criteria:
 
 ### Phase 2 — Version 1.1 Sprint 1 Recovery
 Work packages:
-1. Rebase or reconstruct from approved v1.0.1 baseline.
+1. Rebase or reconstruct from an approved v1.0.1 baseline.
 2. Preserve verified ERP schema registry, mapping profiles, workbook loader and structural validator.
 3. Complete missing upload orchestration, validation reporting and UI only if separately authorized.
 4. Mark checklist items only after evidence exists.
@@ -64,18 +64,22 @@ Acceptance criteria:
 7. Direct export inspection for readable and machine-readable outputs.
 
 ## Approval Gates
-- Scope approval before branch creation.
-- Architecture approval before schema/business-rule changes.
+- Owner approval before starting the proposed next controlled build.
+- Scope approval before branch creation or reconciliation work.
+- Architecture approval before schema or business-rule changes.
 - Test evidence approval before merge.
 - Manual procurement acceptance before release.
 - Deployment approval before stable release tagging.
 
 ## Excluded Scope
+Classification: OUT OF SCOPE for Recovery Build R1 unless separately authorized.
+
 - Autonomous supplier award.
 - Production ERP write-back.
 - Live supplier-master or contract-system integration.
 - External AI-provider dependency without explicit architecture and security approval.
 - Unnecessary analytics or UI features outside authorized acceptance criteria.
+- Version 1.1 feature implementation during recovery governance closure.
 
 ## Estimated Effort
 | Work package | Estimate |
@@ -86,7 +90,9 @@ Acceptance criteria:
 | Documentation and release-control closure | 2–3 hours |
 | Version 1.1 branch reconstruction/rebase assessment | 3–5 hours |
 
-## Next Authorized Build
+## Proposed Next Controlled Build
 **Recovery Build R1 — Baseline Verification and v1.0.1 Maintenance Closure.**
 
-No Version 1.1 feature implementation is authorized in this recovery task. The next build must first establish an approved, tested maintenance baseline and record exact branch HEADs.
+Approval state: pending explicit project-owner approval.
+
+No Version 1.1 feature implementation is authorized. The proposed build must first establish an approved, tested maintenance baseline and record exact branch HEADs.
