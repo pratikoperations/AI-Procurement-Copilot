@@ -107,7 +107,7 @@ These items exist in code or test assets but are not accepted as Sprint 1 comple
 
 Classification: DEFERRED.
 
-## Proposed Next Milestone — Pending Owner Approval
+## Proposed Next Controlled Build — Pending Owner Approval
 **Recovery Build R1 — Verify and close the v1.0.1 maintenance baseline.**
 
 No subsequent build is authorized until the owner explicitly approves it. No feature implementation may begin until exact branch baselines, full regression and deployment evidence are recorded.
