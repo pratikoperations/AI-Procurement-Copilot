@@ -23,6 +23,9 @@ def _comparison_frame():
             "Comparison Basis": "USD/piece",
             "Risk-Adjusted TCO (USD)": 1.50,
             "Risk Resilience Score": 80,
+            "Performance Score": 75,
+            "Supplier 360 Score": 82,
+            "Recommendation Status": "Best value",
         }
     ])
 
@@ -102,6 +105,31 @@ def test_audit_metadata_is_unchanged_in_inr_mode():
     assert result.loc[0, "FX Rate Used"] == 83.0
     assert result.loc[0, "Unit of Measure"] == "piece"
     assert result.loc[0, "Comparison Basis"] == "USD/piece"
+
+
+def test_inr_business_columns_are_first_after_supplier_for_mobile_visibility():
+    result = build_supplier_intelligence_display_frame(_comparison_frame(), "INR", 83)
+
+    assert list(result.columns[:3]) == [
+        "Supplier",
+        "Quoted Price (INR)",
+        "Risk-Adjusted TCO (INR)",
+    ]
+    assert result.columns.get_loc("Quoted Price (INR)") < result.columns.get_loc("Original Currency")
+    assert result.columns.get_loc("Risk-Adjusted TCO (INR)") < result.columns.get_loc("Normalized Currency")
+
+
+def test_both_mode_prioritizes_all_business_currency_columns_before_audit_metadata():
+    result = build_supplier_intelligence_display_frame(_comparison_frame(), "Both", 83)
+
+    assert list(result.columns[:5]) == [
+        "Supplier",
+        "Quoted Price (USD)",
+        "Risk-Adjusted TCO (USD)",
+        "Quoted Price (INR)",
+        "Risk-Adjusted TCO (INR)",
+    ]
+    assert result.columns.get_loc("Risk-Adjusted TCO (INR)") < result.columns.get_loc("Original Currency")
 
 
 def test_app_passes_display_currency_and_fx_rate_to_supplier_intelligence():
