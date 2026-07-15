@@ -8,37 +8,32 @@ from modules.supplier_intelligence_ui import render_supplier_intelligence as _re
 from modules.utils import build_currency_display_frame, normalize_display_currency
 
 
-CURRENCY_COLUMNS = {
-    "Quoted Price USD": "Quoted Price",
-    "Risk-Adjusted TCO USD": "Risk-Adjusted TCO",
-    "Risk-Adjusted TCO (USD)": "Risk-Adjusted TCO",
-    "adjusted_tco_unit_usd": "Risk-Adjusted TCO",
-}
+RISK_TCO_SOURCES = (
+    "Risk-Adjusted TCO USD",
+    "Risk-Adjusted TCO (USD)",
+    "adjusted_tco_unit_usd",
+)
 DISPLAY_COLUMNS = {
     "Quoted Price (USD)",
     "Quoted Price (INR)",
     "Risk-Adjusted TCO (USD)",
     "Risk-Adjusted TCO (INR)",
 }
+_QUOTED_PRICE_SOURCE = "__quoted_price_usd_display"
 
 
-def _currency_mapping(columns):
-    """Select at most one canonical source column for each business label."""
-    selected = {}
-    used_labels = set()
-    for column, label in CURRENCY_COLUMNS.items():
-        if column in columns and label not in used_labels:
-            selected[column] = label
-            used_labels.add(label)
-    return selected
+def _first_available(columns, candidates):
+    """Return the first available canonical source column from candidates."""
+    return next((column for column in candidates if column in columns), None)
 
 
 def build_supplier_intelligence_display_frame(comparison_df, display_currency="USD", fx_rate=83):
     """Return a display-only comparison frame in USD, INR, or Both.
 
-    Source and audit metadata columns are preserved. Canonical USD business fields
-    are converted only for display and the supplied dataframe is never mutated.
-    Invalid display modes fall back to USD for backward-compatible rendering.
+    ``Normalized Unit Price`` remains unchanged as canonical audit metadata. A
+    temporary canonical USD business column is derived from it solely to render
+    Quoted Price in the selected display currency. Risk-adjusted TCO follows the
+    same display-only conversion path. The supplied dataframe is never mutated.
     """
     original = comparison_df.copy() if isinstance(comparison_df, pd.DataFrame) else pd.DataFrame()
     try:
@@ -46,15 +41,26 @@ def build_supplier_intelligence_display_frame(comparison_df, display_currency="U
     except ValueError:
         mode = "USD"
 
-    mapping = _currency_mapping(original.columns)
-    if not mapping:
-        return original
-
     source = original.drop(
-        columns=[column for column in DISPLAY_COLUMNS if column in original.columns and column not in mapping],
+        columns=[column for column in DISPLAY_COLUMNS if column in original.columns],
         errors="ignore",
     )
-    return build_currency_display_frame(source, mapping, mode, fx_rate)
+    mapping = {}
+
+    if "Normalized Unit Price" in source.columns:
+        insert_at = source.columns.get_loc("Normalized Unit Price") + 1
+        source.insert(insert_at, _QUOTED_PRICE_SOURCE, source["Normalized Unit Price"])
+        mapping[_QUOTED_PRICE_SOURCE] = "Quoted Price"
+    else:
+        quoted_source = _first_available(source.columns, ("Quoted Price USD", "Quoted Unit Price USD"))
+        if quoted_source:
+            mapping[quoted_source] = "Quoted Price"
+
+    risk_source = _first_available(source.columns, RISK_TCO_SOURCES)
+    if risk_source:
+        mapping[risk_source] = "Risk-Adjusted TCO"
+
+    return build_currency_display_frame(source, mapping, mode, fx_rate) if mapping else source
 
 
 def render_supplier_intelligence(intelligence, display_currency="USD", fx_rate=83):
