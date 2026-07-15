@@ -14,6 +14,23 @@ CURRENCY_COLUMNS = {
     "Risk-Adjusted TCO (USD)": "Risk-Adjusted TCO",
     "adjusted_tco_unit_usd": "Risk-Adjusted TCO",
 }
+DISPLAY_COLUMNS = {
+    "Quoted Price (USD)",
+    "Quoted Price (INR)",
+    "Risk-Adjusted TCO (USD)",
+    "Risk-Adjusted TCO (INR)",
+}
+
+
+def _currency_mapping(columns):
+    """Select at most one canonical source column for each business label."""
+    selected = {}
+    used_labels = set()
+    for column, label in CURRENCY_COLUMNS.items():
+        if column in columns and label not in used_labels:
+            selected[column] = label
+            used_labels.add(label)
+    return selected
 
 
 def build_supplier_intelligence_display_frame(comparison_df, display_currency="USD", fx_rate=83):
@@ -23,14 +40,21 @@ def build_supplier_intelligence_display_frame(comparison_df, display_currency="U
     are converted only for display and the supplied dataframe is never mutated.
     Invalid display modes fall back to USD for backward-compatible rendering.
     """
-    source = comparison_df.copy() if isinstance(comparison_df, pd.DataFrame) else pd.DataFrame()
+    original = comparison_df.copy() if isinstance(comparison_df, pd.DataFrame) else pd.DataFrame()
     try:
         mode = normalize_display_currency(display_currency)
     except ValueError:
         mode = "USD"
 
-    mapping = {column: label for column, label in CURRENCY_COLUMNS.items() if column in source.columns}
-    return build_currency_display_frame(source, mapping, mode, fx_rate) if mapping else source
+    mapping = _currency_mapping(original.columns)
+    if not mapping:
+        return original
+
+    source = original.drop(
+        columns=[column for column in DISPLAY_COLUMNS if column in original.columns and column not in mapping],
+        errors="ignore",
+    )
+    return build_currency_display_frame(source, mapping, mode, fx_rate)
 
 
 def render_supplier_intelligence(intelligence, display_currency="USD", fx_rate=83):
