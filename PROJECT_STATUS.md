@@ -35,26 +35,17 @@
 ## Maintenance Defect Corrected
 The candidate initially lost `Risk-Adjusted TCO (USD)` before display reconstruction. The correction preserves the canonical source through a temporary display-only field. No FX formula, ranking, threshold, schema, recommendation or audit field changed.
 
-## Currency and Selector Status
-- Original INR/display inconsistency on main: DEFECT / REGRESSION
-- Automated USD/INR/Both and export coverage: VERIFIED COMPLETE
-- Supplier-selector capability: VERIFIED COMPLETE
-- Automated selector preservation: VERIFIED COMPLETE
-- Hosted supplier-by-supplier acceptance: NOT STARTED
-- Hosted USD/INR/Both visual acceptance: NOT STARTED
-
-## Deployment Status
-- Historical Streamlit deployment evidence: DOCUMENTED ONLY
-- Main and candidate CI smoke: VERIFIED COMPLETE
-- Authoritative hosted URL: REPORTED BUT NOT FOUND
-- Current hosted deployment-health claim: REPORTED BUT NOT FOUND
+## Hosted Acceptance
+- Candidate URL: `https://ai-procurement-copilot-pr9.streamlit.app/`
+- Candidate branch and Python startup evidence: VERIFIED COMPLETE
+- Current hosted deployment health: VERIFIED COMPLETE
+- All six supplier selections and matching Supplier 360 profiles: VERIFIED COMPLETE
+- Hosted USD/INR/Both visual acceptance: VERIFIED COMPLETE
+- Evidence boundary: hosted functional acceptance was manually performed and confirmed by the project owner.
 
 ## Promotion Verdict
-**CHANGES REQUIRED**
+**MERGE READY**
 
-Remaining before merge:
-1. obtain an authoritative hosted Streamlit URL and directly verify current runtime health;
-2. exercise every packaging and raw-material supplier option and confirm matching Supplier 360 profiles;
-3. validate USD, INR and Both modes in the hosted interface.
+All Recovery R1 acceptance gates are closed. PR #9 remains draft and unmerged pending final owner review and explicit merge authorization.
 
-No Version 1.1 work may begin from this candidate.
+No Version 1.1 work may begin from this candidate until separately authorized.
