@@ -10,14 +10,15 @@ Date: 2026-07-15
 | Business-readable exports | Covered | Covered | Covered | Export tests | VERIFIED COMPLETE |
 | Machine-readable audit outputs | Canonical fields preserved | Canonical fields preserved | Canonical fields preserved | Export/currency tests | VERIFIED COMPLETE |
 | Mobile-priority columns | Prioritized | Prioritized | Both sets prioritized | Focused tests | VERIFIED COMPLETE |
-| Hosted visual interface | Not directly observed | Not directly observed | Not directly observed | No authoritative hosted URL | NOT STARTED |
+| Hosted visual interface | Confirmed correct | Confirmed correct | Confirmed correct | Owner-observed acceptance at PR #9 hosted candidate | VERIFIED COMPLETE |
 
-## Automated Confirmations
-- Display labels match generated business-facing values in covered tests.
+## Confirmations
+- Display labels match generated business-facing values in automated coverage.
 - Canonical normalized unit price, original currency, FX rate and comparison basis remain unchanged.
 - No double conversion occurs in precomputed-column scenarios.
 - Supplier rankings and procurement formulas were not redesigned.
 - Source-preservation correction affects display reconstruction only, not the FX formula.
+- The project owner manually checked USD, INR and Both modes on `https://ai-procurement-copilot-pr9.streamlit.app/` and reported that all looked correct.
 
-## Hosted Acceptance Boundary
-Hosted label/value alignment, mobile readability and ranking stability could not be directly observed because no authoritative hosted URL was found. Automated coverage is VERIFIED COMPLETE; hosted visual acceptance remains NOT STARTED.
+## Evidence Boundary
+Hosted visual acceptance is owner-observed rather than independently reproduced through the connected GitHub tool. Automated and owner acceptance evidence together are classified VERIFIED COMPLETE for Recovery R1.
