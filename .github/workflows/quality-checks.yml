@@ -29,7 +29,27 @@ jobs:
       - name: Compile Python files
         run: python -m compileall -q app.py modules tests
 
-      - name: Run regression tests
+      - name: Test annual volume units
+        run: python -m pytest -q tests/test_annual_volume_units.py
+
+      - name: Test currency display
+        if: always()
+        run: python -m pytest -q tests/test_currency_display.py
+
+      - name: Test exports
+        if: always()
+        run: python -m pytest -q tests/test_exports.py
+
+      - name: Test Supplier Intelligence currency
+        if: always()
+        run: python -m pytest -q tests/test_supplier_intelligence_currency.py
+
+      - name: Test Supplier Intelligence UI
+        if: always()
+        run: python -m pytest -q tests/test_supplier_intelligence_ui.py
+
+      - name: Run complete regression tests
+        if: always()
         run: python -m pytest -q
 
       - name: Run Streamlit smoke test
