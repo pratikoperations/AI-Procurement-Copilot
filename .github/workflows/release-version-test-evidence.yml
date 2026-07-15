@@ -3,6 +3,7 @@ name: Release Version Test Evidence
 on:
   push:
     branches: [maintenance/v1.0.1-release-label-correction]
+  pull_request:
 
 permissions:
   contents: read
