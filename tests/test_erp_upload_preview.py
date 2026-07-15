@@ -23,20 +23,29 @@ def test_workbook_metrics_and_sheet_inventory_expose_structure_only():
     assert metrics["filename"] == "synthetic_sap_procurement_workbook.xlsx"
     assert metrics["detected_sheet_count"] == len(summary.sheet_names)
     assert metrics["required_sheet_count"] == 7
+    assert inventory
     assert set(inventory[0]) == {
         "Sheet", "Rows", "Columns", "Empty", "Classification", "Headers"
     }
+    assert all(row["Classification"] in {"Required", "Unknown"} for row in inventory)
     assert "data" not in {key.lower() for row in inventory for key in row}
 
 
-def test_unknown_sheet_is_classified_and_findings_are_display_ready():
+def test_sheet_classification_and_findings_are_display_ready():
     summary = load_erp_workbook(SAMPLE_DIR / "erp_adversarial_procurement_workbook.xlsx")
     validation = validate_workbook_structure(summary)
 
     inventory = build_sheet_inventory(summary)
     finding_rows = build_finding_rows(validation)
 
-    assert any(row["Classification"] == "Unknown" for row in inventory)
+    expected_classification = {
+        sheet_name: ("Required" if sheet_name in {
+            "Supplier_Master", "RFQ_Quotes", "Purchase_Orders", "Receipts",
+            "Supplier_Performance", "Material_Master", "Cost_Drivers"
+        } else "Unknown")
+        for sheet_name in summary.sheet_names
+    }
+    assert {row["Sheet"]: row["Classification"] for row in inventory} == expected_classification
     assert all(set(row) == {"Severity", "Code", "Sheet", "Finding"} for row in finding_rows)
 
 
@@ -61,9 +70,10 @@ def test_blocked_gate_suppresses_mapping_and_all_downstream_processing():
 
 
 def test_passing_gate_never_allows_downstream_processing():
-    summary = load_erp_workbook(SAMPLE_DIR / "synthetic_oracle_procurement_workbook.xlsx")
+    summary = load_erp_workbook(SAMPLE_DIR / "synthetic_sap_procurement_workbook.xlsx")
     validation = validate_workbook_structure(summary)
     gate = build_processing_gate(validation)
 
+    assert validation.status != BLOCKED
     assert gate["mapping_preview_allowed"] is True
     assert gate["further_processing_allowed"] is False
