@@ -58,11 +58,12 @@ def test_governance_wording_is_present():
         "read-only structural validation",
         "no procurement analysis",
         "draft static mapping",
-        "not live integrations",
         "no data was saved",
         "human review remains mandatory",
     )
     assert all(phrase in source for phrase in required_phrases)
+    assert "not live " in source
+    assert "integrations, certified universal mappings" in source
 
 
 def test_page_does_not_offer_normalization_or_processing_actions():
