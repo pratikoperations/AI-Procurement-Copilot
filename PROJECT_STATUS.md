@@ -17,36 +17,44 @@
 - Reconciliation approach: reconstruct validated maintenance files from current main
 - Version 1.1 implementation: OUT OF SCOPE
 
-## Executable Evidence
+## Standalone Main Evidence
 - Python: 3.11.15
-- Pinned dependencies: installed successfully
+- Dependencies: installed successfully
 - Compile: VERIFIED COMPLETE
+- Full regression: VERIFIED COMPLETE — 114 passed, 0 failed, 0 skipped, 1 warning
+- Streamlit startup smoke: VERIFIED COMPLETE
+
+## Candidate Evidence
+- Python: 3.11.15
+- Compile: VERIFIED COMPLETE
+- Focused maintenance tests: VERIFIED COMPLETE
 - Full regression: VERIFIED COMPLETE — 162 passed, 0 failed, 0 skipped, 1 warning
 - Streamlit startup smoke: VERIFIED COMPLETE
-- Existing warning: pandas FutureWarning in `tests/test_adversarial_inputs.py::test_decimal_percentage_is_flagged`
+- Final workflow file diff: absent
 
-## Maintenance Defect Found and Corrected
-The reconstructed maintenance candidate initially failed Supplier Intelligence currency tests because `Risk-Adjusted TCO (USD)` was dropped before being preserved as the canonical USD source. The correction retains the source through a temporary display-only field. No FX formula, ranking, threshold, schema or audit field changed.
+## Maintenance Defect Corrected
+The candidate initially lost `Risk-Adjusted TCO (USD)` before display reconstruction. The correction preserves the canonical source through a temporary display-only field. No FX formula, ranking, threshold, schema, recommendation or audit field changed.
 
 ## Currency and Selector Status
 - Original INR/display inconsistency on main: DEFECT / REGRESSION
-- Automated USD/INR/Both and export coverage on candidate: VERIFIED COMPLETE
+- Automated USD/INR/Both and export coverage: VERIFIED COMPLETE
 - Supplier-selector capability: VERIFIED COMPLETE
 - Automated selector preservation: VERIFIED COMPLETE
-- All-supplier hosted interactive acceptance: NOT STARTED
+- Hosted supplier-by-supplier acceptance: NOT STARTED
+- Hosted USD/INR/Both visual acceptance: NOT STARTED
 
 ## Deployment Status
 - Historical Streamlit deployment evidence: DOCUMENTED ONLY
-- CI/local-equivalent smoke on candidate: VERIFIED COMPLETE
-- Current hosted deployment-health claim: REPORTED BUT NOT FOUND
+- Main and candidate CI smoke: VERIFIED COMPLETE
 - Authoritative hosted URL: REPORTED BUT NOT FOUND
+- Current hosted deployment-health claim: REPORTED BUT NOT FOUND
 
 ## Promotion Verdict
 **CHANGES REQUIRED**
 
-Required before merge:
-1. Directly verify the current hosted application URL and health.
-2. Manually exercise every supplier option and confirm the matching Supplier 360 profile.
-3. Confirm final PR diff contains no workflow change and final canonical CI remains green.
+Remaining before merge:
+1. obtain an authoritative hosted Streamlit URL and directly verify current runtime health;
+2. exercise every packaging and raw-material supplier option and confirm matching Supplier 360 profiles;
+3. validate USD, INR and Both modes in the hosted interface.
 
 No Version 1.1 work may begin from this candidate.
