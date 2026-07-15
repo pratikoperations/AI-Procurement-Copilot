@@ -19,11 +19,12 @@
 |---|---|---|---|---|---|
 | 2026-07-15 | `release/v1.0.1-closure` / PR #10 | Opened documentation closure | Eight Markdown files | Initial closure checks PASS | Owner acceptance |
 | 2026-07-15 | primary main deployment | Owner verified main after PR #9 | Startup, USD/INR/Both, six supplier profiles | All accepted | Final closure |
-| 2026-07-15 | `ae50bca0...` | Unexpected direct main commit corrected displayed v1.0.1 metadata and added regression test | README, VERSION_MANIFEST, app docstring, config metadata, one test | Narrow version-display change; no procurement logic or v1.1/ERP scope | Reconcile PR #10 |
-| 2026-07-15 | `release/v1.0.1-closure-reconciled` | Reconstructed closure documents from current main | Preserve current-main app/config/test changes and eight-document governance scope | Reconstruction in progress | Final CI and review |
+| 2026-07-15 | `ae50bca0...` | Unexpected direct main commit corrected displayed v1.0.1 metadata and added regression test | Five scoped files | No procurement logic or v1.1/ERP scope | Reconcile PR #10 |
+| 2026-07-15 | `release/v1.0.1-closure-reconciled` | Reconstructed eight closure documents from current main | Preserved accepted app/config/version-test changes | Clean reconstruction | Replace PR head |
+| 2026-07-15 | PR #10 head `f1f92a0d...` / run 411 | Verified reconciled PR | Exactly eight Markdown files; dependency install, compile, pytest, smoke | PASS — 165 passed, 0 failed, 0 skipped, 1 warning; smoke PASS | Final owner approval and merge |
 
 ## Controlled Decision
-Reconstruction from current main is the safest reconciliation method. PR #10 must remain draft and unmerged until its head is replaced by the reconciled branch, the final diff contains only the eight approved Markdown files, and final Quality Checks pass.
+PR #10 is reconciled, documentation-only and ready for final owner-approved merge, followed by tag and release creation at the resulting final main SHA.
 
 ## Mandatory Future Log Rule
 Every substantive build must record exact branch/commit, files, commands, results, decision and remaining action, and update the mandatory project-memory files.
