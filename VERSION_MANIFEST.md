@@ -6,7 +6,7 @@ AI Procurement Copilot
 
 ## Release
 
-Portfolio Edition v1.0.0
+Portfolio Edition v1.0.1
 
 ## Status
 
@@ -14,7 +14,7 @@ Stable
 
 ## Release Basis
 
-Build 1.0 RC1.2.3 — Scenario Engine Column Alignment Critical Hotfix
+Version 1.0.1 - Stable Maintenance Release, promoted from the verified Recovery R1 maintenance baseline.
 
 ## Active Category Engines
 
@@ -55,7 +55,8 @@ The platform includes category-aware RFQ analysis, should-cost, TCO, risk, Procu
 
 ## Release Governance
 
-- v1.0.0 is frozen as the stable release.
+- v1.0.1 is frozen as the stable maintenance release.
+- v1.0.0 remains the historical first stable portfolio release.
 - Stable-line changes are restricted to documented maintenance fixes.
 - New features must be developed separately.
 

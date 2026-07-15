@@ -3,8 +3,8 @@
 from modules.category_engine import get_supported_categories
 
 APP_NAME = "AI Procurement Copilot"
-EDITION = "Portfolio Edition v1.0.0"
-BUILD = "Version 1.0.0 - Stable Release"
+EDITION = "Portfolio Edition v1.0.1"
+BUILD = "Version 1.0.1 - Stable Maintenance Release"
 STATUS = "Stable"
 
 DEFAULT_FX_RATE = 83

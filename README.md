@@ -1,6 +1,6 @@
 # AI Procurement Copilot
 
-**Release:** Portfolio Edition v1.0.0  
+**Release:** Portfolio Edition v1.0.1  
 **Status:** Stable  
 **Repository Owner:** pratikoperations
 
@@ -20,11 +20,11 @@ GitHub is the canonical source of truth. The application can run and be maintain
 6. `SETUP_GUIDE.md`
 7. `CONTRIBUTING.md`
 
-The stable v1.0.0 application runtime does not require ChatGPT. Future external AI-provider integrations must use environment-based credentials and separate validation.
+The stable v1.0.1 application runtime does not require ChatGPT. Future external AI-provider integrations must use environment-based credentials and separate validation.
 
 ## Release Position
 
-Portfolio Edition v1.0.0 is the first stable release.
+Portfolio Edition v1.0.1 is the stable maintenance release built on the first stable v1.0.0 portfolio baseline.
 
 The release was approved after:
 
@@ -108,7 +108,7 @@ AI Procurement Copilot is a decision-support and portfolio demonstration system.
 
 ## Next Planned Release
 
-Version 1.1 is reserved for Time-Aware Procurement Analytics and remains a separate backlog and development stream. No Version 1.1 implementation is included in v1.0.0.
+Version 1.1 is reserved for Time-Aware Procurement Analytics and remains a separate backlog and development stream. No Version 1.1 implementation is included in v1.0.1.
 
 ## Operating Standard
 

@@ -1,4 +1,4 @@
-"""AI Procurement Copilot — Portfolio Edition v1.0."""
+"""AI Procurement Copilot — Portfolio Edition v1.0.1."""
 
 import json
 import streamlit as st
