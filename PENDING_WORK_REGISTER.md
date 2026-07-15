@@ -12,11 +12,11 @@ Formal status values use exactly one approved classification.
 | DEF-002 | Reconstructed currency corrections | VERIFIED COMPLETE | Focused currency/export tests and full suite | No formula/schema drift |
 | DEF-003 | Preserve canonical risk-TCO source | VERIFIED COMPLETE | Root-cause correction at `acda1738...` | USD/INR/Both tests remain green |
 | UX-001 | Supplier-selector capability | VERIFIED COMPLETE | Stable code and contract tests | Existing selector remains single and mapped |
-| UX-002 | Exercise all packaging suppliers in hosted UI | NOT STARTED | Authoritative hosted URL required | Three packaging suppliers map correctly |
-| UX-003 | Exercise all raw-material suppliers in hosted UI | NOT STARTED | Authoritative hosted URL required | Three raw-material suppliers map correctly |
-| CUR-001 | Validate hosted USD/INR/Both modes | NOT STARTED | Authoritative hosted URL required | Labels, values, rankings and audit fields accepted |
+| UX-002 | Exercise all packaging suppliers in hosted UI | VERIFIED COMPLETE | Owner-observed hosted acceptance | Three packaging suppliers map correctly |
+| UX-003 | Exercise all raw-material suppliers in hosted UI | VERIFIED COMPLETE | Owner-observed hosted acceptance | Three raw-material suppliers map correctly |
+| CUR-001 | Validate hosted USD/INR/Both modes | VERIFIED COMPLETE | Owner-observed hosted acceptance | Labels, values, rankings and audit fields accepted |
 | DEP-001 | Historical Streamlit acceptance | DOCUMENTED ONLY | Stable records | Do not represent as current proof |
-| DEP-002 | Authoritative hosted URL and current health | REPORTED BUT NOT FOUND | Repository search returned none | URL responds and app is manually accepted |
+| DEP-002 | Authoritative hosted candidate and current health | VERIFIED COMPLETE | `https://ai-procurement-copilot-pr9.streamlit.app/`; deployment log and owner acceptance | Candidate responds and is manually accepted |
 | DOC-001 | Preserve governance/portability controls | VERIFIED COMPLETE | Reconstruction from current main | Final diff retains controls |
 | GOV-002 | Confirm no net workflow change | VERIFIED COMPLETE | Final PR filename review | Workflow path absent from PR diff |
 | ERP-001 | v1.1 ERP foundation | VERIFIED PARTIAL | Exact v1.1 HEAD recorded | Separate authorization required |
@@ -25,4 +25,4 @@ Formal status values use exactly one approved classification.
 | OOS-001 | Autonomous award and unapproved AI-provider expansion | OUT OF SCOPE | Governance boundary | Must not enter v1.0.1 |
 
 ## Priority Rule
-PR #9 must not merge until UX-002, UX-003, CUR-001 and DEP-002 are closed, or the owner explicitly accepts those residual hosted-validation risks after final review.
+Recovery R1 acceptance items are closed. PR #9 is MERGE READY but must remain draft and unmerged until final owner review and explicit authorization.
