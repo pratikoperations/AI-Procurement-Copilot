@@ -1,38 +1,31 @@
 # Project Status
 
-## Project
+## Repository
+`pratikoperations/AI-Procurement-Copilot`
 
-AI Procurement Copilot
+## Canonical Stable Branch
+`main`
 
-## Release
+## Verified Main SHA
+`39bfc2d0c75e58c883fdcec797f66dff2edd9eec`
 
-Portfolio Edition v1.0.0
+## Stable Release
+- Release: Portfolio Edition v1.0.0
+- Status: Stable and frozen
+- Permitted stable changes: documented defects, security fixes and deployment fixes
 
-## Current Status
+## Active Recovery Branch
+`docs/project-recovery-2026-07-15`
 
-Stable
+## Relevant Development Lines
+- `maintenance/v1.0.1`: defect-maintenance line; 10 commits ahead and 2 behind main at recovery comparison; classification: IMPLEMENTED BUT UNTESTED.
+- `v1.1-development`: ERP Sprint 1 development line; 27 commits ahead and 2 behind main at recovery comparison; classification: VERIFIED PARTIAL.
 
-## Canonical Source of Truth
+Exact current HEAD SHAs for both non-main lines remain unresolved and must not be inferred from merge SHAs or merge-base SHAs.
 
-GitHub repository: pratikoperations/AI-Procurement-Copilot
-
-## Release Approval
-
-Version 1.0.0 was approved after completion of:
-
-- Green GitHub Actions
-- Full regression suite
-- Streamlit smoke testing
-- Packaging Procurement live validation
-- Raw Material Procurement and PET Resin live validation
-- Scenario-engine runtime and calculation retesting
-- Supplier Intelligence and Supplier 360 review
-- Executive output review
-- Direct inspection of readable CSV, TXT, and Excel exports
-- Validation of machine-readable audit exports
-- Closure of all known Major and Critical release defects
-
-## Stable Scope
+## Verified Completed Scope
+### Portfolio Edition v1.0.0
+Classification: VERIFIED COMPLETE
 
 - Packaging Procurement
 - Raw Material Procurement
@@ -40,50 +33,81 @@ Version 1.0.0 was approved after completion of:
 - Supplier risk and scoring
 - Procurement Intelligence
 - Supplier Intelligence and Supplier 360
-- SRM, financial, ESG, innovation, and performance indicators
+- Supplier selector and per-profile code path
+- SRM, financial, ESG, innovation and performance indicators
 - Recommendation eligibility and business-rule validation
-- Scenario stress testing
+- Scenario stress testing and allocation
 - Negotiation intelligence
-- Executive memo, supplier email, narrative, and explainability
+- Executive memo, supplier email, narrative and explainability
 - Business-readable and machine-readable exports
-- Regression, adversarial, external-file, and UI validation
+- Regression, adversarial, external-file and UI validation framework
+- GitHub-first portability and handoff documentation
 
-## Release Governance
+## Verified Partial Scope
+### Version 1.1 ERP Foundation
+Classification: VERIFIED PARTIAL
 
-- v1.0.0 is frozen as the stable Portfolio Edition release.
-- Stable maintenance is limited to documented defects and security or deployment fixes.
-- New features must not be added directly to the stable release line.
-- Version 1.1 development must remain separate.
+- Canonical schema registry
+- SAP, Oracle and custom mapping profiles
+- Workbook loader
+- Structural validator
+- Synthetic and adversarial ERP workbook assets
+- ERP data model, mapping and validation specifications
+- Focused unit-test files
 
-## RC Archive
+These items exist in code or test assets but are not accepted as Sprint 1 complete until the full suite and acceptance checklist are reconciled.
 
-Release-candidate history is preserved in:
+## Current Defects, Claims and Risks
+1. **INR display/calculation consistency on main**
+   - Classification: DEFECT / REGRESSION.
+   - Maintenance PRs #5–#7 show that corrective work was required.
+2. **INR corrective implementation on maintenance/v1.0.1**
+   - Classification: IMPLEMENTED BUT UNTESTED.
+   - Corrective code and focused tests exist; full regression and live validation remain pending.
+3. **Claim that Supplier Intelligence lacks a supplier selector**
+   - Classification: REPORTED BUT NOT FOUND.
+   - Main code already contains the selector and matching profile-selection path.
+4. **Supplier-selector capability on main**
+   - Classification: VERIFIED COMPLETE.
+   - Runtime validation across every supplier remains a pending validation action, not a second classification.
+5. **Branch divergence**
+   - Maintenance and v1.1 lines branch from the v1.0.0 acceptance commit and are behind later portability documentation on main.
+6. **Version 1.1 status inconsistency**
+   - Main documentation says v1.1 is future-only, while a partial implementation branch exists.
+7. **Unsupported test claim**
+   - The reported `147 passed, 0 failed, 1 warning` result is classified REPORTED BUT NOT FOUND.
 
-- `BUILD_HISTORY.md`
-- `CHANGELOG.md`
-- `docs/RC_BUILD_ARCHIVE.md`
-- `validation/VALIDATION_DEFECT_REGISTER.md`
-- `validation/FINAL_MANUAL_VALIDATION_RC1.2.3.md`
+## Test Status
+- Historical v1.0.0 green CI, full regression, Streamlit smoke testing and manual acceptance: DOCUMENTED ONLY.
+- Current complete-suite execution during recovery: NOT STARTED.
+- PRs #5–#7 contain focused tests, but recovery-level execution remains pending.
 
-## Version 1.1 Backlog
+## Deployment Status
+- Historical Streamlit deployment architecture and smoke acceptance: DOCUMENTED ONLY.
+- Current hosted Streamlit deployment-health claim: REPORTED BUT NOT FOUND.
+- Current hosted URL and runtime health were not independently observed during recovery.
 
-### Time-Aware Procurement Analytics
+## Pending Work
+1. Capture exact current HEAD SHAs for maintenance and v1.1 branches.
+2. Run and record the full test suite on main and maintenance.
+3. Run Streamlit smoke and hosted-runtime checks.
+4. Validate USD, INR and Both modes end to end.
+5. Validate supplier selector against every supplier profile.
+6. Reconcile portability controls into the approved maintenance baseline.
+7. Reconstruct or rebase v1.1 from the approved maintenance baseline.
+8. Reconcile the Sprint 1 checklist with actual code and test evidence.
+9. Separately authorize any missing ERP upload pipeline, report or UI work.
 
-Approved for future planning only.
+## Deferred Work
+- Time-aware procurement analytics
+- Production ERP integration and write-back
+- Live supplier-master, market-data, treasury, contract or workflow integrations
+- External AI-provider integration without explicit security and architecture approval
+- Autonomous supplier-award decisions
 
-Reference:
+Classification: DEFERRED.
 
-- `docs/FUTURE_TIME_AWARE_ANALYTICS.md`
+## Proposed Next Controlled Build — Pending Owner Approval
+**Recovery Build R1 — Verify and close the v1.0.1 maintenance baseline.**
 
-Planned capabilities include:
-
-- Date-range selection
-- All Available Data mode
-- Period-over-period analysis
-- Quarter-over-quarter and year-over-year comparison
-- Rolling 3-month and 12-month trends
-- Reporting-period metadata and incomplete-period controls
-
-## Next Milestone
-
-Preserve Version 1.0.0 as stable. Do not begin Version 1.1 implementation without explicit approval.
+No subsequent build is authorized until the owner explicitly approves it. No feature implementation may begin until exact branch baselines, full regression and deployment evidence are recorded.

@@ -1,97 +1,98 @@
 # Project Build Plan
 
-## Project Objective
+## Product Objective
+Deliver an auditable, human-controlled procurement decision-support application that improves supplier comparison, should-cost, TCO, risk, scenario, negotiation and executive decision quality without representing automated recommendations as supplier-award approval.
 
-Build an interview-ready AI Procurement Copilot that demonstrates procurement transformation, packaging sourcing expertise, AI-ready architecture, RFQ analytics, should-cost modeling, TCO evaluation, risk scoring, ESG assessment, supplier allocation, negotiation planning, and executive recommendation generation.
+## Release Roadmap
+| Release | Objective | Classification | Evidence / approval state |
+|---|---|---|---|
+| Portfolio Edition v1.0.0 | Stable interview-ready procurement decision support | VERIFIED COMPLETE | Released and frozen |
+| Maintenance v1.0.1 | Correct documented currency/display defects without adding features | IMPLEMENTED BUT UNTESTED | Validation and reconciliation required |
+| Version 1.1 Sprint 1 | Safe ERP workbook intake, mapping and validation foundation | VERIFIED PARTIAL | Baseline and acceptance reconciliation required |
+| Version 1.1 later sprints | Normalization, analysis handoff, reporting and governed UI | DEFERRED | Pending baseline and owner approval |
 
-## Primary Goal
+## Build Phases
+### Phase 0 — Recovery and Baseline Control
+- Reconcile branch history, tests, deployment and documentation.
+- Acceptance: exact branch SHAs recorded; full tests and smoke checks evidenced; discrepancies classified.
+- Approval gate: project owner accepts the development baseline and explicitly authorizes the next build.
 
-Create a strong GitHub portfolio project for procurement, sourcing, category management, packaging procurement, procurement transformation, and AI-enabled business roles.
+### Phase 1 — v1.0.1 Maintenance Closure
+Work packages:
+1. Reconcile maintenance branch with portability documentation on main.
+2. Run full regression and Streamlit smoke tests.
+3. Validate USD, INR and Both modes across dashboards, Supplier Intelligence and exports.
+4. Validate supplier selector and per-supplier views.
+5. Update release and validation records.
 
-## Secondary Goal
+Acceptance criteria:
+- No new features.
+- Full regression passes.
+- Selected currency is correct in labels, calculations and exported business-facing fields.
+- Canonical audit currency fields remain unchanged.
+- Supplier selector works for every available supplier profile.
+- Deployment smoke test passes.
 
-Create a reusable procurement decision platform architecture that can expand to raw materials and other procurement categories.
+### Phase 2 — Version 1.1 Sprint 1 Recovery
+Work packages:
+1. Rebase or reconstruct from an approved v1.0.1 baseline.
+2. Preserve verified ERP schema registry, mapping profiles, workbook loader and structural validator.
+3. Complete missing upload orchestration, validation reporting and UI only if separately authorized.
+4. Mark checklist items only after evidence exists.
 
-## Build Strategy
+Dependencies:
+- Approved v1.0.1 baseline.
+- Canonical ERP workbook specification.
+- Security rules for workbook handling.
+- Test fixtures and acceptance matrix.
 
-Build as a modular product, not a one-off Streamlit script.
+Acceptance criteria:
+- Safe `.xlsx` intake with explicit rejection rules.
+- Required sheets and headers validated.
+- Mapping coverage shown and source headers preserved.
+- No formulas or macros executed.
+- No scoring, TCO, Supplier 360 or recommendation initiated from unapproved ERP data.
+- Existing v1.0 workflows remain green.
 
-## Version Strategy
+## Test Gates
+1. Static import/compile gate.
+2. Focused unit tests for changed modules.
+3. Complete `python -m pytest` regression gate.
+4. Streamlit startup smoke gate.
+5. Currency and supplier-selector functional gate.
+6. ERP adversarial workbook gate where applicable.
+7. Direct export inspection for readable and machine-readable outputs.
 
-- v1.0: Packaging Procurement Engine
-- v1.1: Raw Material Procurement Engine
-- v2.0: Multi-category Procurement Platform
+## Approval Gates
+- Owner approval before starting the proposed next controlled build.
+- Scope approval before branch creation or reconciliation work.
+- Architecture approval before schema or business-rule changes.
+- Test evidence approval before merge.
+- Manual procurement acceptance before release.
+- Deployment approval before stable release tagging.
 
-## Sprint Plan
+## Excluded Scope
+Classification: OUT OF SCOPE for Recovery Build R1 unless separately authorized.
 
-### Sprint 1 — Foundation
+- Autonomous supplier award.
+- Production ERP write-back.
+- Live supplier-master or contract-system integration.
+- External AI-provider dependency without explicit architecture and security approval.
+- Unnecessary analytics or UI features outside authorized acceptance criteria.
+- Version 1.1 feature implementation during recovery governance closure.
 
-- Repository structure
-- Documentation
-- Recovery system
-- Build standards
-- Initial app skeleton
+## Estimated Effort
+| Work package | Estimate |
+|---|---:|
+| Recovery evidence completion and exact SHA capture | 2–4 hours |
+| v1.0.1 branch reconciliation | 2–4 hours |
+| Full regression, smoke and manual defect validation | 3–6 hours |
+| Documentation and release-control closure | 2–3 hours |
+| Version 1.1 branch reconstruction/rebase assessment | 3–5 hours |
 
-### Sprint 2 — Streamlit Framework
+## Proposed Next Controlled Build — Pending Owner Approval
+**Recovery Build R1 — Baseline Verification and v1.0.1 Maintenance Closure.**
 
-- App shell
-- Navigation
-- Sidebar controls
-- Data loading
-- Basic demo scenario
+Approval state: pending explicit project-owner approval.
 
-### Sprint 3 — Packaging Procurement Engine
-
-- Packaging should-cost model
-- RFQ supplier comparison
-- TCO model
-- Risk model
-- ESG scorecard
-- Supplier performance scorecard
-
-### Sprint 4 — Decision Intelligence
-
-- Supplier scoring
-- Lowest-price vs best-value logic
-- What-if simulation
-- Scenario stress testing
-- Allocation recommendation
-
-### Sprint 5 — Executive Outputs
-
-- Negotiation simulator
-- Negotiation playbook
-- Executive sourcing memo
-- Supplier clarification email
-- AI explainability panel
-- Interview talking points
-
-### Sprint 6 — Portfolio Packaging
-
-- README polish
-- Screenshots
-- User guide
-- Interview guide
-- Resume bullets
-- Release notes
-
-### Sprint 7 — Future v1.1 Raw Materials
-
-- Commodity index engine
-- Raw material should-cost
-- Indexation rules
-- Commodity volatility risk
-
-## Estimated Build Time
-
-- v1.0 Packaging: 30–40 hours
-- v1.1 Raw Materials: additional 8–12 hours
-- Total platform: 38–50 hours
-
-## Build Rules
-
-- Commit every meaningful milestone.
-- Update status, changelog, and build history after each milestone.
-- Keep decision logic transparent and auditable.
-- Do not add black-box award logic.
-- Keep app runnable after each completed build milestone.
+No Version 1.1 feature implementation is authorized. The proposed build must first establish an approved, tested maintenance baseline and record exact branch HEADs.
