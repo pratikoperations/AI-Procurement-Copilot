@@ -36,7 +36,7 @@ from modules.scoring import enrich_supplier_scores
 from modules.sidebar import render_sidebar
 from modules.strategy_engine import recommend_strategy
 from modules.supplier_comparison import build_supplier_intelligence
-from modules.supplier_intelligence_ui import render_supplier_intelligence
+from modules.supplier_intelligence_currency_ui import render_supplier_intelligence
 from modules.validation import validate_rfq_dataframe, validate_scored_output
 from modules.validation_assurance import run_validation_assurance, safe_executive_text
 
@@ -273,7 +273,11 @@ with tabs[3]:
 with tabs[4]:
     if eligibility["status"] != "Eligible":
         st.warning(f"Supplier Intelligence is analytical and provisional. Eligibility status: {eligibility['status']}.")
-    render_supplier_intelligence(supplier_intelligence)
+    render_supplier_intelligence(
+        supplier_intelligence,
+        display_currency=display_currency,
+        fx_rate=fx_rate,
+    )
 
 with tabs[5]:
     st.header("Executive Sourcing Memo")
