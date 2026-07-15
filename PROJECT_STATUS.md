@@ -18,11 +18,15 @@
 `docs/project-recovery-2026-07-15`
 
 ## Relevant Development Lines
-- `maintenance/v1.0.1`: defect-maintenance line; 10 commits ahead and 2 behind main at recovery comparison; full regression not independently verified.
-- `v1.1-development`: ERP Sprint 1 development line; 27 commits ahead and 2 behind main at recovery comparison; verified partial implementation.
+- `maintenance/v1.0.1`: defect-maintenance line; 10 commits ahead and 2 behind main at recovery comparison; classification: IMPLEMENTED BUT UNTESTED.
+- `v1.1-development`: ERP Sprint 1 development line; 27 commits ahead and 2 behind main at recovery comparison; classification: VERIFIED PARTIAL.
+
+Exact current HEAD SHAs for both non-main lines remain unresolved and must not be inferred from merge SHAs or merge-base SHAs.
 
 ## Verified Completed Scope
 ### Portfolio Edition v1.0.0
+Classification: VERIFIED COMPLETE
+
 - Packaging Procurement
 - Raw Material Procurement
 - Category-aware should-cost and TCO
@@ -41,6 +45,8 @@
 
 ## Verified Partial Scope
 ### Version 1.1 ERP Foundation
+Classification: VERIFIED PARTIAL
+
 - Canonical schema registry
 - SAP, Oracle and custom mapping profiles
 - Workbook loader
@@ -51,31 +57,35 @@
 
 These items exist in code or test assets but are not accepted as Sprint 1 complete until the full suite and acceptance checklist are reconciled.
 
-## Current Defects and Risks
-1. **INR display/calculation consistency**
-   - Main: reported defect remains outside the stable baseline.
-   - Maintenance branch: corrective implementation and focused tests exist through PRs #5–#7.
-   - Status: IMPLEMENTED BUT UNTESTED at recovery level.
-2. **Supplier selector**
-   - Main code contains a Supplier 360 `st.selectbox` and matching profile selection.
-   - Status: VERIFIED COMPLETE in code; current live runtime still requires smoke validation.
-3. **Branch divergence**
+## Current Defects, Claims and Risks
+1. **INR display/calculation consistency on main**
+   - Classification: DEFECT / REGRESSION.
+   - Maintenance PRs #5–#7 show that corrective work was required.
+2. **INR corrective implementation on maintenance/v1.0.1**
+   - Classification: IMPLEMENTED BUT UNTESTED.
+   - Corrective code and focused tests exist; full regression and live validation remain pending.
+3. **Claim that Supplier Intelligence lacks a supplier selector**
+   - Classification: REPORTED BUT NOT FOUND.
+   - Main code already contains the selector and matching profile-selection path.
+4. **Supplier-selector capability on main**
+   - Classification: VERIFIED COMPLETE.
+   - Runtime validation across every supplier remains a pending validation action, not a second classification.
+5. **Branch divergence**
    - Maintenance and v1.1 lines branch from the v1.0.0 acceptance commit and are behind later portability documentation on main.
-4. **Version 1.1 status inconsistency**
+6. **Version 1.1 status inconsistency**
    - Main documentation says v1.1 is future-only, while a partial implementation branch exists.
-5. **Unsupported test claim**
-   - The reported `147 passed, 0 failed, 1 warning` result was not found in repository evidence.
+7. **Unsupported test claim**
+   - The reported `147 passed, 0 failed, 1 warning` result is classified REPORTED BUT NOT FOUND.
 
-## Latest Verified Test Result
-- Historical v1.0.0 records document green CI, full regression, Streamlit smoke testing and manual acceptance.
-- Current recovery did not independently execute the complete suite.
-- GitHub combined status for main SHA returned no status records through the connector.
-- PRs #5–#7 state that focused tests were added but not executed by the GitHub plugin.
+## Test Status
+- Historical v1.0.0 green CI, full regression, Streamlit smoke testing and manual acceptance: DOCUMENTED ONLY.
+- Current complete-suite execution during recovery: NOT STARTED.
+- PRs #5–#7 contain focused tests, but recovery-level execution remains pending.
 
 ## Deployment Status
-- Streamlit deployment architecture and historical smoke acceptance are documented.
-- Current hosted runtime health and deployment URL were not independently verified during recovery.
-- Classification: IMPLEMENTED BUT UNTESTED for current-state recovery purposes.
+- Historical Streamlit deployment architecture and smoke acceptance: DOCUMENTED ONLY.
+- Current hosted Streamlit deployment-health claim: REPORTED BUT NOT FOUND.
+- Current hosted URL and runtime health were not independently observed during recovery.
 
 ## Pending Work
 1. Capture exact current HEAD SHAs for maintenance and v1.1 branches.
@@ -95,7 +105,9 @@ These items exist in code or test assets but are not accepted as Sprint 1 comple
 - External AI-provider integration without explicit security and architecture approval
 - Autonomous supplier-award decisions
 
-## Next Milestone
+Classification: DEFERRED.
+
+## Proposed Next Milestone — Pending Owner Approval
 **Recovery Build R1 — Verify and close the v1.0.1 maintenance baseline.**
 
-No feature implementation is authorized until exact branch baselines, full regression and deployment evidence are recorded.
+No subsequent build is authorized until the owner explicitly approves it. No feature implementation may begin until exact branch baselines, full regression and deployment evidence are recorded.
