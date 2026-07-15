@@ -11,36 +11,44 @@
 
 ## DEC-R1-001 — Exact Branch Baselines
 - Date: 2026-07-15
-- Decision: Record direct branch HEADs for maintenance and v1.1.
-- Main start: `075fe16d889cdb82b126fe1e07b0c63dca369580`
+- Main: `075fe16d889cdb82b126fe1e07b0c63dca369580`
 - Maintenance: `ba49af44d8c1ff36d9d5d612e0909f5698d1d433`
 - v1.1: `0c2281e47ff4e2b4b8153fbde6350d5c9c1a4341`
 - Classification: VERIFIED COMPLETE for baseline capture.
 
 ## DEC-R1-002 — Reconstruct Rather Than Rebase
-- Date: 2026-07-15
 - Decision: Reconstruct the 14 verified maintenance files from current canonical main.
-- Basis: The historical maintenance branch diverged from main and omitted later portability and recovery-governance records.
-- Consequence: Preserve current controls while limiting code/test changes to approved maintenance scope.
+- Basis: Historical maintenance history diverged and omitted later governance records.
 
 ## DEC-R1-003 — Correct Canonical Risk-TCO Source Preservation
-- Date: 2026-07-15
-- Decision: Preserve `Risk-Adjusted TCO (USD)` before removing precomputed display columns, then rebuild selected-currency outputs from a temporary display-only source.
-- Basis: Initial full regression and isolated focused tests exposed the loss of the canonical source.
-- Scope boundary: No FX formula, supplier ranking, threshold, schema, recommendation or award-control change.
-- Classification: VERIFIED COMPLETE after focused and full regression evidence.
+- Decision: Preserve `Risk-Adjusted TCO (USD)` before rebuilding selected-currency outputs.
+- Scope boundary: No FX formula, ranking, threshold, schema, recommendation or award-control change.
+- Classification: VERIFIED COMPLETE.
 
 ## DEC-R1-004 — Executable Candidate Evidence
-- Date: 2026-07-15
 - Environment: Python 3.11.15 with pinned requirements.
 - Result: compile PASS; 162 passed, 0 failed, 0 skipped, 1 warning; Streamlit smoke PASS.
-- Classification: VERIFIED COMPLETE for automated candidate evidence.
+- Classification: VERIFIED COMPLETE.
 
-## DEC-R1-005 — Promotion Recommendation
+## DEC-R1-005 — Standalone Main Baseline Evidence
 - Date: 2026-07-15
+- Decision: Independently execute the exact unchanged main SHA rather than rely only on historical acceptance.
+- Result: compile PASS; 114 passed, 0 failed, 0 skipped, 1 warning; Streamlit smoke PASS.
+- Evidence: workflow run `29403967641`, artifact digest `sha256:7f0463c8f7baa3c863925de3d7c42afc921fc954f90cafb9b71c50c47878f8d4`.
+- Classification: VERIFIED COMPLETE.
+
+## DEC-R1-006 — Hosted Acceptance Boundary
+- Authoritative hosted Streamlit URL: REPORTED BUT NOT FOUND.
+- Hosted runtime health: REPORTED BUT NOT FOUND.
+- Supplier-by-supplier hosted acceptance: NOT STARTED.
+- Hosted USD/INR/Both visual acceptance: NOT STARTED.
+- Decision: Do not infer hosted health from CI smoke evidence.
+
+## DEC-R1-007 — Promotion Recommendation
 - Decision: **CHANGES REQUIRED** before v1.0.1 promotion.
-- Required closure:
-  1. verify authoritative hosted URL and current runtime health;
-  2. manually exercise every supplier selector option and matching Supplier 360 profile;
-  3. confirm final PR has no workflow diff and canonical CI is green.
+- Remaining closure:
+  1. obtain and directly validate the authoritative hosted URL;
+  2. exercise all packaging and raw-material supplier options;
+  3. validate USD, INR and Both modes in the hosted interface.
+- Final PR workflow diff must remain absent.
 - Version 1.1 implementation remains OUT OF SCOPE.
