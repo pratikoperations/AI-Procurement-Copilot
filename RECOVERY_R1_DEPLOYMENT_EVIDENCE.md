@@ -8,19 +8,24 @@ Date: 2026-07-15
 - Command: `bash scripts/streamlit_smoke_test.sh`
 - Classification: VERIFIED COMPLETE
 
-## Hosted Runtime Search
-Repository searches for `streamlit.app`, hosted URL references and deployment URL language returned no authoritative hosted Streamlit URL.
+## Authoritative Hosted Candidate
+- URL: `https://ai-procurement-copilot-pr9.streamlit.app/`
+- Repository: `ai-procurement-copilot`
+- Branch: `recovery/r1-v1.0.1-baseline-verification`
+- Main module: `app.py`
+- Python: 3.11.15
+- Streamlit: 1.59.1
+- Dependency installation: PASS
+- Server startup: PASS (`Uvicorn server started on :::8501`)
 
-No URL was inferred or invented.
+## Hosted Acceptance
+The project owner opened the hosted candidate and confirmed the application, all six supplier views, and USD/INR/Both modes looked correct. This is owner-observed manual acceptance and is recorded separately from CI smoke evidence.
 
-## Hosted Runtime Result
-- Authoritative hosted URL: REPORTED BUT NOT FOUND
-- Current hosted deployment-health claim: REPORTED BUT NOT FOUND
-- Hosted application response/startup/fatal-error validation: NOT STARTED
-- Hosted USD mode validation: NOT STARTED
-- Hosted INR mode validation: NOT STARTED
-- Hosted Both mode validation: NOT STARTED
+- Hosted application response/startup: VERIFIED COMPLETE
+- Fatal-error inspection: VERIFIED COMPLETE
+- Hosted USD mode: VERIFIED COMPLETE
+- Hosted INR mode: VERIFIED COMPLETE
+- Hosted Both mode: VERIFIED COMPLETE
+- Current hosted deployment health: VERIFIED COMPLETE
 
-Historical Streamlit architecture and acceptance remain DOCUMENTED ONLY.
-
-The successful CI smoke tests prove repository startup under the tested environment; they do not prove that any public hosted deployment is currently healthy.
+Historical deployment acceptance remains DOCUMENTED ONLY; the result above applies specifically to the Recovery R1 candidate URL and branch.
