@@ -1,5 +1,7 @@
 """Executive-readable Streamlit UI for Supplier Intelligence Platform."""
 
+import re
+
 import pandas as pd
 import streamlit as st
 
@@ -59,6 +61,39 @@ def _readable_comparison(comparison):
         "ESG Score": "ESG Maturity Score",
         "Innovation Score": "Innovation Maturity Score",
     })
+
+
+def _valid_supplier_profiles(profiles):
+    """Return unique named profiles in original order and list data-quality warnings."""
+    unique = {}
+    warnings = []
+    for index, profile in enumerate(profiles or []):
+        if not isinstance(profile, dict):
+            warnings.append(f"Supplier profile {index + 1} is invalid and was ignored.")
+            continue
+        name = str(profile.get("supplier_name", "")).strip()
+        if not name:
+            warnings.append(f"Supplier profile {index + 1} has no supplier name and was ignored.")
+            continue
+        if name in unique:
+            warnings.append(f"Duplicate supplier profile '{name}' was ignored; the first profile is displayed.")
+            continue
+        unique[name] = profile
+    return unique, warnings
+
+
+def _resolve_supplier_profile(profiles, selected):
+    """Resolve a selected supplier deterministically from cleaned profiles."""
+    profile_map, warnings = _valid_supplier_profiles(profiles)
+    if selected not in profile_map:
+        raise KeyError(f"Supplier profile not found: {selected}")
+    return profile_map[selected], warnings
+
+
+def _supplier_report_filename(supplier_name):
+    """Create a safe, deterministic filename for a selected supplier report."""
+    stem = re.sub(r"[^a-z0-9]+", "_", str(supplier_name or "supplier").strip().lower()).strip("_")
+    return f"{stem or 'supplier'}_supplier360_report.txt"
 
 
 def _render_performance(performance):
@@ -168,17 +203,26 @@ def _render_srm(srm):
 
 def render_supplier_intelligence(intelligence):
     st.header("Supplier Intelligence")
-    comparison = _readable_comparison(intelligence["comparison_df"])
-    profiles = intelligence["profiles"]
-    recommendations = _readable_recommendations(intelligence["recommendations"])
+    comparison = _readable_comparison(intelligence.get("comparison_df", pd.DataFrame()))
+    profiles = intelligence.get("profiles", [])
+    recommendations = _readable_recommendations(intelligence.get("recommendations", []))
+
+    profile_map, profile_warnings = _valid_supplier_profiles(profiles)
+    for warning in profile_warnings:
+        st.warning(warning)
+    if not profile_map:
+        st.info("No supplier profiles are available for the selected data.")
+        return
+
+    supplier_names = list(profile_map)
+    selected = st.selectbox("Select Supplier 360 Profile", supplier_names, index=0)
+    profile = profile_map[selected]
+    st.subheader(f"Viewing Supplier 360 Profile: {selected}")
 
     render_comparison_matrix(comparison, "Executive supplier comparison")
     if not recommendations.empty:
         render_comparison_matrix(recommendations, "Recommendation rankings")
 
-    supplier_names = [profile["supplier_name"] for profile in profiles]
-    selected = st.selectbox("Select Supplier 360 Profile", supplier_names, index=0)
-    profile = next(item for item in profiles if item["supplier_name"] == selected)
     performance = profile.get("performance", {})
     financial = profile.get("financial", {})
     esg = profile.get("esg", {})
@@ -222,13 +266,18 @@ def render_supplier_intelligence(intelligence):
         render_risk_alert("Defaulted or unavailable fields", format_display_value([humanize_label(item) for item in profile.get("defaults_used", [])]))
 
     tabs = st.tabs(["Performance", "Financial", "ESG", "Innovation", "SRM"])
-    with tabs[0]: _render_performance(performance)
-    with tabs[1]: _render_financial(financial)
-    with tabs[2]: _render_esg(esg)
-    with tabs[3]: _render_innovation(innovation)
-    with tabs[4]: _render_srm(srm)
+    with tabs[0]:
+        _render_performance(performance)
+    with tabs[1]:
+        _render_financial(financial)
+    with tabs[2]:
+        _render_esg(esg)
+    with tabs[3]:
+        _render_innovation(innovation)
+    with tabs[4]:
+        _render_srm(srm)
 
-    render_executive_summary_card("Executive supplier narrative", intelligence["executive_narrative"])
+    render_executive_summary_card("Portfolio-level supplier narrative", intelligence.get("executive_narrative", "No portfolio narrative generated."))
     readable_report = build_readable_supplier_report(profile)
-    st.download_button("Download Supplier 360 Readable Report", readable_report.encode("utf-8"), f"{selected.replace(' ', '_').lower()}_supplier360_report.txt", "text/plain")
+    st.download_button("Download Supplier 360 Readable Report", readable_report.encode("utf-8"), _supplier_report_filename(selected), "text/plain")
     render_governance_note("Transparent, rule-guided, auditable, and not black-box AI. Human approval remains mandatory.")
