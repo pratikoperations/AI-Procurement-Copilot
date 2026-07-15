@@ -22,3 +22,13 @@ def test_app_docstring_and_display_use_v1_0_1():
         "Version 1.0.1 - Stable Maintenance Release" in item.value
         for item in app.success
     )
+
+
+def test_primary_user_facing_release_documents_are_v1_0_1():
+    readme = Path("README.md").read_text(encoding="utf-8")
+    manifest = Path("VERSION_MANIFEST.md").read_text(encoding="utf-8")
+
+    assert "**Release:** Portfolio Edition v1.0.1" in readme
+    assert "Portfolio Edition v1.0.1 is the stable maintenance release" in readme
+    assert "Portfolio Edition v1.0.1" in manifest
+    assert "v1.0.1 is frozen as the stable maintenance release" in manifest
