@@ -13,8 +13,10 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}
 
     steps:
-      - name: Check out repository
+      - name: Check out canonical main baseline
         uses: actions/checkout@v4
+        with:
+          ref: 075fe16d889cdb82b126fe1e07b0c63dca369580
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -26,11 +28,31 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Record environment
+        run: |
+          python --version | tee main-python-version.txt
+          python -m pip --version | tee main-pip-version.txt
+          git rev-parse HEAD | tee main-tested-sha.txt
+
       - name: Compile Python files
-        run: python -m compileall app.py modules tests
+        run: python -m compileall app.py modules tests | tee main-compile.txt
 
       - name: Run regression tests
-        run: python -m pytest
+        run: python -m pytest | tee main-pytest.txt
 
       - name: Run Streamlit smoke test
-        run: bash scripts/streamlit_smoke_test.sh
+        if: always()
+        run: bash scripts/streamlit_smoke_test.sh | tee main-streamlit-smoke.txt
+
+      - name: Upload main baseline evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: recovery-r1-main-baseline-evidence
+          path: |
+            main-python-version.txt
+            main-pip-version.txt
+            main-tested-sha.txt
+            main-compile.txt
+            main-pytest.txt
+            main-streamlit-smoke.txt
