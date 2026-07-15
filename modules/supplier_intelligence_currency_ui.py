@@ -21,6 +21,7 @@ DISPLAY_COLUMNS = {
     "Risk-Adjusted TCO (INR)",
 }
 _QUOTED_PRICE_SOURCE = "__quoted_price_usd_display"
+_RISK_TCO_SOURCE = "__risk_adjusted_tco_usd_display"
 _AUDIT_COLUMNS = [
     "Original Currency",
     "Original Unit Price",
@@ -76,6 +77,9 @@ def build_supplier_intelligence_display_frame(comparison_df, display_currency="U
     except ValueError:
         mode = "USD"
 
+    risk_source = _first_available(original.columns, RISK_TCO_SOURCES)
+    risk_values = original[risk_source].copy() if risk_source else None
+
     source = original.drop(
         columns=[column for column in DISPLAY_COLUMNS if column in original.columns],
         errors="ignore",
@@ -91,9 +95,12 @@ def build_supplier_intelligence_display_frame(comparison_df, display_currency="U
         if quoted_source:
             mapping[quoted_source] = "Quoted Price"
 
-    risk_source = _first_available(source.columns, RISK_TCO_SOURCES)
     if risk_source:
-        mapping[risk_source] = "Risk-Adjusted TCO"
+        if risk_source in source.columns:
+            mapping[risk_source] = "Risk-Adjusted TCO"
+        else:
+            source[_RISK_TCO_SOURCE] = risk_values
+            mapping[_RISK_TCO_SOURCE] = "Risk-Adjusted TCO"
 
     display = build_currency_display_frame(source, mapping, mode, fx_rate) if mapping else source
     return _display_column_order(display, mode)
