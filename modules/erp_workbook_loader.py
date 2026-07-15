@@ -1,7 +1,8 @@
 """Safe structural loader for Version 1.1 ERP `.xlsx` workbooks.
 
-The loader performs file-level checks and extracts sheet metadata only. It does
-not normalize, score, persist, or execute workbook content.
+The loader performs file-level and package-safety checks and extracts sheet
+metadata only. It does not normalize, score, persist, or execute workbook
+content.
 """
 
 from __future__ import annotations
@@ -17,6 +18,14 @@ from openpyxl.utils.exceptions import InvalidFileException
 
 
 DEFAULT_MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024
+_MACRO_SUFFIX = "vbaproject.bin"
+_EXTERNAL_LINK_PREFIX = "xl/externallinks/"
+_QUERY_TABLE_PREFIX = "xl/querytables/"
+_CONNECTION_PARTS = {"xl/connections.xml"}
+_EXTERNAL_DATA_PREFIXES = (
+    "xl/externaldata/",
+    "xl/model/",
+)
 
 
 class WorkbookLoadError(ValueError):
@@ -95,6 +104,33 @@ def _read_source_bytes(source: str | Path | bytes | bytearray | BinaryIO) -> byt
     return bytes(payload)
 
 
+def _validate_package_members(names: set[str], filename: str) -> None:
+    lowered = {name.lower() for name in names}
+
+    if any(name.endswith(_MACRO_SUFFIX) for name in lowered):
+        raise WorkbookLoadError("Macro-enabled workbooks are not permitted.")
+    if any(name.startswith(_EXTERNAL_LINK_PREFIX) for name in lowered):
+        raise WorkbookLoadError(
+            f"Workbook '{filename}' contains external workbook links, which are not permitted."
+        )
+    if lowered.intersection(_CONNECTION_PARTS):
+        raise WorkbookLoadError(
+            f"Workbook '{filename}' contains connection definitions, which are not permitted."
+        )
+    if any(name.startswith(_QUERY_TABLE_PREFIX) for name in lowered):
+        raise WorkbookLoadError(
+            f"Workbook '{filename}' contains query-table definitions, which are not permitted."
+        )
+    if any(
+        name.startswith(prefix)
+        for name in lowered
+        for prefix in _EXTERNAL_DATA_PREFIXES
+    ):
+        raise WorkbookLoadError(
+            f"Workbook '{filename}' contains external-data definitions, which are not permitted."
+        )
+
+
 def _validate_xlsx_container(payload: bytes, filename: str) -> None:
     if not is_zipfile(BytesIO(payload)):
         raise WorkbookLoadError(
@@ -104,14 +140,12 @@ def _validate_xlsx_container(payload: bytes, filename: str) -> None:
     try:
         with ZipFile(BytesIO(payload)) as archive:
             names = set(archive.namelist())
-            lowered = {name.lower() for name in names}
-            if any(name.endswith("vbaproject.bin") for name in lowered):
-                raise WorkbookLoadError("Macro-enabled workbooks are not permitted.")
             required_parts = {"[Content_Types].xml", "xl/workbook.xml"}
             if not required_parts.issubset(names):
                 raise WorkbookLoadError(
                     f"'{filename}' is missing required XLSX package components."
                 )
+            _validate_package_members(names, filename)
     except BadZipFile as exc:
         raise WorkbookLoadError(f"'{filename}' is a corrupt XLSX package.") from exc
 

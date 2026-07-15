@@ -15,6 +15,23 @@ from modules.erp_schema_registry import REQUIRED_SHEETS
 PROFILE_DIR = Path("config/mappings")
 
 
+def _profile_payload():
+    return {
+        "profile_id": "TEST",
+        "profile_version": "1.0",
+        "erp_family": "Custom",
+        "erp_product": "Test",
+        "status": "Draft",
+        "sheet_mappings": {sheet: {} for sheet in REQUIRED_SHEETS},
+    }
+
+
+def _write_profile(tmp_path, filename, payload):
+    path = tmp_path / filename
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return path
+
+
 def test_all_three_default_profiles_load():
     profiles = load_default_mapping_profiles(PROFILE_DIR)
 
@@ -58,6 +75,12 @@ def test_sap_and_oracle_profiles_map_critical_identifiers():
     assert oracle_rfq["ITEM_ID"] == "Material_ID"
 
 
+def test_custom_template_empty_mappings_remain_valid():
+    profile = load_default_mapping_profiles(PROFILE_DIR)["CUSTOM"]
+
+    assert all(profile.mapping_for(sheet) == {} for sheet in REQUIRED_SHEETS)
+
+
 def test_invalid_json_raises_clear_error(tmp_path):
     path = tmp_path / "invalid.json"
     path.write_text('{"profile_id": ', encoding="utf-8")
@@ -67,43 +90,56 @@ def test_invalid_json_raises_clear_error(tmp_path):
 
 
 def test_missing_required_metadata_raises_clear_error(tmp_path):
-    path = tmp_path / "missing_metadata.json"
-    path.write_text(
-        json.dumps(
-            {
-                "profile_id": "TEST",
-                "profile_version": "1.0",
-                "erp_family": "Custom",
-                "erp_product": "Test",
-                "sheet_mappings": {sheet: {} for sheet in REQUIRED_SHEETS},
-            }
-        ),
-        encoding="utf-8",
-    )
+    payload = _profile_payload()
+    del payload["status"]
+    path = _write_profile(tmp_path, "missing_metadata.json", payload)
 
     with pytest.raises(MappingProfileError, match="field 'status'"):
         load_mapping_profile(path)
 
 
 def test_missing_sheet_mapping_raises_clear_error(tmp_path):
-    path = tmp_path / "missing_sheet.json"
-    mappings = {sheet: {} for sheet in REQUIRED_SHEETS if sheet != "Receipts"}
-    path.write_text(
-        json.dumps(
-            {
-                "profile_id": "TEST",
-                "profile_version": "1.0",
-                "erp_family": "Custom",
-                "erp_product": "Test",
-                "status": "Draft",
-                "sheet_mappings": mappings,
-            }
-        ),
-        encoding="utf-8",
-    )
+    payload = _profile_payload()
+    del payload["sheet_mappings"]["Receipts"]
+    path = _write_profile(tmp_path, "missing_sheet.json", payload)
 
     with pytest.raises(MappingProfileError, match="missing required sheet mappings: Receipts"):
         load_mapping_profile(path)
+
+
+def test_invalid_canonical_target_is_rejected_with_context(tmp_path):
+    payload = _profile_payload()
+    payload["sheet_mappings"]["Supplier_Master"] = {
+        "LIFNR": "Supplier_Identifier_Typo"
+    }
+    path = _write_profile(tmp_path, "invalid_target.json", payload)
+
+    with pytest.raises(MappingProfileError) as exc_info:
+        load_mapping_profile(path)
+
+    message = str(exc_info.value)
+    assert str(path) in message
+    assert "Supplier_Master" in message
+    assert "Supplier_Identifier_Typo" in message
+    assert "unsupported canonical target" in message
+
+
+def test_duplicate_canonical_target_is_rejected_with_context(tmp_path):
+    payload = _profile_payload()
+    payload["sheet_mappings"]["Supplier_Master"] = {
+        "LIFNR": "Supplier_ID",
+        "ALT_VENDOR": "Supplier_ID",
+    }
+    path = _write_profile(tmp_path, "duplicate_target.json", payload)
+
+    with pytest.raises(MappingProfileError) as exc_info:
+        load_mapping_profile(path)
+
+    message = str(exc_info.value)
+    assert str(path) in message
+    assert "Supplier_Master" in message
+    assert "Supplier_ID" in message
+    assert "more than once" in message
 
 
 def test_unknown_sheet_lookup_raises_clear_error():

@@ -1,7 +1,8 @@
-"""Load and validate ERP mapping profiles for Version 1.1 Sprint 1.
+"""Load and validate static ERP mapping profiles for Version 1.1.
 
 This module reads static JSON profile definitions only. It does not execute
-transformations, load workbooks, or call Version 1.0 business logic.
+transformations, load workbooks, normalize data, or call Version 1.0 business
+logic.
 """
 
 from __future__ import annotations
@@ -11,7 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
-from modules.erp_schema_registry import REQUIRED_SHEETS
+from modules.erp_schema_registry import REQUIRED_SHEETS, SHEET_SCHEMAS
 
 
 DEFAULT_PROFILE_DIRECTORY = Path("config/mappings")
@@ -28,7 +29,7 @@ class MappingProfileError(ValueError):
 
 @dataclass(frozen=True)
 class MappingProfile:
-    """Validated ERP mapping profile."""
+    """Validated static ERP mapping profile."""
 
     profile_id: str
     profile_version: str
@@ -86,7 +87,10 @@ def _validate_sheet_mappings(
                 f"Mapping for sheet '{sheet_name}' in '{path}' must be an object."
             )
 
+        approved_targets = SHEET_SCHEMAS[sheet_name].known_columns
         validated_mapping: dict[str, str] = {}
+        target_sources: dict[str, str] = {}
+
         for source_column, canonical_column in mapping.items():
             if not isinstance(source_column, str) or not source_column.strip():
                 raise MappingProfileError(
@@ -97,7 +101,26 @@ def _validate_sheet_mappings(
                     f"Sheet '{sheet_name}' in '{path}' maps '{source_column}' "
                     "to an invalid canonical column name."
                 )
-            validated_mapping[source_column.strip()] = canonical_column.strip()
+
+            source = source_column.strip()
+            target = canonical_column.strip()
+
+            if target not in approved_targets:
+                raise MappingProfileError(
+                    f"Mapping profile '{path}' sheet '{sheet_name}' contains unsupported "
+                    f"canonical target '{target}'."
+                )
+
+            previous_source = target_sources.get(target)
+            if previous_source is not None:
+                raise MappingProfileError(
+                    f"Mapping profile '{path}' sheet '{sheet_name}' maps canonical target "
+                    f"'{target}' more than once from source columns "
+                    f"'{previous_source}' and '{source}'."
+                )
+
+            validated_mapping[source] = target
+            target_sources[target] = source
 
         validated[sheet_name] = validated_mapping
 
@@ -149,7 +172,7 @@ def load_mapping_profile(path: str | Path) -> MappingProfile:
 def load_default_mapping_profiles(
     profile_directory: str | Path = DEFAULT_PROFILE_DIRECTORY,
 ) -> dict[str, MappingProfile]:
-    """Load the three approved Sprint 1 profile files."""
+    """Load the three repository-controlled draft profile files."""
 
     directory = Path(profile_directory)
     return {
