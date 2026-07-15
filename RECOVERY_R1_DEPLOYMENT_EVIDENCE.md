@@ -2,16 +2,25 @@
 
 Date: 2026-07-15
 
-## Local/CI runtime
-- Streamlit startup smoke command: `bash scripts/streamlit_smoke_test.sh`
-- Result on reconstructed candidate: PASS
+## CI Runtime
+- Candidate Streamlit smoke: PASS
+- Exact main SHA Streamlit smoke: PASS
+- Command: `bash scripts/streamlit_smoke_test.sh`
 - Classification: VERIFIED COMPLETE
 
-## Hosted runtime
-Repository search did not locate an authoritative hosted Streamlit URL. The connected environment therefore could not independently open and validate the current hosted application.
+## Hosted Runtime Search
+Repository searches for `streamlit.app`, hosted URL references and deployment URL language returned no authoritative hosted Streamlit URL.
 
-- Historical Streamlit architecture and acceptance: DOCUMENTED ONLY
+No URL was inferred or invented.
+
+## Hosted Runtime Result
+- Authoritative hosted URL: REPORTED BUT NOT FOUND
 - Current hosted deployment-health claim: REPORTED BUT NOT FOUND
-- Hosted browser-level validation: NOT STARTED
+- Hosted application response/startup/fatal-error validation: NOT STARTED
+- Hosted USD mode validation: NOT STARTED
+- Hosted INR mode validation: NOT STARTED
+- Hosted Both mode validation: NOT STARTED
 
-The successful CI smoke test must not be represented as proof that a hosted URL is currently healthy.
+Historical Streamlit architecture and acceptance remain DOCUMENTED ONLY.
+
+The successful CI smoke tests prove repository startup under the tested environment; they do not prove that any public hosted deployment is currently healthy.
