@@ -22,8 +22,8 @@ from modules.executive_outputs import (
 )
 from modules.exports import (
     build_decision_package_json, build_excel_workbook,
-    build_readable_supplier_comparison, build_readable_supplier_scores,
-    dataframe_to_csv_bytes, text_to_bytes,
+    build_readable_allocation, build_readable_supplier_comparison,
+    build_readable_supplier_scores, dataframe_to_csv_bytes, text_to_bytes,
 )
 from modules.negotiation import generate_negotiation_playbook, govern_negotiation_brief, simulate_negotiation
 from modules.negotiation_engine import build_negotiation_intelligence
@@ -36,7 +36,7 @@ from modules.scoring import enrich_supplier_scores
 from modules.sidebar import render_sidebar
 from modules.strategy_engine import recommend_strategy
 from modules.supplier_comparison import build_supplier_intelligence
-from modules.supplier_intelligence_ui import render_supplier_intelligence
+from modules.supplier_intelligence_currency_ui import render_supplier_intelligence
 from modules.validation import validate_rfq_dataframe, validate_scored_output
 from modules.validation_assurance import run_validation_assurance, safe_executive_text
 
@@ -45,6 +45,7 @@ st.set_page_config(page_title=APP_NAME, page_icon="🤖", layout="wide", initial
 assumptions = render_sidebar()
 profile = ensure_category_profile(assumptions.get("category_profile"))
 assumptions["category_profile"] = profile
+assumptions.setdefault("annual_volume_unit", profile.get("unit", "unit"))
 
 st.title(APP_NAME)
 st.subheader(EDITION)
@@ -158,7 +159,7 @@ supplier_narrative = safe_executive_text(
     eligibility, supplier_intelligence["executive_narrative"], supplier_intelligence["executive_narrative"]
 )
 supplier_intelligence["executive_narrative"] = supplier_narrative
-unit = str(recommended.get("Unit of Measure", recommended.get("Unit", "piece")))
+unit = assumptions["annual_volume_unit"]
 supplier_email = generate_supplier_email(
     recommended,
     should_cost["target_unit_cost_usd"],
@@ -170,9 +171,30 @@ supplier_email = generate_supplier_email(
 )
 explainability_text = generate_explainability_panel(recommended)
 interview_talking_points = generate_interview_talking_points()
-readable_scores = build_readable_supplier_scores(scored_df, data_confidence, eligibility)
-readable_comparison = build_readable_supplier_comparison(supplier_intelligence["comparison_df"], data_confidence, eligibility)
-excel_package = build_excel_workbook(scored_df, should_cost_df, allocation_df, scenario_df, readable_scores, readable_comparison)
+display_currency = assumptions["display_currency"]
+fx_rate = assumptions["fx_rate"]
+volume = assumptions["annual_volume"]
+volume_unit = assumptions["annual_volume_unit"]
+readable_scores = build_readable_supplier_scores(
+    scored_df, data_confidence, eligibility,
+    display_currency=display_currency, fx_rate=fx_rate,
+    annual_volume=volume, annual_volume_unit=volume_unit,
+)
+readable_comparison = build_readable_supplier_comparison(
+    supplier_intelligence["comparison_df"], data_confidence, eligibility,
+    display_currency=display_currency, fx_rate=fx_rate,
+    annual_volume=volume, annual_volume_unit=volume_unit,
+)
+readable_allocation = build_readable_allocation(
+    allocation_df, display_currency, fx_rate,
+    annual_volume=volume, annual_volume_unit=volume_unit,
+)
+excel_package = build_excel_workbook(
+    scored_df, should_cost_df, allocation_df, scenario_df,
+    readable_scores, readable_comparison,
+    display_currency=display_currency, fx_rate=fx_rate,
+    annual_volume=volume, annual_volume_unit=volume_unit,
+)
 json_package = build_decision_package_json(recommended, value_metrics, allocation_df, scenario_df, negotiation_result, eligibility)
 supplier_profiles_json = json.dumps(supplier_intelligence["profiles"], indent=2, default=str).encode("utf-8")
 
@@ -220,7 +242,7 @@ with tabs[0]:
         st.error(f"Final award recommendation withheld: {eligibility['reason']}")
         for issue in eligibility["failed_checks"]:
             st.write(f"- {issue}")
-    render_supplier_snapshot(scored_df)
+    render_supplier_snapshot(scored_df, assumptions)
 
 with tabs[1]:
     st.subheader(f"{assumptions['category']} — {assumptions['commodity']}")
@@ -235,7 +257,7 @@ with tabs[1]:
 with tabs[2]:
     render_allocation(allocation_df, assumptions)
     render_scenario_table(scenario_df, assumptions)
-    render_negotiation(playbook_text, negotiation_result)
+    render_negotiation(playbook_text, negotiation_result, assumptions)
 
 with tabs[3]:
     if eligibility["recommendation_allowed"]:
@@ -251,7 +273,11 @@ with tabs[3]:
 with tabs[4]:
     if eligibility["status"] != "Eligible":
         st.warning(f"Supplier Intelligence is analytical and provisional. Eligibility status: {eligibility['status']}.")
-    render_supplier_intelligence(supplier_intelligence)
+    render_supplier_intelligence(
+        supplier_intelligence,
+        display_currency=display_currency,
+        fx_rate=fx_rate,
+    )
 
 with tabs[5]:
     st.header("Executive Sourcing Memo")
@@ -270,7 +296,7 @@ with tabs[6]:
     c3.download_button("Download Supplier Email", text_to_bytes(supplier_email), "supplier_clarification_email.txt", "text/plain")
     c4, c5, c6 = st.columns(3)
     c4.download_button("Download Supplier Scores Report", dataframe_to_csv_bytes(readable_scores), "supplier_scores_report.csv", "text/csv")
-    c5.download_button("Download Allocation Report", dataframe_to_csv_bytes(allocation_df), "supplier_allocation_report.csv", "text/csv")
+    c5.download_button("Download Allocation Report", dataframe_to_csv_bytes(readable_allocation), "supplier_allocation_report.csv", "text/csv")
     c6.download_button("Decision Machine-Readable Audit Data", json_package, "procurement_decision_audit.json", "application/json")
     c7, c8, c9 = st.columns(3)
     c7.download_button("Download Supplier Comparison Report", dataframe_to_csv_bytes(readable_comparison), "supplier_comparison_report.csv", "text/csv")

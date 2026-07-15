@@ -1,6 +1,7 @@
 """Executive memo, supplier email, explainability, and interview output generators."""
 
 from modules.recommendation import award_status
+from modules.unit_display import display_unit
 
 
 def _eligibility_heading(status):
@@ -77,6 +78,7 @@ def generate_supplier_email(recommended_supplier, should_cost_target, annual_vol
     status = eligibility.get("status", "Eligible")
     supplier = recommended_supplier["Supplier"]
     price = recommended_supplier["Quoted Unit Price USD"]
+    unit_text = display_unit(unit, annual_volume)
 
     if status == "Blocked":
         opening = "The current evaluation is paused because a blocking validation issue must be resolved before supplier comparison or award consideration can continue."
@@ -125,7 +127,7 @@ Thank you for submitting your proposal.
 Current validation status: {status}
 Validation note: {issue_text}
 
-Our current normalized comparison indicates a should-cost reference near ${should_cost_target:.4f} per {unit}, while your normalized quoted price is ${price:.4f} per {unit}. The annual requirement is {annual_volume:,.0f} {unit}.
+Our current normalized comparison indicates a should-cost reference near ${should_cost_target:.4f} per {unit_text}, while your normalized quoted price is ${price:.4f} per {unit_text}. The annual requirement is {annual_volume:,.0f} {unit_text}.
 
 Please clarify the following:
 {numbered}

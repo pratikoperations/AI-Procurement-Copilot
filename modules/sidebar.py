@@ -4,12 +4,14 @@ import streamlit as st
 
 from modules.category_engine import ensure_category_profile, get_category_profile
 from modules.config import DEFAULT_FX_RATE, FUTURE_CATEGORIES, SUPPORTED_CATEGORIES
+from modules.unit_display import annual_volume_label, canonical_unit, quantity_basis_caption
 
 
 def build_sidebar_result(**values):
     """Build the governed sidebar return contract with a guaranteed category profile."""
     result = dict(values)
     result["category_profile"] = ensure_category_profile(result.get("category_profile"))
+    result.setdefault("annual_volume_unit", canonical_unit(result["category_profile"].get("unit", "unit")))
     return result
 
 
@@ -55,7 +57,14 @@ def render_sidebar():
 
     st.sidebar.markdown("---")
     st.sidebar.subheader("Scenario Assumptions")
-    annual_volume = st.sidebar.number_input("Annual Volume", min_value=1000, value=500000, step=10000)
+    annual_volume_unit = canonical_unit(category_profile.get("unit", "unit"))
+    annual_volume = st.sidebar.number_input(
+        annual_volume_label(annual_volume_unit),
+        min_value=1000,
+        value=500000,
+        step=10000,
+    )
+    st.sidebar.caption(quantity_basis_caption(annual_volume, annual_volume_unit))
     raw_material_shock = st.sidebar.slider("Raw Material Shock %", -20, 40, 0) / 100
     freight_shock = st.sidebar.slider("Freight Shock %", -20, 80, 0) / 100
     demand_change = st.sidebar.slider("Demand Change %", -50, 50, 0) / 100
@@ -75,6 +84,7 @@ def render_sidebar():
         fx_rate=fx_rate,
         display_currency=display_currency,
         annual_volume=annual_volume,
+        annual_volume_unit=annual_volume_unit,
         raw_material_shock=raw_material_shock,
         freight_shock=freight_shock,
         demand_change=demand_change,
