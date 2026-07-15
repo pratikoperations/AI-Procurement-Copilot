@@ -1,0 +1,18 @@
+# Project Activity Log
+
+This log records evidence recovered from Git history and the 2026-07-15 forensic reconciliation. It does not convert undocumented claims into completed work.
+
+| Date | Branch | Commit / PR | Activity | Files changed | Tests performed | Result | Decision | Remaining action |
+|---|---|---|---|---|---|---|---|---|
+| 2026-07-11 | main | `d4faca6ab86376ecd7a39587a1e443ece3f943b9` | Finalized v1.0.0 manual validation acceptance | Release and validation records | Historical full regression, Streamlit and manual acceptance documented | Portfolio Edition v1.0.0 accepted | Freeze release except approved maintenance | Preserve release baseline |
+| 2026-07-13 | main | `761883a27abdea502c89f884c0329572cb2a9250` | Added portability and handoff foundation | Architecture, handoff, setup, deployment, troubleshooting and contribution docs | Documentation-only; existing suite retained as baseline | Knowledge portability improved | GitHub is canonical project memory | Keep controls current |
+| 2026-07-13 | main | `39bfc2d0c75e58c883fdcec797f66dff2edd9eec` | Added optional portability maintenance backlog | Documentation | No independent rerun recorded in recovery | Current verified main HEAD | Use as recovery branch base | Do not add features to main |
+| 2026-07-15 | maintenance/v1.0.1 | PR #5 | Added selected-currency handling in Supplier Intelligence | UI/currency modules and focused tests | Tests added; GitHub plugin did not execute them | Merged to maintenance branch | Treat as implemented but unverified | Run full regression and smoke test |
+| 2026-07-15 | maintenance/v1.0.1 | PR #6 | Corrected quoted-price display derivation from canonical normalized value | Supplier Intelligence currency code and tests | Tests added; GitHub plugin did not execute them | Merged to maintenance branch | Preserve audit metadata and canonical calculation basis | Run focused and full tests |
+| 2026-07-15 | maintenance/v1.0.1 | PR #7 | Prioritized selected-currency columns for mobile visibility | Supplier Intelligence currency UI and tests | Tests added; GitHub plugin did not execute them | Merged to maintenance branch | Classify as maintenance defect correction | Verify live USD/INR/Both behavior |
+| Date not established | v1.1-development | 27 commits ahead of common release base | Added ERP Sprint 1 foundation | Schema registry, mapping profiles, workbook loader, structural validator, samples, specifications and tests | Focused test files exist; authoritative run result not found | Verified partial implementation | Do not call Sprint 1 complete | Capture branch HEAD; run suite; reconcile checklist |
+| 2026-07-15 | docs/project-recovery-2026-07-15 | `62516296a24df34b8c8f1deaa75c32b800a5b0be` | Established recovery manifest | `PROJECT_RECOVERY_MANIFEST.md` | Documentation review only | Recovery controls initiated | No feature development in recovery task | Complete control-document set |
+| 2026-07-15 | docs/project-recovery-2026-07-15 | `a839ec1ef39e0902de7145483519805d79fac9bd` | Reconciled build plan | `PROJECT_BUILD_PLAN.md` | Documentation review only | Controlled roadmap established | Next build limited to baseline and v1.0.1 closure | Obtain approval after PR review |
+
+## Mandatory Future Log Rule
+Every substantive build must append entries showing branch, exact commit/PR, files, test commands and results, decision and remaining action. A build is not complete until this log, `PROJECT_STATUS.md`, `PENDING_WORK_REGISTER.md` and `PROJECT_RECOVERY_MANIFEST.md` are updated.
