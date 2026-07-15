@@ -37,18 +37,16 @@
 - Evidence: workflow run `29403967641`, artifact digest `sha256:7f0463c8f7baa3c863925de3d7c42afc921fc954f90cafb9b71c50c47878f8d4`.
 - Classification: VERIFIED COMPLETE.
 
-## DEC-R1-006 — Hosted Acceptance Boundary
-- Authoritative hosted Streamlit URL: REPORTED BUT NOT FOUND.
-- Hosted runtime health: REPORTED BUT NOT FOUND.
-- Supplier-by-supplier hosted acceptance: NOT STARTED.
-- Hosted USD/INR/Both visual acceptance: NOT STARTED.
-- Decision: Do not infer hosted health from CI smoke evidence.
+## DEC-R1-006 — Hosted Candidate Acceptance
+- URL: `https://ai-procurement-copilot-pr9.streamlit.app/`
+- Deployment evidence: correct Recovery R1 branch, Python 3.11.15, dependency installation and server startup confirmed.
+- Owner acceptance: all six supplier profiles and USD/INR/Both modes manually checked and reported correct.
+- Evidence boundary: functional hosted acceptance was observed by the project owner, not independently reproduced through the connected GitHub tool.
+- Classification: VERIFIED COMPLETE.
 
 ## DEC-R1-007 — Promotion Recommendation
-- Decision: **CHANGES REQUIRED** before v1.0.1 promotion.
-- Remaining closure:
-  1. obtain and directly validate the authoritative hosted URL;
-  2. exercise all packaging and raw-material supplier options;
-  3. validate USD, INR and Both modes in the hosted interface.
+- Decision: **MERGE READY** for v1.0.1 promotion.
+- Basis: exact baselines, standalone main evidence, candidate regression/smoke evidence, clean scope boundary, hosted deployment evidence and owner-observed hosted acceptance.
 - Final PR workflow diff must remain absent.
+- PR #9 remains draft and unmerged until explicit owner merge authorization.
 - Version 1.1 implementation remains OUT OF SCOPE.
