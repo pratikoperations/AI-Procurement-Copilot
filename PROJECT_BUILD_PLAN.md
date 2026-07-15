@@ -90,7 +90,7 @@ Classification: OUT OF SCOPE for Recovery Build R1 unless separately authorized.
 | Documentation and release-control closure | 2–3 hours |
 | Version 1.1 branch reconstruction/rebase assessment | 3–5 hours |
 
-## Proposed Next Controlled Build
+## Proposed Next Controlled Build — Pending Owner Approval
 **Recovery Build R1 — Baseline Verification and v1.0.1 Maintenance Closure.**
 
 Approval state: pending explicit project-owner approval.
