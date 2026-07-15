@@ -9,17 +9,22 @@
 | Date | Commit / PR / run | Activity | Tests / evidence | Result | Remaining action |
 |---|---|---|---|---|---|
 | 2026-07-15 | branch-ref capture | Resolved exact maintenance and v1.1 HEADs | Direct branch resolution | `ba49af44...`; `0c2281e4...` | Preserve in evidence |
-| 2026-07-15 | `9f337239cc120433c5cc2cd98274d890ad12f113` | Reconstructed 14 maintenance files on canonical main | Initial canonical CI | Compile PASS; regression FAIL; smoke skipped | Isolate failure |
-| 2026-07-15 | diagnostic run 361 | Ran focused maintenance files separately | GitHub Actions | Supplier Intelligence currency test failed; others passed | Inspect source handling |
-| 2026-07-15 | `acda17383cb1bed09787f69345ea60e359b94b06` | Preserved canonical risk-TCO source during display rebuild | Focused tests, full suite, smoke | All PASS | Capture exact counts |
-| 2026-07-15 | run 363 | Captured candidate environment and artifact | Python 3.11.15 | 162 passed, 0 failed, 0 skipped, 1 warning; smoke PASS | Restore workflow |
-| 2026-07-15 | run 376 | Final canonical candidate CI | Install, compile, pytest, smoke | PASS | Acceptance closure |
-| 2026-07-15 | run 377 | Independently checked out exact main SHA `075fe16d...` | Python 3.11.15, pinned dependencies, compile, pytest, smoke | 114 passed, 0 failed, 0 skipped, 1 warning; smoke PASS | Restore workflow |
-| 2026-07-15 | hosted candidate | Deployed PR #9 branch to `https://ai-procurement-copilot-pr9.streamlit.app/` | Deployment log | Correct branch, Python 3.11.15, dependencies and server startup confirmed | Owner functional acceptance |
-| 2026-07-15 | owner acceptance | Exercised six supplier profiles and USD/INR/Both modes | Owner-observed manual review | All reported correct; no stale, wrong, duplicate or empty view issue reported | Final owner review only |
+| 2026-07-15 | `9f337239...` | Reconstructed 14 maintenance files on canonical main | Initial canonical CI | Compile PASS; regression FAIL | Isolate failure |
+| 2026-07-15 | `acda1738...` | Preserved canonical risk-TCO source during display rebuild | Focused tests, full suite, smoke | All PASS | Capture exact counts |
+| 2026-07-15 | run 377 | Independently checked exact pre-maintenance main | Python 3.11.15, compile, pytest, smoke | 114 passed, 0 failed, 0 skipped, 1 warning; smoke PASS | Retain evidence |
+| 2026-07-15 | PR #9 / `18c009fd...` | Merged validated maintenance to main | 162-test candidate and hosted acceptance | Recovery R1 merged | Release closure |
+
+## v1.0.1 Release Closure
+| Date | Branch / PR / run | Activity | Scope / evidence | Result | Remaining action |
+|---|---|---|---|---|---|
+| 2026-07-15 | `release/v1.0.1-closure` / PR #10 | Opened documentation closure | Eight Markdown files | Initial closure checks PASS | Owner acceptance |
+| 2026-07-15 | primary main deployment | Owner verified main after PR #9 | Startup, USD/INR/Both, six supplier profiles | All accepted | Final closure |
+| 2026-07-15 | `ae50bca0...` | Unexpected direct main commit corrected displayed v1.0.1 metadata and added regression test | Five scoped files | No procurement logic or v1.1/ERP scope | Reconcile PR #10 |
+| 2026-07-15 | `release/v1.0.1-closure-reconciled` | Reconstructed eight closure documents from current main | Preserved accepted app/config/version-test changes | Clean reconstruction | Replace PR head |
+| 2026-07-15 | PR #10 head `f1f92a0d...` / run 411 | Verified reconciled PR | Exactly eight Markdown files; dependency install, compile, pytest, smoke | PASS — 165 passed, 0 failed, 0 skipped, 1 warning; smoke PASS | Final owner approval and merge |
 
 ## Controlled Decision
-Reconstruction from current main remains preferred over rebasing the divergent maintenance branch. Recovery R1 promotion verdict is **MERGE READY** based on automated evidence, deployment startup evidence and owner-observed hosted acceptance.
+PR #10 is reconciled, documentation-only and ready for final owner-approved merge, followed by tag and release creation at the resulting final main SHA.
 
 ## Mandatory Future Log Rule
 Every substantive build must record exact branch/commit, files, commands, results, decision and remaining action, and update the mandatory project-memory files.
