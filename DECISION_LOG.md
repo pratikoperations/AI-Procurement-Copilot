@@ -42,20 +42,25 @@
 ## DEC-R1-008 — Unexpected Display-Version Commit Audit
 - Commit: `ae50bca09e5cb33ed58439c6aecfcde4f391a846`.
 - Files: `README.md`, `VERSION_MANIFEST.md`, `app.py`, `modules/config.py`, `tests/test_release_version.py`.
-- Decision: accept and preserve the v1.0.1 edition/build/docstring correction and its dedicated regression coverage.
+- Decision: accept and preserve the v1.0.1 edition/build/docstring correction and its three dedicated regression tests.
 - Scope finding: no procurement formula, schema, ranking, threshold, approval-control, Version 1.1 or ERP change.
-- Classification: VERIFIED COMPLETE for scoped audit.
+- Classification: VERIFIED COMPLETE.
 
 ## DEC-R1-009 — Reconstruct Release Closure from Current Main
-- Decision: do not rebase the conflicted 17-commit closure history.
-- Reconstruct the eight approved Markdown documents on `release/v1.0.1-closure-reconciled` from current main `ae50bca09e5cb33ed58439c6aecfcde4f391a846`.
+- Decision: replace the conflicted PR #10 head with a clean reconstruction based on current main `ae50bca09e5cb33ed58439c6aecfcde4f391a846`.
 - Preserve `app.py`, `modules/config.py` and `tests/test_release_version.py` exactly as already accepted on current main.
-- Replace PR #10 head only after reconstruction is complete.
-- Classification: DOCUMENTED ONLY pending final diff and CI verification.
+- Final PR scope: exactly eight approved Markdown files.
+- Classification: VERIFIED COMPLETE.
 
-## DEC-R1-010 — Tag and Release Gate
-- PR #10 must remain draft and unmerged until the reconciled head contains exactly eight Markdown files and final Quality Checks pass.
-- Annotated tag `v1.0.1` must target the final approved release-closure main SHA.
+## DEC-R1-010 — Final Reconciled Quality Gate
+- Run: 411.
+- Result: dependency install PASS; compile PASS; 165 passed, 0 failed, 0 skipped, 1 warning; Streamlit smoke PASS.
+- PR state: open, draft, mergeable and unmerged.
+- Classification: VERIFIED COMPLETE.
+
+## DEC-R1-011 — Tag and Release Gate
+- PR #10 may be merged only after renewed owner approval against the reconciled final head.
+- Annotated tag `v1.0.1` must target the resulting final approved main SHA.
 - Existing v1.0.0 tag and release must not be modified.
 - Tag status: NOT STARTED.
 - GitHub release status: NOT STARTED.
