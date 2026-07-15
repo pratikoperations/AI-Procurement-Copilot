@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from streamlit.testing.v1 import AppTest
+
 PAGE_PATH = Path("pages/9_ERP_Upload_Preview.py")
 
 
@@ -78,3 +80,13 @@ def test_page_does_not_offer_normalization_or_processing_actions():
         "save workbook",
     )
     assert all(action not in source for action in prohibited_actions)
+
+
+def test_erp_upload_preview_page_smoke():
+    app = AppTest.from_file(str(PAGE_PATH))
+
+    app.run(timeout=15)
+
+    assert not app.exception
+    assert app.title[0].value == "ERP Workbook Upload Preview"
+    assert app.file_uploader[0].label == "Upload one XLSX workbook"
