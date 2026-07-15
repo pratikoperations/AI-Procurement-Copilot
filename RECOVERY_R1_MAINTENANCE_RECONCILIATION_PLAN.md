@@ -2,22 +2,27 @@
 
 Date: 2026-07-15
 
-## Selected approach
+## Selected Approach
 **Reconstruct the validated v1.0.1 corrections on a new branch from current canonical main.**
 
-## Why
-The historical maintenance line diverged from current main and omitted later portability and recovery-governance records. Reconstruction preserves the canonical documentation while limiting code/test changes to the 14 maintenance files.
+The historical maintenance line diverged from current main and omitted later portability and recovery-governance records. Reconstruction preserves canonical controls while limiting application/test changes to approved maintenance scope.
 
-## Reconstruction result
-- 14 maintenance files transplanted from exact maintenance HEAD.
-- One source-preservation defect discovered and corrected in `modules/supplier_intelligence_currency_ui.py`.
-- Final compile, 162-test regression and Streamlit smoke gates pass.
-- No Version 1.1 files or unrelated feature work included.
+## Verified Result
+- Exact main start: `075fe16d889cdb82b126fe1e07b0c63dca369580`
+- Exact maintenance HEAD: `ba49af44d8c1ff36d9d5d612e0909f5698d1d433`
+- Exact v1.1 HEAD: `0c2281e47ff4e2b4b8153fbde6350d5c9c1a4341`
+- Fourteen maintenance files reconstructed.
+- One source-preservation defect corrected in `modules/supplier_intelligence_currency_ui.py`.
+- Standalone main: compile PASS; 114 passed, 0 failed, 0 skipped, 1 warning; smoke PASS.
+- Candidate: compile PASS; 162 passed, 0 failed, 0 skipped, 1 warning; smoke PASS.
+- Final PR contains no workflow-file change and no Version 1.1/ERP feature file.
 
-## Promotion recommendation
-**CHANGES REQUIRED** before merge because:
-1. current hosted deployment URL/health is not independently verified;
-2. every supplier option has not been manually exercised in the hosted UI;
-3. final PR review must confirm the temporary diagnostic workflow commits net to no workflow diff.
+## Promotion Recommendation
+**CHANGES REQUIRED**
 
-Once those acceptance checks are completed and the final diff/CI remain clean, the candidate may be reconsidered as MERGE READY.
+Remaining acceptance gaps:
+1. authoritative hosted Streamlit URL and current health are REPORTED BUT NOT FOUND;
+2. hosted supplier-by-supplier interactive acceptance remains NOT STARTED;
+3. hosted USD/INR/Both visual acceptance remains NOT STARTED.
+
+The technical candidate is green and the reconstruction approach remains recommended. Promotion should be reconsidered after direct hosted acceptance or an explicit owner decision to accept the residual hosted-validation risk.
