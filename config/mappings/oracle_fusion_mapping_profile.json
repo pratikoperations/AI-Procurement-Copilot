@@ -1,0 +1,16 @@
+{
+  "profile_id": "ORACLE_FUSION_STANDARD_V1",
+  "profile_version": "1.0",
+  "erp_family": "Oracle",
+  "erp_product": "Fusion",
+  "status": "Draft",
+  "sheet_mappings": {
+    "Supplier_Master": {"SUPPLIER_ID":"Supplier_ID","SUPPLIER_NAME":"Supplier_Name","COUNTRY_CODE":"Country_Code","STATUS":"Supplier_Status","INVOICE_CURRENCY_CODE":"Default_Currency","TERMS_NAME":"Payment_Terms","FOB_LOOKUP_CODE":"Incoterms"},
+    "RFQ_Quotes": {"NEGOTIATION_NUMBER":"RFQ_ID","LINE_NUMBER":"Quote_Line_ID","SUPPLIER_ID":"Supplier_ID","ITEM_ID":"Material_ID","CREATION_DATE":"RFQ_Date","QUANTITY":"Quoted_Quantity","UNIT_PRICE":"Original_Unit_Price","CURRENCY_CODE":"Original_Currency","UOM_CODE":"Original_Unit"},
+    "Purchase_Orders": {"PO_HEADER_ID":"PO_Number","PO_LINE_ID":"PO_Line_Number","SUPPLIER_ID":"Supplier_ID","ITEM_ID":"Material_ID","CREATION_DATE":"PO_Date","QUANTITY":"Ordered_Quantity","UNIT_PRICE":"Unit_Price","CURRENCY_CODE":"Currency","UOM_CODE":"Unit_Of_Measure"},
+    "Receipts": {"RECEIPT_NUM":"Receipt_Number","SHIPMENT_LINE_ID":"Receipt_Line_Number","PO_HEADER_ID":"PO_Number","PO_LINE_ID":"PO_Line_Number","SUPPLIER_ID":"Supplier_ID","ITEM_ID":"Material_ID","NEED_BY_DATE":"Promised_Date","RECEIPT_DATE":"Receipt_Date","QUANTITY_RECEIVED":"Received_Quantity"},
+    "Supplier_Performance": {"SUPPLIER_ID":"Supplier_ID","PERIOD_START_DATE":"Period_Start","PERIOD_END_DATE":"Period_End","OTIF_PERCENT":"OTIF_Percent","QUALITY_SCORE":"Quality_Score","OVERALL_SCORE":"Supplier_Evaluation_Score"},
+    "Material_Master": {"ITEM_ID":"Material_ID","DESCRIPTION":"Material_Description","CATEGORY_NAME":"Category","COMMODITY":"Commodity","PRIMARY_UOM_CODE":"Base_Unit"},
+    "Cost_Drivers": {"COST_DRIVER_ID":"Cost_Driver_ID","CATEGORY_NAME":"Category","COMMODITY":"Commodity","COST_ELEMENT_TYPE":"Driver_Type","COST_ELEMENT_VALUE":"Driver_Value","CURRENCY_CODE":"Currency","UOM_CODE":"Unit","EFFECTIVE_DATE":"Effective_Date"}
+  }
+}

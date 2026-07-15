@@ -1,0 +1,16 @@
+{
+  "profile_id": "SAP_S4_STANDARD_V1",
+  "profile_version": "1.0",
+  "erp_family": "SAP",
+  "erp_product": "S/4HANA",
+  "status": "Draft",
+  "sheet_mappings": {
+    "Supplier_Master": {"LIFNR":"Supplier_ID","NAME1":"Supplier_Name","LAND1":"Country_Code","SPERR":"Supplier_Status","WAERS":"Default_Currency","ZTERM":"Payment_Terms","INCO1":"Incoterms"},
+    "RFQ_Quotes": {"EBELN":"RFQ_ID","EBELP":"Quote_Line_ID","LIFNR":"Supplier_ID","MATNR":"Material_ID","BEDAT":"RFQ_Date","MENGE":"Quoted_Quantity","NETPR":"Original_Unit_Price","WAERS":"Original_Currency","MEINS":"Original_Unit"},
+    "Purchase_Orders": {"EBELN":"PO_Number","EBELP":"PO_Line_Number","LIFNR":"Supplier_ID","MATNR":"Material_ID","BEDAT":"PO_Date","MENGE":"Ordered_Quantity","NETPR":"Unit_Price","WAERS":"Currency","MEINS":"Unit_Of_Measure"},
+    "Receipts": {"MBLNR":"Receipt_Number","ZEILE":"Receipt_Line_Number","EBELN":"PO_Number","EBELP":"PO_Line_Number","LIFNR":"Supplier_ID","MATNR":"Material_ID","EINDT":"Promised_Date","BUDAT":"Receipt_Date","MENGE":"Received_Quantity"},
+    "Supplier_Performance": {"LIFNR":"Supplier_ID","PERIOD_START":"Period_Start","PERIOD_END":"Period_End","OTIF_PERCENT":"OTIF_Percent","QUALITY_SCORE":"Quality_Score","OVERALL_SCORE":"Supplier_Evaluation_Score"},
+    "Material_Master": {"MATNR":"Material_ID","MAKTX":"Material_Description","CATEGORY":"Category","COMMODITY":"Commodity","MEINS":"Base_Unit"},
+    "Cost_Drivers": {"COST_DRIVER_ID":"Cost_Driver_ID","CATEGORY":"Category","COMMODITY":"Commodity","DRIVER_TYPE":"Driver_Type","DRIVER_VALUE":"Driver_Value","WAERS":"Currency","MEINS":"Unit","EFFECTIVE_DATE":"Effective_Date"}
+  }
+}
