@@ -26,32 +26,27 @@ jobs:
           python -m pip install --upgrade pip --quiet
           pip install -r requirements.txt --quiet
 
+      - name: Record environment
+        run: |
+          python --version > recovery-r1-environment.txt
+          python -m pip --version >> recovery-r1-environment.txt
+          cat requirements.txt >> recovery-r1-environment.txt
+
       - name: Compile Python files
         run: python -m compileall -q app.py modules tests
 
-      - name: Test annual volume units
-        run: python -m pytest -q tests/test_annual_volume_units.py
-
-      - name: Test currency display
-        if: always()
-        run: python -m pytest -q tests/test_currency_display.py
-
-      - name: Test exports
-        if: always()
-        run: python -m pytest -q tests/test_exports.py
-
-      - name: Test Supplier Intelligence currency
-        if: always()
-        run: python -m pytest -q tests/test_supplier_intelligence_currency.py
-
-      - name: Test Supplier Intelligence UI
-        if: always()
-        run: python -m pytest -q tests/test_supplier_intelligence_ui.py
-
-      - name: Run complete regression tests
-        if: always()
-        run: python -m pytest -q
+      - name: Run regression tests
+        run: python -m pytest > recovery-r1-pytest-output.txt 2>&1
 
       - name: Run Streamlit smoke test
+        run: bash scripts/streamlit_smoke_test.sh > recovery-r1-smoke-output.txt 2>&1
+
+      - name: Upload Recovery R1 evidence
         if: always()
-        run: bash scripts/streamlit_smoke_test.sh
+        uses: actions/upload-artifact@v4
+        with:
+          name: recovery-r1-test-evidence
+          path: |
+            recovery-r1-environment.txt
+            recovery-r1-pytest-output.txt
+            recovery-r1-smoke-output.txt
