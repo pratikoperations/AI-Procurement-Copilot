@@ -21,31 +21,30 @@ def _comparison_frame():
             "FX Rate Used": 83.0,
             "Unit of Measure": "piece",
             "Comparison Basis": "USD/piece",
-            "Quoted Price USD": 1.25,
-            "Risk-Adjusted TCO USD": 1.50,
-            "Risk Score": 80,
+            "Risk-Adjusted TCO (USD)": 1.50,
+            "Risk Resilience Score": 80,
         }
     ])
 
 
-def test_usd_mode_uses_usd_business_columns_and_preserves_metadata():
+def test_usd_mode_derives_quoted_price_and_preserves_audit_metadata():
     source = _comparison_frame()
     original = source.copy(deep=True)
 
     result = build_supplier_intelligence_display_frame(source, "USD", 83)
 
-    assert "Quoted Price (USD)" in result.columns
-    assert "Risk-Adjusted TCO (USD)" in result.columns
-    assert "Quoted Price (INR)" not in result.columns
     assert result.loc[0, "Quoted Price (USD)"] == 1.25
     assert result.loc[0, "Risk-Adjusted TCO (USD)"] == 1.50
+    assert "Quoted Price (INR)" not in result.columns
+    assert result.loc[0, "Normalized Unit Price"] == 1.25
     assert result.loc[0, "Original Currency"] == "USD"
     assert result.loc[0, "Normalized Currency"] == "USD"
     pd.testing.assert_frame_equal(source, original)
 
 
-def test_inr_mode_converts_business_columns_once_and_hides_business_usd_columns():
+def test_inr_mode_derives_business_values_once_and_hides_business_usd_columns():
     source = _comparison_frame()
+    original = source.copy(deep=True)
 
     result = build_supplier_intelligence_display_frame(source, "INR", 83)
 
@@ -56,6 +55,7 @@ def test_inr_mode_converts_business_columns_once_and_hides_business_usd_columns(
     assert result.loc[0, "Original Unit Price"] == 1.25
     assert result.loc[0, "Normalized Unit Price"] == 1.25
     assert result.loc[0, "FX Rate Used"] == 83.0
+    pd.testing.assert_frame_equal(source, original)
 
 
 def test_both_mode_shows_separate_usd_and_inr_business_columns():
@@ -65,6 +65,7 @@ def test_both_mode_shows_separate_usd_and_inr_business_columns():
     assert result.loc[0, "Quoted Price (INR)"] == 103.75
     assert result.loc[0, "Risk-Adjusted TCO (USD)"] == 1.50
     assert result.loc[0, "Risk-Adjusted TCO (INR)"] == 124.5
+    assert result.loc[0, "Normalized Unit Price"] == 1.25
 
 
 def test_invalid_display_mode_falls_back_to_usd():
@@ -75,8 +76,9 @@ def test_invalid_display_mode_falls_back_to_usd():
     assert "Quoted Price (INR)" not in result.columns
 
 
-def test_precomputed_inr_display_columns_are_not_double_converted():
+def test_precomputed_display_columns_are_rebuilt_without_duplicates_or_double_conversion():
     source = _comparison_frame()
+    source["Quoted Price (USD)"] = 1.25
     source["Quoted Price (INR)"] = 103.75
     source["Risk-Adjusted TCO (INR)"] = 124.5
 
@@ -86,6 +88,20 @@ def test_precomputed_inr_display_columns_are_not_double_converted():
     assert result.loc[0, "Risk-Adjusted TCO (INR)"] == 124.5
     assert list(result.columns).count("Quoted Price (INR)") == 1
     assert list(result.columns).count("Risk-Adjusted TCO (INR)") == 1
+    assert "Quoted Price (USD)" not in result.columns
+    assert "Risk-Adjusted TCO (USD)" not in result.columns
+
+
+def test_audit_metadata_is_unchanged_in_inr_mode():
+    result = build_supplier_intelligence_display_frame(_comparison_frame(), "INR", 83)
+
+    assert result.loc[0, "Original Currency"] == "USD"
+    assert result.loc[0, "Original Unit Price"] == 1.25
+    assert result.loc[0, "Normalized Currency"] == "USD"
+    assert result.loc[0, "Normalized Unit Price"] == 1.25
+    assert result.loc[0, "FX Rate Used"] == 83.0
+    assert result.loc[0, "Unit of Measure"] == "piece"
+    assert result.loc[0, "Comparison Basis"] == "USD/piece"
 
 
 def test_app_passes_display_currency_and_fx_rate_to_supplier_intelligence():
