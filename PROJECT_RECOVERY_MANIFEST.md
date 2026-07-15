@@ -4,52 +4,54 @@
 - Repository: `pratikoperations/AI-Procurement-Copilot`
 - Canonical source of truth: GitHub
 - Canonical stable branch: `main`
-- Recovery-governance main baseline: `075fe16d889cdb82b126fe1e07b0c63dca369580`
-- Stable release: Portfolio Edition v1.0.0, frozen except approved maintenance
-- Recovery date: 2026-07-15
+- Recovery-governance baseline: `075fe16d889cdb82b126fe1e07b0c63dca369580`
+- Recovery R1 merge SHA: `18c009fd2947cf66dba564f0d063c726ffc45319`
+- Current main SHA: `ae50bca09e5cb33ed58439c6aecfcde4f391a846`
+- Target release: Portfolio Edition v1.0.1
+- Previous release: Portfolio Edition v1.0.0, preserved
 
 ## Approved Classification Taxonomy
 Every formal status uses exactly one of: VERIFIED COMPLETE, VERIFIED PARTIAL, IMPLEMENTED BUT UNTESTED, DOCUMENTED ONLY, REPORTED BUT NOT FOUND, NOT STARTED, DEFECT / REGRESSION, DEFERRED, OUT OF SCOPE.
 
 ## Exact Branch Baselines
-| Branch | Exact HEAD | Classification |
+| Branch / baseline | Exact SHA / basis | Classification |
 |---|---|---|
-| `main` at R1 start | `075fe16d889cdb82b126fe1e07b0c63dca369580` | VERIFIED COMPLETE |
+| `main` before Recovery R1 | `075fe16d889cdb82b126fe1e07b0c63dca369580` | VERIFIED COMPLETE |
 | `maintenance/v1.0.1` | `ba49af44d8c1ff36d9d5d612e0909f5698d1d433` | VERIFIED COMPLETE |
 | `v1.1-development` | `0c2281e47ff4e2b4b8153fbde6350d5c9c1a4341` | VERIFIED PARTIAL |
-| `recovery/r1-v1.0.1-baseline-verification` | final SHA recorded in PR metadata | VERIFIED COMPLETE pending final owner merge decision |
-
-These are direct branch/ref resolutions. PR merge SHAs, synthetic merge commits and merge-base SHAs were not substituted.
+| Recovery R1 merged `main` | `18c009fd2947cf66dba564f0d063c726ffc45319` | VERIFIED COMPLETE |
+| Display-version corrected `main` | `ae50bca09e5cb33ed58439c6aecfcde4f391a846` | VERIFIED COMPLETE for scoped audit |
+| Reconciled closure branch | `release/v1.0.1-closure-reconciled` | DOCUMENTED ONLY pending final CI and merge |
 
 ## Recovery R1 Findings
-- Fourteen maintenance code/test files were reconstructed from current canonical main.
-- Initial regression exposed loss of the canonical `Risk-Adjusted TCO (USD)` source during display rebuilding.
-- The source is now preserved through a temporary display-only field before USD/INR/Both outputs are rebuilt.
+- Fourteen approved maintenance code/test files were reconstructed on canonical main.
+- A risk-adjusted TCO source-preservation defect was discovered and corrected.
 - No FX formula, ranking, threshold, schema, recommendation or award-control rule changed.
-- Exact main standalone evidence: Python 3.11.15; compile PASS; `114 passed, 0 failed, 0 skipped, 1 warning`; Streamlit smoke PASS.
-- Candidate evidence: Python 3.11.15; compile PASS; `162 passed, 0 failed, 0 skipped, 1 warning`; Streamlit smoke PASS.
-- Hosted candidate URL: `https://ai-procurement-copilot-pr9.streamlit.app/`.
-- Deployment log confirms the correct Recovery R1 branch, Python 3.11.15, dependency installation and server startup.
-- The project owner manually accepted all six supplier profiles and USD/INR/Both hosted modes.
-- Final PR diff contains no workflow file and no Version 1.1 or ERP feature file.
+- Standalone pre-maintenance main: 114 passed, 0 failed, 0 skipped, 1 warning; smoke PASS.
+- v1.0.1 candidate: 162 passed, 0 failed, 0 skipped, 1 warning; smoke PASS.
+- Hosted Recovery R1 and primary-main owner acceptance: VERIFIED COMPLETE.
 
-## Claim and Capability Status
+## Unexpected Main Commit Audit
+Commit `ae50bca09e5cb33ed58439c6aecfcde4f391a846` changes only:
+- `README.md`
+- `VERSION_MANIFEST.md`
+- `app.py`
+- `modules/config.py`
+- `tests/test_release_version.py`
+
+It corrects displayed v1.0.1 metadata and adds regression coverage. It does not change procurement formulas, schemas, rankings, thresholds, approval controls, Version 1.1 or ERP functionality.
+
+## Release Reconciliation
 | Item | Classification |
 |---|---|
-| Portfolio Edition v1.0.0 standalone executable baseline | VERIFIED COMPLETE |
-| Missing supplier-selector claim | REPORTED BUT NOT FOUND |
-| Supplier-selector capability | VERIFIED COMPLETE |
-| Automated selector preservation | VERIFIED COMPLETE |
-| Hosted all-supplier interactive acceptance | VERIFIED COMPLETE |
-| INR issue on original main | DEFECT / REGRESSION |
-| Reconstructed INR/currency candidate automated evidence | VERIFIED COMPLETE |
-| Historical deployment acceptance | DOCUMENTED ONLY |
-| Current Recovery R1 hosted candidate health | VERIFIED COMPLETE |
-| Authoritative Recovery R1 hosted URL | VERIFIED COMPLETE |
-| Hosted USD/INR/Both visual acceptance | VERIFIED COMPLETE |
-| v1.1 branch existence | VERIFIED COMPLETE |
-| v1.1 ERP foundation | VERIFIED PARTIAL |
-| Complete ERP pipeline/report/UI claims | REPORTED BUT NOT FOUND |
+| Accepted app/config/version-test changes preserved on current main | VERIFIED COMPLETE |
+| Owner-observed primary-main hosted acceptance preserved | VERIFIED COMPLETE |
+| Eight-document release closure reconstructed from current main | DOCUMENTED ONLY |
+| Final PR #10 file boundary | NOT STARTED pending ref replacement and verification |
+| Final reconciled Quality Checks | NOT STARTED |
+| Annotated tag `v1.0.1` | NOT STARTED |
+| GitHub release `Portfolio Edition v1.0.1` | NOT STARTED |
+| Version 1.1 implementation | OUT OF SCOPE |
 
 ## Evidence Records
 - `RECOVERY_R1_BASELINE_VERIFICATION.md`
@@ -60,7 +62,5 @@ These are direct branch/ref resolutions. PR merge SHAs, synthetic merge commits 
 - `RECOVERY_R1_DEPLOYMENT_EVIDENCE.md`
 - `RECOVERY_R1_MAINTENANCE_RECONCILIATION_PLAN.md`
 
-## Recovery R1 Decision
-Reconstruction from canonical main remains the selected approach. Promotion verdict: **MERGE READY** based on direct branch evidence, automated test evidence, hosted deployment startup evidence and owner-observed functional acceptance.
-
-PR #9 must remain draft and unmerged until final owner review and explicit merge authorization. Version 1.1 feature implementation remains OUT OF SCOPE.
+## Release Handoff Decision
+Reconstructing the closure documents from current main is preferred over rebasing the conflicted history. Do not merge, tag or publish the release until the reconciled PR contains exactly eight Markdown files and final Quality Checks pass.
