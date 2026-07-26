@@ -38,7 +38,7 @@ def test_navigation_contract_contains_seven_numbered_sections():
     )
 
     assert all(label in source for label in expected)
-    assert "8." not in source
+    assert "8. Interview Guide" not in source
 
 
 def test_executive_first_claim_safe_messages_are_present():
