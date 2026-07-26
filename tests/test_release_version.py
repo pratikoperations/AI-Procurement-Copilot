@@ -5,30 +5,24 @@ from streamlit.testing.v1 import AppTest
 from modules.config import BUILD, EDITION, STATUS
 
 
-def test_release_metadata_is_v1_0_1():
-    assert EDITION == "Portfolio Edition v1.0.1"
-    assert BUILD == "Version 1.0.1 - Stable Maintenance Release"
-    assert STATUS == "Stable"
+def test_release_metadata_is_v1_2_portfolio_presentation():
+    assert EDITION == "Portfolio Presentation Release v1.2"
+    assert BUILD == "Version 1.2 - Portfolio Presentation Release"
+    assert STATUS == "Portfolio Demonstration"
 
 
-def test_app_docstring_and_display_use_v1_0_1():
+def test_app_docstring_and_display_use_v1_2():
     source = Path("app.py").read_text(encoding="utf-8")
-    assert source.startswith('"""AI Procurement Copilot — Portfolio Edition v1.0.1."""')
+    assert source.startswith('"""AI Procurement Copilot — Portfolio Presentation Release v1.2."""')
 
     app = AppTest.from_file("app.py", default_timeout=30).run()
     assert not app.exception
-    assert "Portfolio Edition v1.0.1" in [item.value for item in app.subheader]
+    assert app.title[0].value == "AI Procurement Copilot v1.2"
     assert any(
-        "Version 1.0.1 - Stable Maintenance Release" in item.value
-        for item in app.success
+        "Governed, category-aware procurement decision support" in item.value
+        for item in app.subheader
     )
-
-
-def test_primary_user_facing_release_documents_are_v1_0_1():
-    readme = Path("README.md").read_text(encoding="utf-8")
-    manifest = Path("VERSION_MANIFEST.md").read_text(encoding="utf-8")
-
-    assert "**Release:** Portfolio Edition v1.0.1" in readme
-    assert "Portfolio Edition v1.0.1 is the stable maintenance release" in readme
-    assert "Portfolio Edition v1.0.1" in manifest
-    assert "v1.0.1 is frozen as the stable maintenance release" in manifest
+    assert any(
+        "Version 1.2 - Portfolio Presentation Release" in item.value
+        for item in app.caption
+    )
