@@ -37,7 +37,7 @@ Approved head: `8b113a195e5a742c6bf2fe2785d79390de8ce17a`
 
 ## Build Group B
 
-Authorized documentation deliverables:
+Delivered:
 
 - executive-first README;
 - recruiter overview;
@@ -50,7 +50,9 @@ Authorized documentation deliverables:
 - private demo guide;
 - this release record.
 
-The final Build Group B head and workflow evidence will be added after CI completion.
+Documentation implementation head: `9faeee7358ec2945b3aaea68064df518102e0ac3`
+
+Quality Checks run 463, run ID `30247055209`, passed dependency installation, Python compilation, the complete regression suite and canonical Streamlit smoke with 0 failures. A final quality run on the evidence-recording head is required before owner approval.
 
 ## Explicit exclusions
 
