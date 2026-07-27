@@ -33,9 +33,9 @@ Quality Checks run 465, run ID `30247178739`, passed dependency installation, Py
 
 ## Build Group C evidence
 
-Visual implementation head: `6ee510265b0ffb124a1738a4959d92fc839ba0ac`
+Owner-review candidate head before evidence refresh: `5cad387b457720fa5decf89e42882463a9ad0ea8`
 
-Quality Checks run 482, run ID `30249851991`, passed:
+Quality Checks run 484, run ID `30249982994`, passed:
 
 - dependency installation;
 - Python compilation;
@@ -43,6 +43,8 @@ Quality Checks run 482, run ID `30249851991`, passed:
 - canonical Streamlit smoke.
 
 Failures: 0. The available workflow summary does not expose the exact pytest total, so no unsupported numerical test count is recorded.
+
+The final evidence-refresh head and its confirming workflow run are recorded in the Build Group C owner-review report after this document update.
 
 ## Visual evidence boundaries
 
