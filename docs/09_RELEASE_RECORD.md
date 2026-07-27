@@ -18,7 +18,7 @@ Improve recruiter comprehension, hiring-manager review, technical verification a
 - Responsive navigation
 - Documentation
 - Test maintenance
-- Visual evidence, subject to Build Group C approval
+- Visual evidence
 - Release governance
 
 ## Build Group A
@@ -48,11 +48,34 @@ Delivered:
 - test evidence;
 - governance and limitations;
 - private demo guide;
-- this release record.
+- release record.
 
-Documentation implementation head: `9faeee7358ec2945b3aaea68064df518102e0ac3`
+Approved head: `a5e4c97fb42af134bced25706b8f1dc7e12a0971`
 
-Quality Checks run 463, run ID `30247055209`, passed dependency installation, Python compilation, the complete regression suite and canonical Streamlit smoke with 0 failures. A final quality run on the evidence-recording head is required before owner approval.
+Quality Checks run 465, run ID `30247178739`, passed dependency installation, Python compilation, the complete regression suite and canonical Streamlit smoke with 0 failures.
+
+## Build Group C
+
+Delivered:
+
+- hero visual;
+- four-screen illustrative application-view set;
+- restrained numbered annotations;
+- five-stage architecture visual;
+- proves / does-not-prove visual;
+- visual design system;
+- LinkedIn cover;
+- six-slide LinkedIn carousel;
+- 30–40 second screen-recording storyboard;
+- LinkedIn Projects description;
+- recruiter short description;
+- GitHub Featured wording.
+
+Visual implementation head: `6ee510265b0ffb124a1738a4959d92fc839ba0ac`
+
+Quality Checks run 482, run ID `30249851991`, passed dependency installation, Python compilation, the complete regression suite and canonical Streamlit smoke with 0 failures.
+
+The four application-view assets are synthetic illustrative representations based on the implemented interface. They are not presented as direct hosted screenshots.
 
 ## Explicit exclusions
 
@@ -73,16 +96,16 @@ Quality Checks run 463, run ID `30247055209`, passed dependency installation, Py
 - Full automated test suite green
 - Canonical Streamlit smoke green
 - Hosted v1.2 preview verified
-- Mobile screenshots reviewed at 360, 390 and 412 px plus tablet and desktop
-- Public screenshots contain no Interview Guide
+- Actual mobile screenshots reviewed at 360, 390 and 412 px plus tablet and desktop
+- Public hosted screenshots contain no Interview Guide
 - README and docs pass claim-safety review
 - Final changed-file audit confirms no excluded logic files
 - Owner explicitly authorizes ready-for-review and merge
 
 ## Known limitations
 
-The system remains a portfolio demonstration. It has not been validated for production security, enterprise scale, live ERP connectivity, live organizational data or realized business outcomes.
+The system remains a portfolio demonstration. It has not been validated for production security, enterprise scale, live ERP connectivity, live organizational data or realized business outcomes. Final hosted and pixel-level mobile verification remain pending.
 
 ## Relationship to v1.1
 
-v1.2 does not amend or reclassify v1.1. The completed v1.1 release remains permanently preserved at its frozen SHA, while v1.2 adds a controlled presentation and documentation layer.
+v1.2 does not amend or reclassify v1.1. The completed v1.1 release remains permanently preserved at its frozen SHA, while v1.2 adds a controlled presentation, documentation and visual layer.
