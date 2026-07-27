@@ -1,110 +1,155 @@
-# AI Procurement Copilot
+# AI Procurement Copilot v1.2
 
-**Release:** Portfolio Edition v1.0.1  
-**Status:** Release candidate — closure review pending  
-**Repository Owner:** pratikoperations
+**Governed, category-aware procurement decision support for RFQ comparison and sourcing evaluation.**
 
-## Objective
-AI Procurement Copilot is an interview-ready procurement decision-support platform covering category-specific should-cost, TCO, risk, Procurement Intelligence, Supplier 360, SRM, data-confidence governance, recommendation eligibility, category-aware communication, scenario testing, and executive reporting.
+> Portfolio demonstration · Read-only · Validation-gated · No live ERP integration
 
-## Portability and Source of Truth
-GitHub is the canonical source of truth. The application can run and be maintained without access to prior ChatGPT conversations. Begin with:
+**Hosted application:** public release URL to be verified before v1.2 merge. The previously accepted Recovery R1 candidate is historical evidence only and is not presented as the current v1.2 deployment.
 
-1. `AI_HANDOFF_GUIDE.md`
-2. `PORTABILITY_RISK_ASSESSMENT.md`
-3. `PROJECT_ARCHITECTURE.md`
-4. `BUSINESS_RULES.md`
-5. `DATA_DICTIONARY.md`
-6. `SETUP_GUIDE.md`
-7. `CONTRIBUTING.md`
+**Repository:** `pratikoperations/AI-Procurement-Copilot`
 
-The stable v1.0.1 application runtime does not require ChatGPT. Future external AI-provider integrations must use environment-based credentials and separate validation.
+## Project status
 
-## Release Position
-Portfolio Edition v1.0.1 is the stable maintenance release built on the first stable v1.0.0 portfolio baseline.
+- Proposed release: **AI Procurement Copilot v1.2 — Portfolio Presentation Release**
+- Current state: draft PR, unmerged
+- Frozen baseline: **v1.1 at `b85cd37aaae709058eb15350d680b18c03da46ba`**
+- Scope: presentation, documentation, responsive navigation, tests and release governance
+- Product logic: unchanged from the frozen v1.1 baseline
 
-The v1.0.1 maintenance scope includes:
-- governed USD, INR and Both display handling;
-- Supplier Intelligence risk-adjusted TCO source preservation;
-- preservation of original and normalized quotation data, FX metadata, units and comparison basis;
-- preservation of supplier rankings, formulas, thresholds, recommendation eligibility and human approval controls;
-- validated supplier selector and Supplier 360 behaviour;
-- displayed edition and build metadata fixed to v1.0.1 with regression coverage.
+## Business problem
 
-No Version 1.1 or ERP feature implementation is included.
+Procurement teams often compare supplier quotations across disconnected spreadsheets, inconsistent assumptions and incomplete evidence. A lowest-price result can be mistaken for a best-value decision, while risk, delivery, quality, commercial terms and data confidence remain difficult to explain.
 
-## Validation Position
-- Standalone pre-maintenance main: 114 passed, 0 failed, 0 skipped, 1 warning; Streamlit smoke PASS.
-- Reconstructed v1.0.1 candidate: 162 passed, 0 failed, 0 skipped, 1 warning; Streamlit smoke PASS.
-- Final PR #9 Quality Checks: PASS.
-- Recovery R1 hosted candidate startup: PASS.
-- Six supplier profiles and USD/INR/Both modes: owner-observed acceptance completed.
-- Primary `main` deployment after PR #9: owner-observed acceptance completed.
-- Display-version correction on current main: v1.0.1 metadata and dedicated regression test present.
+AI Procurement Copilot turns that fragmented review into a visible, governed decision-support workflow. It helps procurement professionals compare quotations, test sourcing scenarios, prepare negotiation positions and generate consistent review outputs without replacing human approval.
 
-## Build Philosophy
-The platform is transparent, rule-guided, auditable, and human-controlled. It does not autonomously approve suppliers. Inputs, assumptions, defaults, original quotations, normalized values, formulas, data gaps, evidence quality, and validation conditions remain visible.
+## Five business questions answered
 
-## Implemented Capabilities
-- Packaging Procurement and Raw Material Procurement engines
-- Synthetic demo data and CSV/Excel RFQ upload
-- Intelligent header recognition and unit normalization
-- Explicit original and normalized currency/price fields
-- Auditable FX rate and comparison basis
-- Governed USD, INR and Both business-facing display modes
-- Category-specific should-cost, TCO, risk, and scoring
-- Procurement Intelligence and Supplier Intelligence
-- Supplier 360, performance, financial, ESG, innovation, and SRM views
-- Evidence-governed recommendations
-- Category-aware supplier emails and executive memos
-- Recommendation eligibility and business-rule validation
-- Safe withholding of final-award language
-- Scenario stress testing and allocation recommendations
-- Business-readable CSV/Excel/TXT reports
-- Separate machine-readable audit downloads
-- Adversarial, external-file, UI, governance, currency, communication, export, consistency, and release-version tests
+1. Are supplier quotations sufficiently complete and valid for comparison?
+2. How do quotations compare after governed currency, unit and comparison-basis handling?
+3. Which commercial, cost, risk and sourcing factors materially affect the recommendation?
+4. When should the system withhold award-oriented language because evidence is insufficient?
+5. Which executive and downloadable outputs can support human procurement review?
 
-## Stable Release Integrity Controls
-- No non-USD value is stored in a USD-labelled comparison field.
-- Original Currency and Original Unit Price are preserved.
-- Normalized Currency, Normalized Unit Price, FX Rate Used, Unit of Measure, and Comparison Basis are explicit.
-- Unsupported currency conversion is blocked.
-- No double conversion is permitted.
-- Supplier rankings and procurement formulas remain unchanged by display-mode selection.
-- Human approval remains mandatory.
-- Readable and machine-readable exports remain separated.
+## How the workflow works
 
-## Run Locally
+1. Select a category, commodity and commercial assumptions.
+2. Load synthetic data or an RFQ workbook/CSV.
+3. Validate structure, completeness, currency, units and business rules.
+4. Compare supplier cost, risk, performance, ESG and commercial conditions.
+5. Review scenarios, allocation options and negotiation intelligence.
+6. Generate executive-facing and machine-readable outputs.
+7. Complete human procurement review and approval outside the application.
+
+See [User Workflow](docs/03_USER_WORKFLOW.md).
+
+## Key capabilities
+
+- Packaging and raw-material procurement workflows
+- Supplier quotation validation and governed comparison
+- Original and normalized quotation data preservation
+- USD, INR and dual-display handling
+- Category-specific should-cost, TCO, risk and scoring
+- Procurement Intelligence and Supplier Intelligence views
+- Supplier 360, performance, financial, ESG, innovation and SRM analysis
+- Scenario testing, allocation and negotiation support
+- Validation-gated recommendation language
+- Executive memos, supplier communication and governed downloads
+- Read-only ERP workbook structural preview with draft mappings
+
+## What this project proves
+
+- Practical understanding of procurement and sourcing workflows
+- Ability to translate procurement requirements into a working application
+- Category-aware comparison and decision-support logic
+- Controlled validation and human-review gates
+- Automated testing and release discipline
+- Clear separation between business-facing reports and audit outputs
+- Governed ERP-export intake without overstating integration maturity
+
+## What it does not prove
+
+- Production deployment readiness
+- Live SAP or Oracle integration
+- Universal ERP mappings
+- Automated supplier or item matching
+- Enterprise-scale performance
+- Realized savings from live organizational use
+- Autonomous sourcing, supplier approval or award execution
+- ERP write-back
+
+## Architecture
+
+```text
+Procurement and RFQ Data
+        ↓
+Validation and Controlled Transformation
+        ↓
+Category-Aware Comparison and Decision Logic
+        ↓
+Business-Facing Views and Downloads
+        ↓
+Human Procurement Review and Action
+```
+
+The ERP Upload Preview remains isolated from procurement engines and performs structural, package-safety and draft-mapping checks only.
+
+See [Architecture](docs/04_ARCHITECTURE.md) and [Data and Validation](docs/05_DATA_AND_VALIDATION.md).
+
+## Test and quality evidence
+
+The repository uses automated checks for compilation, procurement calculations, validation, currency and unit integrity, exports, UI contracts, ERP preview controls and Streamlit startup. Build Group A passed the complete regression suite and canonical Streamlit smoke at head `8b113a195e5a742c6bf2fe2785d79390de8ce17a`.
+
+The final v1.2 test count and deployment evidence will be recorded after all approved presentation groups are complete.
+
+See [Test Evidence](docs/06_TEST_EVIDENCE.md).
+
+## Governance and limitations
+
+- Human procurement approval remains mandatory.
+- Failed validation can block or condition recommendation language.
+- The application does not execute transactions or mutate ERP systems.
+- Illustrative monetary outputs are not realized savings claims.
+- Synthetic or sanitized data should be used for public demonstration.
+- Production use would require identity, access, security, privacy, logging and operational controls outside this portfolio scope.
+
+See [Governance and Limitations](docs/07_GOVERNANCE_AND_LIMITATIONS.md).
+
+## Documentation by audience
+
+- [Executive Overview](docs/01_EXECUTIVE_OVERVIEW.md) — recruiter-level summary
+- [Business Case Study](docs/02_BUSINESS_CASE_STUDY.md) — hiring-manager narrative
+- [User Workflow](docs/03_USER_WORKFLOW.md) — sourcing journey
+- [Architecture](docs/04_ARCHITECTURE.md) — technical structure
+- [Data and Validation](docs/05_DATA_AND_VALIDATION.md) — controls and evidence
+- [Test Evidence](docs/06_TEST_EVIDENCE.md) — quality gates
+- [Governance and Limitations](docs/07_GOVERNANCE_AND_LIMITATIONS.md) — claim boundaries
+- [Demo Guide](docs/08_DEMO_GUIDE.md) — private presentation sequence
+- [Release Record](docs/09_RELEASE_RECORD.md) — v1.2 governance record
+
+## Technical setup
+
 ```bash
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Detailed setup instructions are in `SETUP_GUIDE.md`.
+Run tests:
 
-## Run Tests
 ```bash
 python -m pytest
 ```
 
-## Key Release Assets
-- `VERSION_MANIFEST.md`
-- `BUILD_HISTORY.md`
-- `PROJECT_STATUS.md`
-- `PROJECT_RECOVERY_MANIFEST.md`
-- `RECOVERY_R1_BASELINE_VERIFICATION.md`
-- `RECOVERY_R1_MAIN_TEST_EVIDENCE.md`
-- `RECOVERY_R1_MAINTENANCE_TEST_EVIDENCE.md`
-- `RECOVERY_R1_CURRENCY_VALIDATION_MATRIX.md`
-- `RECOVERY_R1_SUPPLIER_SELECTOR_VALIDATION.md`
-- `RECOVERY_R1_DEPLOYMENT_EVIDENCE.md`
-- `RECOVERY_R1_MAINTENANCE_RECONCILIATION_PLAN.md`
+Detailed setup and portability guidance remain in `SETUP_GUIDE.md`, `AI_HANDOFF_GUIDE.md` and `PROJECT_ARCHITECTURE.md`.
 
-## Model Risk Statement
-AI Procurement Copilot is a decision-support and portfolio demonstration system. It does not autonomously approve suppliers, execute awards, replace due diligence, or substitute for commercial, legal, quality, financial, compliance, sustainability, treasury, tax, or executive review.
+## Version history
 
-## Next Planned Release
-Version 1.1 remains a separate, partially implemented and separately governed development stream. It is not part of v1.0.1 release closure.
+| Version | Position |
+|---|---|
+| v1.0.0 | First stable Portfolio Edition baseline |
+| v1.0.1 | Governed maintenance release |
+| v1.1 | Completed ERP structural foundation and read-only ERP Upload Preview; frozen at `b85cd37aaae709058eb15350d680b18c03da46ba` |
+| v1.2 | Proposed Portfolio Presentation Release; presentation-only scope in draft PR #14 |
 
-## Operating Standard
-Stable-release maintenance is limited to documented fixes. New features belong in a separately authorized Version 1.1 development stream.
+## Release relationship
+
+v1.2 does not describe v1.1 as incomplete and does not rewrite its history. It adds recruiter-first documentation, public presentation improvements, responsive navigation, visual evidence and release governance on top of the completed frozen v1.1 baseline.
