@@ -41,8 +41,9 @@ def test_supplier_intelligence_has_readable_sections():
 
 def test_machine_readable_payloads_are_download_only():
     source = (ROOT / "app.py").read_text(encoding="utf-8")
-    assert "Decision Machine-Readable Audit Data" in source
-    assert "Supplier 360 Machine-Readable Audit Data" in source
+    assert 'st.subheader("Machine-readable audit outputs")' in source
+    assert 'download_button("Decision Audit Data"' in source
+    assert 'download_button("Supplier 360 Audit Data"' in source
 
 
 def test_dashboard_uses_executive_chart_labels():
