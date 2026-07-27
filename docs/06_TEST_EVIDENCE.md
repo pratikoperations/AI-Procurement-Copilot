@@ -29,7 +29,20 @@ Quality Checks run 453 passed dependency installation, compilation, the complete
 
 ## Build Group B evidence
 
-The final Build Group B head, workflow run and exact test count will be recorded after the documentation changes complete and the full suite is rerun.
+Documentation implementation head:
+
+`9faeee7358ec2945b3aaea68064df518102e0ac3`
+
+Quality Checks run 463, run ID `30247055209`, passed:
+
+- dependency installation;
+- Python compilation;
+- complete regression suite;
+- canonical Streamlit smoke.
+
+Failures: 0. The GitHub connector did not expose the exact pytest total in the available run summary, so no unsupported test count is recorded.
+
+A final rerun on the evidence-recording head is required before Build Group B owner review.
 
 ## Evidence boundaries
 
