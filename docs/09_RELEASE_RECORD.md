@@ -71,13 +71,35 @@ Delivered:
 - recruiter short description;
 - GitHub Featured wording.
 
-Owner-review candidate head before evidence refresh: `5cad387b457720fa5decf89e42882463a9ad0ea8`
+Approved head: `8387f06d376e0cb1b9ba145860ab889f3edfd36a`
 
-Quality Checks run 484, run ID `30249982994`, passed dependency installation, Python compilation, the complete regression suite and canonical Streamlit smoke with 0 failures.
-
-The final evidence-refresh head and its confirming workflow run are recorded in the Build Group C owner-review report after this document update.
+Quality Checks run 488, run ID `30255807628`, passed dependency installation, Python compilation, the complete regression suite and canonical Streamlit smoke with 0 failures.
 
 The four application-view assets are synthetic illustrative representations based on the implemented interface. They are not presented as direct hosted screenshots.
+
+## Build Group D verification status
+
+Completed:
+
+- final claim-safety audit;
+- README and documentation path review;
+- final changed-file boundary review;
+- confirmation that no procurement-engine or ERP-foundation implementation file was added by Build Groups C or D;
+- confirmation of green automated quality evidence at the approved Build Group C head;
+- proposed v1.2 freeze statement.
+
+Blocked:
+
+- authoritative hosted v1.2 preview verification;
+- direct browser screenshot review;
+- mobile validation at approximately 360 px, 390 px and 412 px;
+- tablet and desktop validation;
+- confirmation that hosted views contain no Interview Guide;
+- pixel-level comparison between hosted output and illustrative assets.
+
+No authoritative v1.2 deployment URL was found in the README, PR #14 metadata or discussion, repository search or public search during the audit. The final verification report is recorded in `docs/10_FINAL_VERIFICATION_REPORT.md`.
+
+**Merge-readiness status: NOT READY.** PR #14 must remain draft and unmerged until the authoritative v1.2 hosted URL is supplied and all outstanding hosted and viewport checks pass.
 
 ## Explicit exclusions
 
@@ -103,6 +125,10 @@ The four application-view assets are synthetic illustrative representations base
 - README and docs pass claim-safety review
 - Final changed-file audit confirms no excluded logic files
 - Owner explicitly authorizes ready-for-review and merge
+
+## Proposed freeze statement
+
+> AI Procurement Copilot v1.2 is a portfolio presentation release built on the frozen v1.1 baseline. It improves executive communication, responsive navigation, documentation and public visual evidence without changing procurement-engine or ERP-foundation logic. The application remains read-only, validation-gated and human-controlled, with no claim of live ERP integration, write-back, autonomous awards, production readiness or realized savings.
 
 ## Known limitations
 
