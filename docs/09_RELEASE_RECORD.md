@@ -71,9 +71,11 @@ Delivered:
 - recruiter short description;
 - GitHub Featured wording.
 
-Visual implementation head: `6ee510265b0ffb124a1738a4959d92fc839ba0ac`
+Owner-review candidate head before evidence refresh: `5cad387b457720fa5decf89e42882463a9ad0ea8`
 
-Quality Checks run 482, run ID `30249851991`, passed dependency installation, Python compilation, the complete regression suite and canonical Streamlit smoke with 0 failures.
+Quality Checks run 484, run ID `30249982994`, passed dependency installation, Python compilation, the complete regression suite and canonical Streamlit smoke with 0 failures.
+
+The final evidence-refresh head and its confirming workflow run are recorded in the Build Group C owner-review report after this document update.
 
 The four application-view assets are synthetic illustrative representations based on the implemented interface. They are not presented as direct hosted screenshots.
 
