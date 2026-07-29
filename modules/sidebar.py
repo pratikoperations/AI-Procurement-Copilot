@@ -4,6 +4,7 @@ import streamlit as st
 
 from modules.category_engine import ensure_category_profile, get_category_profile
 from modules.config import DEFAULT_FX_RATE, EDITION, FUTURE_CATEGORIES, SUPPORTED_CATEGORIES
+from modules.rfq_integration_controller import governed_route_enabled
 from modules.unit_display import annual_volume_label, canonical_unit, quantity_basis_caption
 
 
@@ -20,11 +21,13 @@ def render_sidebar():
     st.sidebar.title("AI Procurement Copilot")
     st.sidebar.caption(EDITION)
 
-    data_source = st.sidebar.radio(
-        "Data Source",
-        ["Synthetic Demo", "Upload RFQ CSV/Excel"],
-        index=0,
-    )
+    route_enabled, route_warning = governed_route_enabled()
+    data_sources = ["Synthetic Demo", "Upload RFQ CSV/Excel"]
+    if route_enabled:
+        data_sources.append("Governed v1.3 Workbook Review Preview")
+    data_source = st.sidebar.radio("Data Source", data_sources, index=0)
+    if route_warning:
+        st.sidebar.warning(route_warning)
 
     category = st.sidebar.selectbox(
         "Category Engine",
