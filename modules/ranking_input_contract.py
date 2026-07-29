@@ -29,6 +29,7 @@ class ContractBundle:
     schema_version: str
     alias_registry_version: str
     schema: Mapping[str, Any]
+    core_schema: Mapping[str, Any]
     alias_registry: Mapping[str, Any]
     approved_sheets: tuple[str, ...]
     row_definitions: Mapping[str, str]
@@ -53,17 +54,34 @@ def _reject_network_refs(value: Any) -> None:
             _reject_network_refs(child)
 
 
+def _merge_aliases(frozen: Mapping[str, Any], ranking: Mapping[str, Any]) -> dict[str, Any]:
+    merged = dict(frozen)
+    merged["registry_version"] = "1.3.1"
+    merged["sheets"] = {
+        **dict(frozen.get("sheets", {})),
+        **dict(ranking.get("sheets", {})),
+    }
+    merged["field_source_classifications"] = {
+        **dict(frozen.get("field_source_classifications", {})),
+        **dict(ranking.get("field_source_classifications", {})),
+    }
+    merged["mapping_rules"] = dict(ranking.get("mapping_rules", {}))
+    merged["rejected_semantic_aliases"] = dict(ranking.get("rejected_semantic_aliases", {}))
+    return merged
+
+
 def load_contract_bundle(version: str) -> ContractBundle:
+    frozen_schema = _load(V130_SCHEMA)
+    frozen_aliases = _load(V130_ALIASES)
+    if str(frozen_schema.get("version")) != "1.3.0" or str(frozen_aliases.get("registry_version")) != "1.3.0":
+        raise RankingContractError("Frozen v1.3.0 contract versions do not match.")
     if version == "1.3.0":
-        schema = _load(V130_SCHEMA)
-        aliases = _load(V130_ALIASES)
-        if str(schema.get("version")) != version or str(aliases.get("registry_version")) != version:
-            raise RankingContractError("Frozen v1.3.0 contract versions do not match.")
         return ContractBundle(
             schema_version=version,
             alias_registry_version=version,
-            schema=schema,
-            alias_registry=aliases,
+            schema=frozen_schema,
+            core_schema=frozen_schema,
+            alias_registry=frozen_aliases,
             approved_sheets=("RFQ_QUOTES", "PO_HISTORY", "UPLOAD_METADATA"),
             row_definitions={
                 "RFQ_QUOTES": "RFQQuoteRow",
@@ -74,24 +92,22 @@ def load_contract_bundle(version: str) -> ContractBundle:
         )
     if version != "1.3.1":
         raise RankingContractError(f"Unsupported schema version '{version}'.")
-    frozen = _load(V130_SCHEMA)
     schema = _load(V131_SCHEMA)
-    aliases = _load(V131_ALIASES)
-    if str(frozen.get("version")) != "1.3.0":
-        raise RankingContractError("Frozen schema version is not 1.3.0.")
-    if str(schema.get("version")) != version or str(aliases.get("registry_version")) != version:
+    ranking_aliases = _load(V131_ALIASES)
+    if str(schema.get("version")) != version or str(ranking_aliases.get("registry_version")) != version:
         raise RankingContractError("v1.3.1 schema and alias versions do not match.")
     _reject_network_refs(schema)
     mapping = schema.get("x-local-schema-registry", {}).get("resources", {})
     if mapping.get(FROZEN_URN) != "planning/v1.3/build_group_b/minimum_workbook_schema_v1.3.0.json":
         raise RankingContractError("Required frozen-schema URN mapping is missing or incorrect.")
-    registry = Registry().with_resource(FROZEN_URN, Resource.from_contents(frozen))
+    registry = Registry().with_resource(FROZEN_URN, Resource.from_contents(frozen_schema))
     validator = Draft202012Validator(schema, registry=registry)
     return ContractBundle(
         schema_version=version,
         alias_registry_version=version,
         schema=schema,
-        alias_registry=aliases,
+        core_schema=frozen_schema,
+        alias_registry=_merge_aliases(frozen_aliases, ranking_aliases),
         approved_sheets=("RFQ_QUOTES", "PO_HISTORY", "UPLOAD_METADATA", "SUPPLIER_RANKING_INPUTS"),
         row_definitions={
             "RFQ_QUOTES": "RFQQuoteRow",
