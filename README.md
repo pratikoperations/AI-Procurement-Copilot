@@ -6,17 +6,21 @@
 
 ![AI Procurement Copilot v1.2 hero](docs/assets/hero/ai_procurement_copilot_v1_2_hero.svg)
 
-**Hosted application:** public release URL to be verified before v1.2 merge. The previously accepted Recovery R1 candidate is historical evidence only and is not presented as the current v1.2 deployment.
+**Hosted application:** `https://ai-procurement-copilot-v1-2.streamlit.app/`
 
 **Repository:** `pratikoperations/AI-Procurement-Copilot`
 
 ## Project status
 
-- Proposed release: **AI Procurement Copilot v1.2 — Portfolio Presentation Release**
-- Current state: draft PR, unmerged
-- Frozen baseline: **v1.1 at `b85cd37aaae709058eb15350d680b18c03da46ba`**
+- Release: **AI Procurement Copilot v1.2 — Portfolio Presentation Release**
+- Current state: **completed, merged to `main` and frozen**
+- Authoritative frozen `main` SHA: **`4803b1d72fa8a6509d9d7faf0e9decc677c447be`**
+- Frozen v1.1 baseline: **`b85cd37aaae709058eb15350d680b18c03da46ba`**
 - Scope: presentation, documentation, responsive navigation, tests and release governance
 - Product logic: unchanged from the frozen v1.1 baseline
+- Tag: **not created by deliberate release decision**
+- GitHub Release: **not created by deliberate release decision**
+- Further v1.2 modification: **not authorized**
 
 ## Business problem
 
@@ -91,7 +95,7 @@ See [Architecture](docs/04_ARCHITECTURE.md) and [Data and Validation](docs/05_DA
 
 ## Public visual package
 
-The four application-view assets use synthetic, generic content and are illustrative representations of the implemented workflow. They are not substitutes for final hosted-device verification.
+The four application-view assets use synthetic, generic content and are illustrative representations of the implemented workflow. They are not substitutes for direct hosted-device verification. Final hosted desktop, tablet and mobile verification was completed and approved during v1.2 release closure.
 
 - [Executive landing view](docs/assets/screens/01_executive_landing.svg)
 - [RFQ and sourcing comparison](docs/assets/screens/02_sourcing_comparison.svg)
@@ -102,11 +106,19 @@ The four application-view assets use synthetic, generic content and are illustra
 
 ## Test and quality evidence
 
-The repository uses automated checks for compilation, procurement calculations, validation, currency and unit integrity, exports, UI contracts, ERP preview controls and Streamlit startup. Build Group A passed the complete regression suite and canonical Streamlit smoke at head `8b113a195e5a742c6bf2fe2785d79390de8ce17a`.
+The repository uses automated checks for compilation, procurement calculations, validation, currency and unit integrity, exports, UI contracts, ERP preview controls and Streamlit startup.
 
-The final v1.2 test count and deployment evidence will be recorded after all approved presentation groups are complete.
+Final v1.2 evidence:
 
-See [Test Evidence](docs/06_TEST_EVIDENCE.md).
+- reviewed implementation head: `6838effb6f47b327419d7801c01c6284514f0cbb`;
+- Quality Checks run #492, run ID `30434354425`: **success**;
+- 226 regression tests passed with 0 failures, 0 errors and 0 skips;
+- canonical Streamlit smoke test passed;
+- final documentation-only release-record head `e61a26eef65ffd7e6bd015ae2168e26a5c42747f`;
+- Quality Checks run #493, run ID `30440102419`: **success**;
+- final merge commit and frozen `main`: `4803b1d72fa8a6509d9d7faf0e9decc677c447be`.
+
+See [Test Evidence](docs/06_TEST_EVIDENCE.md) and [Release Record](docs/09_RELEASE_RECORD.md).
 
 ## Governance and limitations
 
@@ -116,6 +128,7 @@ See [Test Evidence](docs/06_TEST_EVIDENCE.md).
 - Illustrative monetary outputs are not realized savings claims.
 - Synthetic or sanitized data should be used for public demonstration.
 - Production use would require identity, access, security, privacy, logging and operational controls outside this portfolio scope.
+- The hosted application is portfolio evidence, not a live organizational deployment.
 
 See [Governance and Limitations](docs/07_GOVERNANCE_AND_LIMITATIONS.md).
 
@@ -153,8 +166,8 @@ Detailed setup and portability guidance remain in `SETUP_GUIDE.md`, `AI_HANDOFF_
 | v1.0.0 | First stable Portfolio Edition baseline |
 | v1.0.1 | Governed maintenance release |
 | v1.1 | Completed ERP structural foundation and read-only ERP Upload Preview; frozen at `b85cd37aaae709058eb15350d680b18c03da46ba` |
-| v1.2 | Proposed Portfolio Presentation Release; presentation-only scope in draft PR #14 |
+| v1.2 | Completed Portfolio Presentation Release; merged through PR #14 and frozen at `4803b1d72fa8a6509d9d7faf0e9decc677c447be` |
 
 ## Release relationship
 
-v1.2 does not describe v1.1 as incomplete and does not rewrite its history. It adds recruiter-first documentation, public presentation improvements, responsive navigation, visual evidence and release governance on top of the completed frozen v1.1 baseline.
+v1.2 does not describe v1.1 as incomplete and does not rewrite its history. It adds recruiter-first documentation, public presentation improvements, responsive navigation, visual evidence and release governance on top of the completed frozen v1.1 baseline. No further v1.2 changes are authorized unless a separate controlled maintenance action is approved.
