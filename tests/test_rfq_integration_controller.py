@@ -108,14 +108,15 @@ def _fixture_workbook():
     rfq = wb.active
     rfq.title = "RFQ_QUOTES"
     required = _required("RFQQuoteRow")
-    optional = ["FULL_QUANTITY_AVAILABLE", "PAYMENT_TERMS_CODE", "INCOTERMS_CODE", "LEAD_TIME_DAYS", "TECHNICALLY_APPROVED", "RISK_SCORE", "ESG_SCORE", "EXCHANGE_RATE", "EXCHANGE_RATE_DATE"]
+    optional = ["MATERIAL_ID", "FULL_QUANTITY_AVAILABLE", "PAYMENT_TERMS_CODE", "INCOTERMS_CODE", "LEAD_TIME_DAYS", "TECHNICALLY_APPROVED", "RISK_SCORE", "ESG_SCORE", "EXCHANGE_RATE", "EXCHANGE_RATE_DATE"]
     headers = ["RFQ-Number" if field == "RFQ_NUMBER" else field for field in required] + [field for field in optional if field not in required]
     rfq.append(headers)
     for event, supplier, currency in (("EVT-001", "0000100001", "INR"), ("EVT-001", "0000100002", "USD"), ("EVT-002", "0000100003", "INR"), ("EVT-002", "0000100004", "USD")):
         rfq.append([_value("RFQ_NUMBER" if header == "RFQ-Number" else header, supplier, event, currency) for header in headers])
 
     po = wb.create_sheet("PO_HISTORY")
-    po_headers = _required("POHistoryRow")
+    po_required = _required("POHistoryRow")
+    po_headers = po_required + [field for field in ("MATERIAL_ID",) if field not in po_required]
     po.append(po_headers)
     po.append(_history_row(po_headers, material_id="MAT-1", po_number="0045000001", po_date="2026-06-01", source_row_id="PO-CURRENT-MAT-1"))
     po.append(_history_row(po_headers, material_id="MAT-X", po_number="0045000002", po_date="2025-12-01", source_row_id="PO-OUTSIDE-WINDOW"))
