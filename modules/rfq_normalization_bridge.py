@@ -1,5 +1,6 @@
-"""Source-preserving currency and unit normalization for v1.3 canonical RFQ records."""
+"""Source-preserving currency and unit normalization for v1.3 canonical records."""
 from __future__ import annotations
+
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from typing import Any, Mapping
@@ -22,7 +23,14 @@ def _decimal(value: Any) -> Decimal | None:
         return None
 
 
-def normalize_record(values: Mapping[str, Any], *, comparison_currency: str | None, quantity_field: str, uom_field: str, price_field: str) -> NormalizationResult:
+def normalize_record(
+    values: Mapping[str, Any],
+    *,
+    comparison_currency: str | None,
+    quantity_field: str,
+    uom_field: str,
+    price_field: str,
+) -> NormalizationResult:
     blockers: list[str] = []
     provenance: list[str] = []
     quantity = _decimal(values.get(quantity_field))
@@ -35,10 +43,17 @@ def normalize_record(values: Mapping[str, Any], *, comparison_currency: str | No
     factor = Decimal("1")
     fx = Decimal("1")
 
+    if quantity is None or quantity <= 0:
+        blockers.append("SOURCE_QUANTITY_INVALID")
+    if price is None or price < 0:
+        blockers.append("SOURCE_PRICE_INVALID")
+    if price_unit is None or price_unit <= 0:
+        blockers.append("PRICE_UNIT_INVALID")
     if not target_currency:
         blockers.append("COMPARISON_CURRENCY_REQUIRED")
     if not source_currency:
         blockers.append("SOURCE_CURRENCY_REQUIRED")
+
     if source_uom and comparison_uom and source_uom != comparison_uom:
         factor = _decimal(values.get("UOM_CONVERSION_FACTOR")) or Decimal("0")
         if factor <= 0:
@@ -59,8 +74,8 @@ def normalize_record(values: Mapping[str, Any], *, comparison_currency: str | No
     elif source_currency and target_currency:
         provenance.append("SAME_CURRENCY_RATE_1")
 
-    normalized_quantity = quantity * factor if quantity is not None and factor > 0 else None
-    source_unit_price = price / price_unit if price is not None and price_unit and price_unit > 0 else None
+    normalized_quantity = quantity * factor if quantity is not None and quantity > 0 and factor > 0 else None
+    source_unit_price = price / price_unit if price is not None and price >= 0 and price_unit is not None and price_unit > 0 else None
     normalized_unit_price = source_unit_price / factor / fx if source_unit_price is not None and factor > 0 and fx > 0 else None
 
     normalized = {
@@ -77,4 +92,5 @@ def normalize_record(values: Mapping[str, Any], *, comparison_currency: str | No
         "EXCHANGE_RATE_DATE_USED": values.get("EXCHANGE_RATE_DATE"),
         "NORMALIZED_UNIT_PRICE": normalized_unit_price,
     }
-    return NormalizationResult(normalized, "BLOCKED" if blockers else "NORMALIZED", tuple(dict.fromkeys(blockers)), tuple(provenance))
+    unique_blockers = tuple(dict.fromkeys(blockers))
+    return NormalizationResult(normalized, "BLOCKED" if unique_blockers else "NORMALIZED", unique_blockers, tuple(provenance))
