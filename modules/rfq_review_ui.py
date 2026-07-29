@@ -8,10 +8,11 @@ import streamlit as st
 
 from modules.rfq_review_state import ReviewState, warning_disposition
 
-PREVIEW_LABEL = "Governed v1.3 Workbook Review"
+PREVIEW_LABEL = "Governed v1.3 Workbook Review Preview"
 PREVIEW_CAPTION = (
     "Controlled workbook intake, normalization, evidence and provenance review. "
-    "Analytical handoff is available only for confirmed, fully governed Full Sourcing Review workbooks."
+    "Analytical handoff is available only for confirmed, fully governed Full Sourcing Review workbooks. "
+    "This remains human-controlled decision support and is not an autonomous award process, production deployment or live ERP integration."
 )
 
 
