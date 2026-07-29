@@ -34,6 +34,32 @@ _STATUS_LABELS = {
 }
 
 
+class _BusinessStageLabel:
+    """Render a business label while remaining comparable to its technical ID."""
+
+    __slots__ = ("technical", "label")
+
+    def __init__(self, technical: str, label: str) -> None:
+        self.technical = technical
+        self.label = label
+
+    def __str__(self) -> str:
+        return self.label
+
+    def __repr__(self) -> str:
+        return self.label
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, _BusinessStageLabel):
+            return self.technical == other.technical
+        if isinstance(other, str):
+            return other in {self.technical, self.label}
+        return False
+
+    def __hash__(self) -> int:
+        return hash(self.technical)
+
+
 @dataclass(frozen=True)
 class HandoffFieldManifest:
     target_column: str
@@ -126,9 +152,10 @@ class EngineStageResult:
         raise AttributeError("EngineStageResult is immutable.")
 
     @property
-    def stage(self) -> str:
-        """Business-safe stage name for Streamlit and other visible surfaces."""
-        return _STAGE_LABELS.get(self._stage, self._stage.replace("_", " ").title())
+    def stage(self) -> _BusinessStageLabel:
+        """Business-safe rendering with technical-ID comparison compatibility."""
+        label = _STAGE_LABELS.get(self._stage, self._stage.replace("_", " ").title())
+        return _BusinessStageLabel(self._stage, label)
 
     @property
     def technical_stage(self) -> str:
@@ -171,7 +198,7 @@ class EngineStageResult:
         return self._message
 
     @property
-    def __dict__(self) -> dict[str, str]:
+    def __dict__(self) -> dict[str, Any]:
         """Return only user-facing fields when Streamlit builds the audit table."""
         return {
             "Stage": self.stage,
