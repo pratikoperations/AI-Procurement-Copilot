@@ -91,19 +91,59 @@ def test_stage_audit_exposes_only_business_safe_labels():
         "secret-digest",
         ("S1", "S2"),
         "SCORING_TCO_FAILED",
-        "Supplier scoring could not be completed.",
+        "ValueError: raw supplier scoring stack detail",
     )
     row = result.__dict__
     assert row == {
         "Stage": "Supplier scoring and total cost",
         "Status": "Stopped",
         "Suppliers": "S1, S2",
-        "Details": "Supplier scoring could not be completed.",
+        "Details": "Supplier scoring and total cost could not be completed. Review the highlighted inputs and try again.",
     }
-    assert "secret-digest" not in str(row)
-    assert "SCORING_TCO" not in str(row)
-    assert result.stage == "SCORING_TCO"
+    visible = str(row)
+    assert "secret-digest" not in visible
+    assert "SCORING_TCO" not in visible
+    assert "SCORING_TCO_FAILED" not in visible
+    assert "ValueError" not in visible
+    assert "raw supplier scoring stack detail" not in visible
+
+
+def test_visible_failure_properties_are_business_safe_but_internal_evidence_remains_complete():
+    result = EngineStageResult(
+        "SCORING_TCO",
+        "BLOCKED",
+        "secret-digest",
+        ("S1", "S2"),
+        "SCORING_TCO_FAILED",
+        "ValueError: raw supplier scoring stack detail",
+    )
+    visible_banner = f"Governed analytical execution stopped during {result.stage}. {result.message}"
+    assert visible_banner == (
+        "Governed analytical execution stopped during Supplier scoring and total cost. "
+        "Supplier scoring and total cost could not be completed. "
+        "Review the highlighted inputs and try again."
+    )
+    for technical_text in (
+        "SCORING_TCO",
+        "SCORING_TCO_FAILED",
+        "ValueError",
+        "raw supplier scoring stack detail",
+    ):
+        assert technical_text not in visible_banner
+    assert result.technical_stage == "SCORING_TCO"
+    assert result.finding_code == "SCORING_TCO_FAILED"
+    assert result.technical_message == "ValueError: raw supplier scoring stack detail"
     assert result.input_digest == "secret-digest"
+    assert result.supplier_ids == ("S1", "S2")
+
+
+def test_app_failure_banner_uses_only_business_safe_stage_properties():
+    source = Path("app.py").read_text(encoding="utf-8")
+    assert "failed.stage" in source
+    assert "failed.message" in source
+    assert "failed.technical_stage" not in source
+    assert "failed.finding_code" not in source
+    assert "failed.technical_message" not in source
 
 
 def test_common_ranking_fields_show_required_units():
