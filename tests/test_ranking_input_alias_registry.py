@@ -29,6 +29,7 @@ def test_all_ten_ranking_fields_have_narrow_aliases_and_confirmation():
     assert all(aliases[field] for field in fields)
     rules = data["mapping_rules"]
     assert rules["all_non_canonical_ranking_aliases_require_confirmation"] is True
+    assert rules["unlisted_fields_require_exact_canonical_header"] is True
     assert rules["silent_fraction_to_percent_conversion"] is False
     assert rules["percentage_scale"] == "0_TO_100_ONLY"
 
