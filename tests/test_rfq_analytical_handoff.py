@@ -115,50 +115,107 @@ def test_payment_days_required_and_code_alone_is_blocked():
     assert "PAYMENT_DAYS_REQUIRED_FOR_HANDOFF" in result.blockers
 
 
-def _stage_frame():
-    return pd.DataFrame({"Supplier ID": ["S1", "S2"], "Value": [1, 2]})
+def _stage_frame(suppliers=("S1", "S2")):
+    return pd.DataFrame({"Supplier ID": list(suppliers), "Value": range(1, len(suppliers) + 1)})
 
 
-def test_engine_stage_runner_records_all_successes():
+def _passing_stage_functions():
     frame = _stage_frame()
-    functions = {stage: (lambda outputs, stage=stage: outputs["dataframe"] if stage == "SCORING_TCO" else {"stage": stage}) for stage in (
-        "INPUT_VALIDATION", "SCORING_TCO", "SCORED_OUTPUT_VALIDATION", "RECOMMENDATION", "ALLOCATION", "NEGOTIATION"
-    )}
-    result = run_engine_stages(frame, "digest", functions)
+    return {
+        "INPUT_VALIDATION": lambda outputs: {"is_valid": True},
+        "SCORING_TCO": lambda outputs: frame.copy(),
+        "SCORED_OUTPUT_VALIDATION": lambda outputs: {"is_valid": True},
+        "RECOMMENDATION": lambda outputs: {"recommended": {"Supplier ID": "S1"}},
+        "ALLOCATION": lambda outputs: {"allocation_df": frame.copy()},
+        "NEGOTIATION": lambda outputs: {"scenario_df": frame.copy()},
+    }
+
+
+def test_engine_stage_runner_records_all_successes_and_exact_digest():
+    result = run_engine_stages(_stage_frame(), "digest", _passing_stage_functions())
     assert result.completed
     assert all(item.status == "PASSED" for item in result.stages)
     assert all(item.input_digest == "digest" for item in result.stages)
+    assert all(item.supplier_ids == ("S1", "S2") for item in result.stages)
 
 
-def test_engine_stage_failure_blocks_every_later_stage():
-    frame = _stage_frame()
+def _assert_stage_failure(stage):
+    functions = _passing_stage_functions()
+
     def fail(_outputs):
         raise RuntimeError("boom")
-    functions = {
-        "INPUT_VALIDATION": lambda outputs: True,
-        "SCORING_TCO": fail,
-        "SCORED_OUTPUT_VALIDATION": lambda outputs: True,
-        "RECOMMENDATION": lambda outputs: True,
-        "ALLOCATION": lambda outputs: True,
-        "NEGOTIATION": lambda outputs: True,
-    }
-    result = run_engine_stages(frame, "digest", functions)
+
+    functions[stage] = fail
+    result = run_engine_stages(_stage_frame(), "digest", functions)
+    index = [item.stage for item in result.stages].index(stage)
     assert not result.completed
-    assert result.stages[1].status == "BLOCKED"
-    assert all(item.status == "NOT_STARTED" for item in result.stages[2:])
+    assert result.stages[index].status == "BLOCKED"
+    assert result.stages[index].finding_code == f"{stage}_FAILED"
+    assert all(item.status == "NOT_STARTED" for item in result.stages[index + 1:])
+    assert all(item.input_digest == "digest" for item in result.stages)
+    return result
 
 
-def test_engine_stage_supplier_mutation_is_blocked():
-    frame = _stage_frame()
-    mutated = pd.DataFrame({"Supplier ID": ["S1"], "Value": [1]})
-    functions = {
-        "INPUT_VALIDATION": lambda outputs: True,
-        "SCORING_TCO": lambda outputs: mutated,
-        "SCORED_OUTPUT_VALIDATION": lambda outputs: True,
-        "RECOMMENDATION": lambda outputs: True,
-        "ALLOCATION": lambda outputs: True,
-        "NEGOTIATION": lambda outputs: True,
-    }
-    result = run_engine_stages(frame, "digest", functions)
+def test_recommendation_stage_exception_is_contained():
+    _assert_stage_failure("RECOMMENDATION")
+
+
+def test_allocation_stage_exception_is_contained():
+    _assert_stage_failure("ALLOCATION")
+
+
+def test_negotiation_stage_exception_is_contained():
+    _assert_stage_failure("NEGOTIATION")
+
+
+def _assert_nested_supplier_mismatch(stage, payload):
+    functions = _passing_stage_functions()
+    functions[stage] = lambda outputs: payload
+    result = run_engine_stages(_stage_frame(), "digest", functions)
+    index = [item.stage for item in result.stages].index(stage)
     assert not result.completed
-    assert result.stages[1].finding_code == "SCORING_TCO_FAILED"
+    assert result.stages[index].status == "BLOCKED"
+    assert result.stages[index].finding_code == f"{stage}_SUPPLIER_SET_MISMATCH"
+    assert result.stages[index].input_digest == "digest"
+    assert result.stages[index].supplier_ids == ("S1", "S2")
+    assert all(item.status == "NOT_STARTED" for item in result.stages[index + 1:])
+
+
+def test_nested_allocation_dataframe_supplier_removal_is_blocked():
+    _assert_nested_supplier_mismatch(
+        "ALLOCATION",
+        {"allocation_df": _stage_frame(("S1",))},
+    )
+
+
+def test_nested_optimized_allocation_supplier_addition_is_blocked():
+    _assert_nested_supplier_mismatch(
+        "ALLOCATION",
+        {"optimized_allocation": {"allocation_df": _stage_frame(("S1", "S2", "S3"))}},
+    )
+
+
+def test_nested_scenario_dataframe_supplier_removal_is_blocked():
+    _assert_nested_supplier_mismatch(
+        "NEGOTIATION",
+        {"scenario_df": _stage_frame(("S2",))},
+    )
+
+
+def test_valid_nested_supplier_sets_and_supplier_series_pass():
+    functions = _passing_stage_functions()
+    functions["RECOMMENDATION"] = lambda outputs: {
+        "supplier_ids": pd.Series(["S1", "S2"], name="Supplier ID"),
+        "metadata": {"message": "valid"},
+    }
+    functions["ALLOCATION"] = lambda outputs: {
+        "allocation_df": _stage_frame(),
+        "optimized_allocation": {"allocation_df": _stage_frame()},
+    }
+    functions["NEGOTIATION"] = lambda outputs: {
+        "scenario_df": _stage_frame(),
+        "notes": ("no supplier-bearing object here",),
+    }
+    result = run_engine_stages(_stage_frame(), "digest", functions)
+    assert result.completed
+    assert all(item.status == "PASSED" for item in result.stages)
