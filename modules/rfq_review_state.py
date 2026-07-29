@@ -25,6 +25,7 @@ class ReviewState(str, Enum):
     ANALYTICAL_REVIEW_READY = "ANALYTICAL_REVIEW_READY"
     ITEM_SELECTION_REQUIRED = "ITEM_SELECTION_REQUIRED"
     ANALYSIS_INCOMPATIBLE = "ANALYSIS_INCOMPATIBLE"
+    REVIEW_ONLY_COMPLETE = "REVIEW_ONLY_COMPLETE"
     READY_FOR_HANDOFF = "READY_FOR_HANDOFF"
     HANDOFF_CONFIRMED = "HANDOFF_CONFIRMED"
 
@@ -36,34 +37,13 @@ class WarningDisposition(str, Enum):
 
 
 WARNING_DISPOSITIONS: Mapping[str, Mapping[str, WarningDisposition]] = {
-    "SYSTEM_DATE_FALLBACK": {
-        "QUICK_RFQ": WarningDisposition.COMPATIBILITY_BLOCKING,
-        "FULL_SOURCING_REVIEW": WarningDisposition.COMPATIBILITY_BLOCKING,
-    },
-    "FULL_REVIEW_HISTORY_EMPTY": {
-        "QUICK_RFQ": WarningDisposition.DISPLAY_ONLY,
-        "FULL_SOURCING_REVIEW": WarningDisposition.COMPATIBILITY_BLOCKING,
-    },
-    "HISTORY_ROW_OUT_OF_WINDOW": {
-        "QUICK_RFQ": WarningDisposition.DISPLAY_ONLY,
-        "FULL_SOURCING_REVIEW": WarningDisposition.ACKNOWLEDGEMENT_REQUIRED,
-    },
-    "HISTORY_STALE": {
-        "QUICK_RFQ": WarningDisposition.ACKNOWLEDGEMENT_REQUIRED,
-        "FULL_SOURCING_REVIEW": WarningDisposition.ACKNOWLEDGEMENT_REQUIRED,
-    },
-    "HISTORY_NORMALIZATION_INVALID": {
-        "QUICK_RFQ": WarningDisposition.DISPLAY_ONLY,
-        "FULL_SOURCING_REVIEW": WarningDisposition.ACKNOWLEDGEMENT_REQUIRED,
-    },
-    "HISTORICAL_MATCH_AMBIGUOUS": {
-        "QUICK_RFQ": WarningDisposition.ACKNOWLEDGEMENT_REQUIRED,
-        "FULL_SOURCING_REVIEW": WarningDisposition.COMPATIBILITY_BLOCKING,
-    },
-    "ZERO_PRICE_REQUIRES_CLASSIFICATION": {
-        "QUICK_RFQ": WarningDisposition.COMPATIBILITY_BLOCKING,
-        "FULL_SOURCING_REVIEW": WarningDisposition.COMPATIBILITY_BLOCKING,
-    },
+    "SYSTEM_DATE_FALLBACK": {"QUICK_RFQ": WarningDisposition.COMPATIBILITY_BLOCKING, "FULL_SOURCING_REVIEW": WarningDisposition.COMPATIBILITY_BLOCKING},
+    "FULL_REVIEW_HISTORY_EMPTY": {"QUICK_RFQ": WarningDisposition.DISPLAY_ONLY, "FULL_SOURCING_REVIEW": WarningDisposition.COMPATIBILITY_BLOCKING},
+    "HISTORY_ROW_OUT_OF_WINDOW": {"QUICK_RFQ": WarningDisposition.DISPLAY_ONLY, "FULL_SOURCING_REVIEW": WarningDisposition.ACKNOWLEDGEMENT_REQUIRED},
+    "HISTORY_STALE": {"QUICK_RFQ": WarningDisposition.ACKNOWLEDGEMENT_REQUIRED, "FULL_SOURCING_REVIEW": WarningDisposition.ACKNOWLEDGEMENT_REQUIRED},
+    "HISTORY_NORMALIZATION_INVALID": {"QUICK_RFQ": WarningDisposition.DISPLAY_ONLY, "FULL_SOURCING_REVIEW": WarningDisposition.ACKNOWLEDGEMENT_REQUIRED},
+    "HISTORICAL_MATCH_AMBIGUOUS": {"QUICK_RFQ": WarningDisposition.ACKNOWLEDGEMENT_REQUIRED, "FULL_SOURCING_REVIEW": WarningDisposition.COMPATIBILITY_BLOCKING},
+    "ZERO_PRICE_REQUIRES_CLASSIFICATION": {"QUICK_RFQ": WarningDisposition.COMPATIBILITY_BLOCKING, "FULL_SOURCING_REVIEW": WarningDisposition.COMPATIBILITY_BLOCKING},
 }
 
 
@@ -88,17 +68,14 @@ class ReviewIdentity:
 
     @property
     def digest(self) -> str:
-        payload = json.dumps(self.__dict__, sort_keys=True, default=str).encode("utf-8")
-        return sha256(payload).hexdigest()
+        return sha256(json.dumps(self.__dict__, sort_keys=True, default=str).encode("utf-8")).hexdigest()
 
 
 def stable_digest(value: Any) -> str:
-    payload = json.dumps(value, sort_keys=True, default=str).encode("utf-8")
-    return sha256(payload).hexdigest()
+    return sha256(json.dumps(value, sort_keys=True, default=str).encode("utf-8")).hexdigest()
 
 
 def warning_disposition(code: str, mode: str) -> WarningDisposition:
-    """Return a fail-closed warning disposition for the current upload mode."""
     policy = WARNING_DISPOSITIONS.get(code)
     if policy is None:
         return WarningDisposition.COMPATIBILITY_BLOCKING
@@ -106,21 +83,15 @@ def warning_disposition(code: str, mode: str) -> WarningDisposition:
 
 
 def classify_orchestration_state(status: str) -> ReviewState:
-    mapping = {
+    return {
         "BLOCKED": ReviewState.ORCHESTRATION_BLOCKED,
         "INSUFFICIENT_EVIDENCE": ReviewState.INSUFFICIENT_EVIDENCE,
         "ELIGIBLE_WITH_CONDITIONS": ReviewState.CONDITIONAL_REVIEW_REQUIRED,
         "ELIGIBLE_FOR_ANALYSIS": ReviewState.ANALYTICAL_REVIEW_READY,
-    }
-    return mapping.get(status, ReviewState.ORCHESTRATION_BLOCKED)
+    }.get(status, ReviewState.ORCHESTRATION_BLOCKED)
 
 
-def warning_controls(
-    warning_codes: Iterable[str],
-    mode: str,
-    acknowledged_codes: Iterable[str] = (),
-) -> tuple[tuple[str, ...], tuple[str, ...]]:
-    """Return blocking and outstanding-acknowledgement warning codes."""
+def warning_controls(warning_codes: Iterable[str], mode: str, acknowledged_codes: Iterable[str] = ()) -> tuple[tuple[str, ...], tuple[str, ...]]:
     acknowledged = set(acknowledged_codes)
     blocking: list[str] = []
     outstanding: list[str] = []
