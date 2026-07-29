@@ -95,7 +95,7 @@ class AnalyticalHandoffResult:
 
 
 class EngineStageResult:
-    """Immutable stage evidence with a business-safe Streamlit representation."""
+    """Immutable technical evidence with business-safe presentation properties."""
 
     __slots__ = (
         "_stage",
@@ -127,11 +127,22 @@ class EngineStageResult:
 
     @property
     def stage(self) -> str:
+        """Business-safe stage name for Streamlit and other visible surfaces."""
+        return _STAGE_LABELS.get(self._stage, self._stage.replace("_", " ").title())
+
+    @property
+    def technical_stage(self) -> str:
+        """Exact internal stage identifier retained for deterministic audit."""
         return self._stage
 
     @property
     def status(self) -> str:
+        """Exact internal status used by execution control."""
         return self._status
+
+    @property
+    def display_status(self) -> str:
+        return _STATUS_LABELS.get(self._status, self._status.replace("_", " ").title())
 
     @property
     def input_digest(self) -> str:
@@ -146,17 +157,27 @@ class EngineStageResult:
         return self._finding_code
 
     @property
-    def message(self) -> str | None:
+    def message(self) -> str:
+        """Controlled business-facing message with no raw exception detail."""
+        if self._status == "BLOCKED":
+            return f"{self.stage} could not be completed. Review the highlighted inputs and try again."
+        if self._status == "NOT_STARTED":
+            return "Not run because an earlier analytical stage stopped."
+        return "Completed without a blocking issue."
+
+    @property
+    def technical_message(self) -> str | None:
+        """Exact internal exception or diagnostic detail retained for audit."""
         return self._message
 
     @property
     def __dict__(self) -> dict[str, str]:
         """Return only user-facing fields when Streamlit builds the audit table."""
         return {
-            "Stage": _STAGE_LABELS.get(self._stage, self._stage.replace("_", " ").title()),
-            "Status": _STATUS_LABELS.get(self._status, self._status.replace("_", " ").title()),
+            "Stage": self.stage,
+            "Status": self.display_status,
             "Suppliers": ", ".join(self._supplier_ids),
-            "Details": self._message or "Completed without a blocking issue.",
+            "Details": self.message,
         }
 
 
