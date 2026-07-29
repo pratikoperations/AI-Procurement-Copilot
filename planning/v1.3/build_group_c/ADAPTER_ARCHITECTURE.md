@@ -17,7 +17,9 @@ v1.3 XLSX workbook
   -> canonical/alias header mapping
   -> explicit mapping-review evidence
   -> typed RFQ_QUOTES / PO_HISTORY / UPLOAD_METADATA records
-  -> row validity, composite-key, quotation-version and event-selection controls
+  -> row-validity assessment
+  -> latest-valid quotation-version selection
+  -> sourcing-event eligibility
   -> adapter findings and provenance
   -X-> procurement engines until a later controlled integration build
 ```
@@ -27,7 +29,7 @@ v1.3 XLSX workbook
 - `modules/rfq_workbook_adapter.py`
 - `tests/test_rfq_workbook_adapter.py`
 
-The adapter imports and reuses `modules.erp_workbook_loader.load_erp_workbook` before reading rows. Existing extension, size, ZIP package, macro, external-link, connection, query-table and external-data controls therefore remain authoritative.
+The adapter reuses `modules.erp_workbook_loader.load_erp_workbook` before reading rows. Existing extension, size, ZIP package, macro, external-link, connection, query-table and external-data controls remain authoritative.
 
 ## Result model
 
@@ -39,7 +41,7 @@ The adapter imports and reuses `modules.erp_workbook_loader.load_erp_workbook` b
 - source-export SHA-256 when supplied by metadata;
 - available and selected sourcing events;
 - typed RFQ quotation records;
-- typed PO history records;
+- typed PO-history records;
 - upload metadata;
 - mapping-review records;
 - adapter-level findings.
@@ -51,7 +53,10 @@ Each canonical record contains:
 - a separate normalized-values mapping, intentionally empty in Build Group C;
 - immutable row provenance;
 - active quotation-version status;
-- explicit `valid_for_analysis` status.
+- `row_valid`, representing structural and row-level validity;
+- `eligible_for_analysis`, representing whether the record may support valid counts or later recommendation workflows.
+
+`valid_for_analysis` remains a backward-compatible property that returns `eligible_for_analysis`.
 
 ## Mapping behaviour
 
@@ -64,94 +69,78 @@ Each canonical record contains:
 
 No fuzzy matching implementation is included.
 
-## Row validity and eligibility
+## Row validity
 
-Rows remain in the adapter result for audit even when they are unusable. A row is marked `valid_for_analysis = false` when it carries a row-level Fatal or Blocking finding, including:
+A row is structurally valid only when it has no row-level Fatal or Blocking finding and no applicable sheet-level mapping blocker.
 
-- formula rejection in governed fields;
-- missing mandatory values;
-- invalid typed values;
-- non-positive quantity or price-unit values;
-- negative governed prices;
-- invalid row currency format.
+Row-level blockers include:
 
-Sheet-level mapping failures also invalidate affected sheet rows:
+- formulas in governed fields;
+- invalid or missing mandatory values;
+- invalid types;
+- non-positive governed quantities or price units;
+- negative governed commercial values;
+- invalid currency format.
 
-- ambiguous header mapping;
-- duplicate canonical target;
-- missing mandatory header;
-- unconfirmed normalized high-risk mapping.
+Rows remain visible for audit even when `row_valid` is false.
 
-Only records that are both `active` and `valid_for_analysis` can support valid-record totals or the minimum-supplier gate. Blocked, Fatal and superseded records remain visible but contribute no eligibility evidence.
+## Latest-valid quotation-version selection
 
-## Validation behaviour
-
-- Fatal: missing or empty RFQ sheet, missing header/value, unsafe type conversion, contradictory duplicate key, unsupported schema version, multiple metadata rows, invalid event selection or no valid quotation records.
-- Blocking: high-risk mapping confirmation, formula in governed fields, non-positive quantities/price units, negative governed prices, invalid hash/currency/anonymization metadata, unresolved latest-version conflict, insufficient valid supplier count or missing event selection.
-- Warning: duplicate business payloads, optional formula cells and missing PO history in Full Review mode.
-- Information: unknown sheets and unmapped source columns.
-
-## Metadata contract enforcement
-
-When `UPLOAD_METADATA` is present:
-
-- no more than one non-empty metadata row is permitted;
-- `SCHEMA_VERSION` must equal `1.3.0`;
-- `UPLOAD_MODE` must be an approved mode;
-- `SOURCE_FILE_HASH_SHA256` must be 64 hexadecimal characters;
-- `ANONYMIZATION_STATUS` must be an approved value;
-- `BASE_CURRENCY` must be a three-letter uppercase code.
-
-The metadata sheet remains optional for portfolio-mode inference, as defined by the Build Group B contract.
-
-## Composite keys and duplicate equivalence
-
-RFQ duplicate identity uses:
+Quotation versions are grouped by:
 
 ```text
-SOURCING_EVENT_ID + RFQ_NUMBER + RFQ_ITEM + SUPPLIER_ID + QUOTATION_VERSION
+SOURCING_EVENT_ID
++ RFQ_NUMBER
++ RFQ_ITEM
++ SUPPLIER_ID
 ```
 
-PO-history duplicate identity uses:
+The adapter applies row validity before selecting an active version.
 
-```text
-PO_NUMBER + PO_ITEM
-```
+- The unique highest valid integer version becomes active.
+- A later invalid version remains visible but inactive.
+- A valid earlier version remains active when a later version is blocked.
+- If every version is invalid, the supplier contributes no active valid quotation.
+- If the highest valid version is duplicated or otherwise ambiguous, the entire quotation group is ineligible and emits `QUOTATION_VERSION_CONFLICT`.
 
-Duplicate comparison excludes provenance-only fields:
+Superseded and invalid versions never add supplier-count eligibility.
 
-- `SOURCE_ROW_ID`;
-- `SOURCE_FILE_NAME`;
-- `SOURCE_EXTRACTED_AT`.
+## Event eligibility
 
-The same business payload under the same key is a Warning. A conflicting business payload under the same key is Fatal.
+Structural row validity and event eligibility are separate controls.
 
-## Quotation versions
-
-All versions are retained. The unique highest integer version is marked active for each event/RFQ/item/supplier group. Ambiguous highest versions are Blocking. Superseded versions never count as additional valid suppliers.
-
-## Event selection
-
-A workbook may contain multiple sourcing events, but exactly one event must be selected before downstream analysis. Build Group C filters returned RFQ records only after validating that the selected event exists. If the selected event has no valid active quotations, the adapter returns a Fatal finding.
+- A single-event workbook may proceed without an explicit selection.
+- A multi-event workbook with no selection emits `SOURCING_EVENT_SELECTION_REQUIRED`.
+- While that finding is active, all quotation records remain structurally auditable but `eligible_for_analysis` is false.
+- After a valid event is selected, only records for that event are returned and eligible active records may support valid counts.
+- An invalid selection is Fatal.
 
 ## Supplier-count eligibility
 
-The minimum-supplier gate counts unique suppliers only from quotation records that are:
+The minimum-supplier gate counts only records that are:
 
-- within the selected event when selection applies;
-- the active quotation version;
-- `valid_for_analysis`;
-- commercially identifiable through the canonical RFQ item and supplier fields.
+- structurally valid;
+- analysis eligible;
+- the active latest-valid quotation version;
+- within the selected sourcing event when selection is required;
+- associated with a non-null supplier identity.
 
-Two uploaded supplier rows do not satisfy the gate when one row is blocked or Fatal. Three uploaded supplier rows may satisfy the gate when one is blocked and two remain valid.
+Blocked, conflicted, invalid and superseded records do not satisfy the supplier threshold.
+
+## Validation behaviour
+
+- Fatal: missing RFQ sheet/header/value, unsafe type conversion, contradictory duplicate key, invalid event selection or upload mode, empty RFQ data, or no valid quotation records.
+- Blocking: high-risk mapping confirmation, formula in governed fields, non-positive quantities/price units, negative governed prices, unresolved latest-valid version conflict, insufficient valid supplier count, or missing event selection.
+- Warning: duplicate business payload, optional formula cells and missing PO history in Full Review mode.
+- Information: unknown sheets and unmapped source columns.
 
 ## Formula policy
 
-Workbooks are opened with `data_only=False`. Formula cells are detected from cell type and cached values are not used. Governed commercial/key formulas are Blocking; optional descriptive formulas are Warning. When formula or other validation findings leave no valid active quotation records, the workbook or selected event receives a Fatal no-valid-record finding.
+Workbooks are opened with `data_only=False`. Formula cells are detected from cell type and cached values are not used. Governed commercial/key formulas are Blocking; optional descriptive formulas are Warning.
 
 ## Hash policy
 
-- `SOURCE_FILE_HASH_SHA256` is read from workbook metadata and validated when metadata is supplied.
+- `SOURCE_FILE_HASH_SHA256` is read from workbook metadata when supplied and validated as 64 hexadecimal characters.
 - `UPLOAD_FILE_HASH_SHA256` is calculated from the exact uploaded bytes and returned externally in `AdapterResult` and row provenance.
 - The adapter does not write a self-referential upload hash into the workbook.
 
@@ -163,4 +152,5 @@ Workbooks are opened with `data_only=False`. Formula cells are detected from cel
 - no TCO or scoring changes;
 - no persistence or audit database;
 - no SAP API or write-back;
-- no deployment changes.
+- no deployment changes;
+- no Build Group D implementation.
