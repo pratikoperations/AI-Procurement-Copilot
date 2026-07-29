@@ -6,13 +6,16 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 from hashlib import sha256
 import json
-from typing import Any, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 import pandas as pd
 
 from modules.rfq_handoff_models import (
     AnalyticalHandoffManifest,
     AnalyticalHandoffResult,
+    EngineExecutionResult,
+    EngineStageResult,
+    ENGINE_STAGES,
     HANDOFF_CONTRACT_VERSION,
     HANDOFF_DIGEST_VERSION,
     HANDOFF_MANIFEST_VERSION,
@@ -41,6 +44,18 @@ DATAFRAME_COLUMNS = (
     "Comparison UOM", "Quoted Unit Price USD", "MOQ", "Lead Time Days",
     "Payment Terms", "Incoterms", *RANKING_MAPPING.values(),
 )
+ANALYTICAL_ASSUMPTION_KEYS = {
+    "annual_volume", "max_supplier_share", "min_backup_share", "min_risk_score",
+    "min_esg_score", "carrying_cost_rate", "freight_rate", "duty_rate",
+    "insurance_rate", "quality_cost_rate", "target_unit_cost_usd", "category",
+    "commodity", "category_profile", "annual_volume_unit",
+}
+
+
+def filter_analytical_assumptions(values: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Return only assumptions capable of affecting analytical outputs."""
+    source = values or {}
+    return {key: source[key] for key in sorted(ANALYTICAL_ASSUMPTION_KEYS) if key in source}
 
 
 def _decimal(value: Any) -> Decimal | None:
@@ -57,13 +72,11 @@ def _finding(severity: str, code: str, message: str, row: int | None = None, fie
     return Finding(severity, code, message, "E2_ANALYTICAL_HANDOFF", row, field)
 
 
-def _payment_terms(values: Mapping[str, Any]) -> tuple[str | None, str | None]:
+def _payment_terms(values: Mapping[str, Any]) -> tuple[str | None, str | None, str | None]:
     days = values.get("PAYMENT_DAYS")
     if isinstance(days, int) and not isinstance(days, bool) and days >= 0:
-        return ("Immediate" if days == 0 else f"Net {days}"), "PAYMENT_DAYS_TO_DISPLAY"
-    code = str(values.get("PAYMENT_TERMS_CODE") or "").strip().upper()
-    approved = {"IMMEDIATE": "Immediate", "NET30": "Net 30", "NET45": "Net 45", "NET60": "Net 60", "NET90": "Net 90"}
-    return (approved.get(code), "APPROVED_PAYMENT_CODE") if code in approved else (None, None)
+        return ("Immediate" if days == 0 else f"Net {days}"), "PAYMENT_DAYS", "PAYMENT_DAYS_TO_DISPLAY"
+    return None, None, None
 
 
 def _canonical_json(value: Any) -> bytes:
@@ -91,23 +104,19 @@ def build_analytical_handoff(
     approval_digests: Mapping[str, str] | None = None,
 ) -> AnalyticalHandoffResult:
     """Build a canonical USD DataFrame only when every E2 gate passes."""
-    assumptions = dict(analytical_assumptions or {})
-    approval_digests = dict(approval_digests or {})
+    assumptions = filter_analytical_assumptions(analytical_assumptions)
+    approvals = dict(approval_digests or {})
     blockers: list[str] = []
-    warnings: list[str] = []
     findings: list[Finding] = []
     metadata = adapter_result.upload_metadata or {}
     schema_version = str(metadata.get("SCHEMA_VERSION") or "")
     upload_mode = str(adapter_result.mode or metadata.get("UPLOAD_MODE") or "")
-    if schema_version != "1.3.1":
-        blockers.append("V130_ANALYTICAL_HANDOFF_PROHIBITED")
-    if upload_mode != "FULL_SOURCING_REVIEW":
-        blockers.append("FULL_REVIEW_REQUIRED_FOR_ANALYTICAL_HANDOFF")
+    if schema_version != "1.3.1": blockers.append("V130_ANALYTICAL_HANDOFF_PROHIBITED")
+    if upload_mode != "FULL_SOURCING_REVIEW": blockers.append("FULL_REVIEW_REQUIRED_FOR_ANALYTICAL_HANDOFF")
 
     quotes = _selected_quotes(orchestration_result, selected_rfq_number, selected_rfq_item)
     quote_suppliers = [str(item.record.canonical_values.get("SUPPLIER_ID") or "") for item in quotes]
-    if len(quotes) < 2:
-        blockers.append("MINIMUM_ELIGIBLE_SUPPLIER_COUNT_NOT_MET")
+    if len(quotes) < 2: blockers.append("MINIMUM_ELIGIBLE_SUPPLIER_COUNT_NOT_MET")
     if any(not supplier for supplier in quote_suppliers) or len(set(quote_suppliers)) != len(quote_suppliers):
         blockers.append("DUPLICATE_HANDOFF_SUPPLIER")
 
@@ -118,10 +127,7 @@ def build_analytical_handoff(
         and item.rfq_item == str(selected_rfq_item)
         and item.status == "RANKING_REVIEW_COMPLETE"
     }
-    ranking_suppliers = set(eligibility)
-    if set(quote_suppliers) != ranking_suppliers:
-        blockers.append("SUPPLIER_SET_MISMATCH")
-
+    if set(quote_suppliers) != set(eligibility): blockers.append("SUPPLIER_SET_MISMATCH")
     matches = {
         item.supplier_id: item for item in adapter_result.ranking_scope_matches
         if item.rfq_number == str(selected_rfq_number) and item.rfq_item == str(selected_rfq_item)
@@ -131,129 +137,128 @@ def build_analytical_handoff(
         evidence_by_record.setdefault(item.ranking_record_id, {})[item.canonical_field] = item
 
     rows: list[dict[str, Any]] = []
-    supplier_manifests: list[HandoffSupplierManifest] = []
+    manifests: list[HandoffSupplierManifest] = []
     comparison_uoms: set[str] = set()
     for quote in sorted(quotes, key=lambda item: str(item.record.canonical_values.get("SUPPLIER_ID") or "")):
         values = quote.record.canonical_values
         supplier_id = str(values.get("SUPPLIER_ID") or "")
         row_number = quote.record.provenance.source_row_number
         match = matches.get(supplier_id)
+        row_blockers: list[str] = []
         if match is None or not match.eligible or match.reason != "MATCHED" or match.fallback_record_id is not None or not match.ranking_record_id:
-            findings.append(_finding("Blocking", "RANKING_MATCH_NOT_ELIGIBLE", f"Supplier {supplier_id} lacks one eligible direct ranking match.", row_number))
-            blockers.append("RANKING_MATCH_NOT_ELIGIBLE")
-            continue
-        field_results = evidence_by_record.get(match.ranking_record_id, {})
-        if set(field_results) != set(RANKING_MAPPING):
-            blockers.append("RANKING_FIELD_RESULT_MISSING")
-            continue
-        if any(field_results[name].canonical_evidence_status != "VALID" for name in RANKING_MAPPING):
-            blockers.append("RANKING_FIELD_NOT_VALID_FOR_HANDOFF")
-            continue
+            row_blockers.append("RANKING_MATCH_NOT_ELIGIBLE")
+        field_results = {} if match is None or not match.ranking_record_id else evidence_by_record.get(match.ranking_record_id, {})
+        if set(field_results) != set(RANKING_MAPPING): row_blockers.append("RANKING_FIELD_RESULT_MISSING")
+        elif any(field_results[name].canonical_evidence_status != "VALID" for name in RANKING_MAPPING):
+            row_blockers.append("RANKING_FIELD_NOT_VALID_FOR_HANDOFF")
 
         normalized = quote.normalization.normalized_values
-        currency = str(normalized.get("COMPARISON_CURRENCY") or "").upper()
-        if currency != "USD":
-            blockers.append("USD_ANALYTICAL_BASIS_REQUIRED")
+        if str(normalized.get("COMPARISON_CURRENCY") or "").upper() != "USD": row_blockers.append("USD_ANALYTICAL_BASIS_REQUIRED")
         price = _decimal(normalized.get("NORMALIZED_UNIT_PRICE"))
         moq = _decimal(values.get("MINIMUM_ORDER_QUANTITY"))
         lead = values.get("LEAD_TIME_DAYS")
         incoterm = str(values.get("INCOTERMS_CODE") or "").strip().upper()
-        payment, payment_transform = _payment_terms(values)
+        payment, payment_source, payment_transform = _payment_terms(values)
         comparison_uom = str(normalized.get("COMPARISON_UOM") or "").strip()
         comparison_uoms.add(comparison_uom)
-        if price is None or price <= 0:
-            blockers.append("NORMALIZED_USD_PRICE_REQUIRED")
-        if moq is None or moq <= 0:
-            blockers.append("MOQ_REQUIRED_FOR_HANDOFF")
-        if not isinstance(lead, int) or isinstance(lead, bool) or lead < 0:
-            blockers.append("LEAD_TIME_REQUIRED_FOR_HANDOFF")
-        if payment is None:
-            blockers.append("PAYMENT_TERMS_TRANSFORMATION_AMBIGUOUS")
-        if incoterm not in {"DDP", "DAP", "CIF", "FOB", "EXW"}:
-            blockers.append("INCOTERMS_REQUIRED_FOR_HANDOFF")
-        if not comparison_uom:
-            blockers.append("COMPARISON_UOM_MISMATCH")
-        if blockers:
+        if price is None or price <= 0: row_blockers.append("NORMALIZED_USD_PRICE_REQUIRED")
+        if moq is None or moq <= 0: row_blockers.append("MOQ_REQUIRED_FOR_HANDOFF")
+        if not isinstance(lead, int) or isinstance(lead, bool) or lead < 0: row_blockers.append("LEAD_TIME_REQUIRED_FOR_HANDOFF")
+        if payment is None: row_blockers.append("PAYMENT_DAYS_REQUIRED_FOR_HANDOFF")
+        if incoterm not in {"DDP", "DAP", "CIF", "FOB", "EXW"}: row_blockers.append("INCOTERMS_REQUIRED_FOR_HANDOFF")
+        if not comparison_uom: row_blockers.append("COMPARISON_UOM_MISMATCH")
+        if row_blockers:
+            blockers.extend(row_blockers)
+            findings.extend(_finding("Blocking", code, f"Supplier {supplier_id} blocked by {code}.", row_number) for code in row_blockers)
             continue
 
         row = {
-            "Supplier": str(values.get("SUPPLIER_NAME") or ""),
-            "Supplier ID": supplier_id,
+            "Supplier": str(values.get("SUPPLIER_NAME") or ""), "Supplier ID": supplier_id,
             "Sourcing Event ID": str(values.get("SOURCING_EVENT_ID") or ""),
-            "RFQ Number": str(values.get("RFQ_NUMBER") or ""),
-            "RFQ Item": str(values.get("RFQ_ITEM") or ""),
+            "RFQ Number": str(values.get("RFQ_NUMBER") or ""), "RFQ Item": str(values.get("RFQ_ITEM") or ""),
             "Quotation Version": int(values.get("QUOTATION_VERSION")),
             "Quotation Source Row ID": quote.record.provenance.source_row_id,
-            "Ranking Record ID": match.ranking_record_id,
-            "Ranking Input Version": int(match.ranking_input_version or 0),
-            "Ranking Scope": str(match.matched_scope or ""),
-            "Ranking Measurement End": match.measurement_period_end,
-            "Comparison UOM": comparison_uom,
-            "Quoted Unit Price USD": float(price),
-            "MOQ": float(moq),
-            "Lead Time Days": int(lead),
-            "Payment Terms": payment,
-            "Incoterms": incoterm,
+            "Ranking Record ID": match.ranking_record_id, "Ranking Input Version": int(match.ranking_input_version or 0),
+            "Ranking Scope": str(match.matched_scope or ""), "Ranking Measurement End": match.measurement_period_end,
+            "Comparison UOM": comparison_uom, "Quoted Unit Price USD": float(price), "MOQ": float(moq),
+            "Lead Time Days": int(lead), "Payment Terms": payment, "Incoterms": incoterm,
         }
         field_manifest: list[HandoffFieldManifest] = []
         commercial_sources = {
             "Quoted Unit Price USD": ("BUILD_D", "NORMALIZED_UNIT_PRICE", "BUILD_D_NORMALIZATION"),
             "MOQ": ("RFQ_QUOTE", "MINIMUM_ORDER_QUANTITY", "DECIMAL_TO_FLOAT"),
             "Lead Time Days": ("RFQ_QUOTE", "LEAD_TIME_DAYS", None),
-            "Payment Terms": ("RFQ_QUOTE", "PAYMENT_DAYS", payment_transform),
+            "Payment Terms": ("RFQ_QUOTE", payment_source, payment_transform),
             "Incoterms": ("RFQ_QUOTE", "INCOTERMS_CODE", "UPPERCASE_CANONICAL"),
         }
         for target, (domain, source, transform) in commercial_sources.items():
-            field_manifest.append(HandoffFieldManifest(target, str(type(row[target]).__name__), supplier_id, domain, source, quote.record.provenance.source_row_id, None, row[target], None, "CANONICAL_OR_NORMALIZED", transform, True))
+            field_manifest.append(HandoffFieldManifest(target, type(row[target]).__name__, supplier_id, domain, str(source), quote.record.provenance.source_row_id, None, row[target], None, "CANONICAL_OR_NORMALIZED", transform, True))
         for canonical, target in RANKING_MAPPING.items():
             evidence = field_results[canonical]
             row[target] = float(Decimal(str(evidence.canonical_value)))
             field_manifest.append(HandoffFieldManifest(target, "float64", supplier_id, "C2_RANKING", canonical, str(evidence.source_reference.get("source_row_id") or ""), evidence.ranking_record_id, evidence.canonical_value, evidence.canonical_evidence_status, str(evidence.value_origin or ""), "CANONICAL_FIELD_RENAME", True))
         rows.append(row)
-        supplier_manifests.append(HandoffSupplierManifest(
-            supplier_id, row["Supplier"], row["Quotation Source Row ID"], row["Quotation Version"],
-            match.ranking_record_id, int(match.ranking_input_version or 0), str(match.matched_scope or ""),
-            match.measurement_period_end, tuple(field_manifest),
-        ))
+        manifests.append(HandoffSupplierManifest(supplier_id, row["Supplier"], row["Quotation Source Row ID"], row["Quotation Version"], match.ranking_record_id, int(match.ranking_input_version or 0), str(match.matched_scope or ""), match.measurement_period_end, tuple(field_manifest)))
 
-    if len(comparison_uoms) != 1 or "" in comparison_uoms:
-        blockers.append("COMPARISON_UOM_MISMATCH")
+    if len(comparison_uoms) != 1 or "" in comparison_uoms: blockers.append("COMPARISON_UOM_MISMATCH")
     blockers = list(dict.fromkeys(blockers))
     if blockers:
-        findings.extend(_finding("Fatal" if code in {"SUPPLIER_SET_MISMATCH", "DUPLICATE_HANDOFF_SUPPLIER"} else "Blocking", code, f"Analytical handoff blocked by {code}.") for code in blockers)
-        return AnalyticalHandoffResult(False, None, None, None, tuple(blockers), tuple(warnings), tuple(findings))
+        findings.extend(_finding("Fatal" if code in {"SUPPLIER_SET_MISMATCH", "DUPLICATE_HANDOFF_SUPPLIER"} else "Blocking", code, f"Analytical handoff blocked by {code}.") for code in blockers if not any(item.code == code for item in findings))
+        return AnalyticalHandoffResult(False, None, None, None, tuple(blockers), (), tuple(findings))
 
     frame = pd.DataFrame(rows, columns=DATAFRAME_COLUMNS)
-    string_columns = ["Supplier", "Supplier ID", "Sourcing Event ID", "RFQ Number", "RFQ Item", "Quotation Source Row ID", "Ranking Record ID", "Ranking Scope", "Comparison UOM", "Payment Terms", "Incoterms"]
-    for column in string_columns:
+    for column in ["Supplier", "Supplier ID", "Sourcing Event ID", "RFQ Number", "RFQ Item", "Quotation Source Row ID", "Ranking Record ID", "Ranking Scope", "Comparison UOM", "Payment Terms", "Incoterms"]:
         frame[column] = frame[column].astype("string")
-    frame["Quotation Version"] = frame["Quotation Version"].astype("Int64")
-    frame["Ranking Input Version"] = frame["Ranking Input Version"].astype("Int64")
-    frame["Lead Time Days"] = frame["Lead Time Days"].astype("Int64")
+    for column in ["Quotation Version", "Ranking Input Version", "Lead Time Days"]: frame[column] = frame[column].astype("Int64")
     frame["Ranking Measurement End"] = pd.to_datetime(frame["Ranking Measurement End"])
-    numeric = ["Quoted Unit Price USD", "MOQ", *RANKING_MAPPING.values()]
-    for column in numeric:
-        frame[column] = pd.to_numeric(frame[column], errors="raise").astype("float64")
+    for column in ["Quoted Unit Price USD", "MOQ", *RANKING_MAPPING.values()]: frame[column] = pd.to_numeric(frame[column], errors="raise").astype("float64")
     frame = frame.sort_values("Supplier ID", kind="stable").reset_index(drop=True)
     dataframe_digest = sha256(_canonical_json(frame.to_dict(orient="records"))).hexdigest()
-    upload_hash = str(next(iter(adapter_result.rfq_quotes)).provenance.upload_file_hash_sha256) if adapter_result.rfq_quotes else ""
+    first_quote = next(iter(adapter_result.rfq_quotes))
     manifest = AnalyticalHandoffManifest(
-        HANDOFF_MANIFEST_VERSION, HANDOFF_CONTRACT_VERSION, upload_hash, schema_version,
-        str(next(iter(adapter_result.rfq_quotes)).provenance.alias_registry_version) if adapter_result.rfq_quotes else "",
-        upload_mode, selected_sourcing_event_id, selected_rfq_number, selected_rfq_item,
-        evaluation_date, "USD", next(iter(comparison_uoms)), tuple(supplier_manifests),
-        stable_digest(assumptions), stable_digest({"adapter": [getattr(item, "code", "") for item in adapter_result.findings], "orchestration": [getattr(item, "code", "") for item in orchestration_result.conditional_findings], "approvals": approval_digests}),
+        HANDOFF_MANIFEST_VERSION, HANDOFF_CONTRACT_VERSION,
+        str(first_quote.provenance.upload_file_hash_sha256), schema_version,
+        str(first_quote.provenance.alias_registry_version), upload_mode,
+        selected_sourcing_event_id, selected_rfq_number, selected_rfq_item,
+        evaluation_date, "USD", next(iter(comparison_uoms)), tuple(manifests),
+        stable_digest(assumptions),
+        stable_digest({"adapter": [getattr(item, "code", "") for item in adapter_result.findings], "orchestration": [getattr(item, "code", "") for item in orchestration_result.conditional_findings], "approvals": approvals}),
         dataframe_digest,
     )
-    digest_payload = {"digest_version": HANDOFF_DIGEST_VERSION, "manifest": asdict(manifest), "approvals": approval_digests}
-    digest = sha256(_canonical_json(digest_payload)).hexdigest()
-    frame.attrs.update({
-        "governed_handoff": True,
-        "handoff_contract_version": HANDOFF_CONTRACT_VERSION,
-        "handoff_manifest_digest": digest,
-        "analytical_currency": "USD",
-        "selected_rfq_number": selected_rfq_number,
-        "selected_rfq_item": selected_rfq_item,
-    })
+    digest = sha256(_canonical_json({"digest_version": HANDOFF_DIGEST_VERSION, "manifest": asdict(manifest), "approvals": approvals})).hexdigest()
+    frame.attrs.update({"governed_handoff": True, "handoff_contract_version": HANDOFF_CONTRACT_VERSION, "handoff_manifest_digest": digest, "analytical_currency": "USD", "selected_rfq_number": selected_rfq_number, "selected_rfq_item": selected_rfq_item})
     findings.append(_finding("Information", "GOVERNED_ANALYTICAL_HANDOFF_READY", "All machine-verifiable E2 controls passed."))
-    return AnalyticalHandoffResult(True, frame, manifest, digest, (), tuple(warnings), tuple(findings))
+    return AnalyticalHandoffResult(True, frame, manifest, digest, (), (), tuple(findings))
+
+
+def run_engine_stages(
+    dataframe: pd.DataFrame,
+    handoff_digest: str,
+    stage_functions: Mapping[str, Callable[[Mapping[str, Any]], Any]],
+) -> EngineExecutionResult:
+    """Run frozen-engine callables in order and record deterministic fail-closed evidence."""
+    suppliers = tuple(sorted(str(value) for value in dataframe["Supplier ID"].tolist()))
+    outputs: dict[str, Any] = {"dataframe": dataframe}
+    results: list[EngineStageResult] = []
+    blocked = False
+    for stage in ENGINE_STAGES:
+        if blocked:
+            results.append(EngineStageResult(stage, "NOT_STARTED", handoff_digest, suppliers, "UPSTREAM_STAGE_BLOCKED", "A prior stage failed."))
+            continue
+        function = stage_functions.get(stage)
+        if function is None:
+            results.append(EngineStageResult(stage, "BLOCKED", handoff_digest, suppliers, "ENGINE_STAGE_NOT_CONFIGURED", f"No callable configured for {stage}."))
+            blocked = True
+            continue
+        try:
+            value = function(outputs)
+            if isinstance(value, pd.DataFrame) and "Supplier ID" in value.columns:
+                observed = tuple(sorted(str(item) for item in value["Supplier ID"].tolist()))
+                if observed != suppliers:
+                    raise ValueError("Supplier set changed during governed engine execution.")
+            outputs[stage] = value
+            results.append(EngineStageResult(stage, "PASSED", handoff_digest, suppliers))
+        except Exception as exc:
+            results.append(EngineStageResult(stage, "BLOCKED", handoff_digest, suppliers, f"{stage}_FAILED", str(exc)))
+            blocked = True
+    return EngineExecutionResult(not blocked, outputs, tuple(results))
