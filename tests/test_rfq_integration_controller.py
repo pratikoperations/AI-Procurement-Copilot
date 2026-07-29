@@ -83,10 +83,24 @@ def _value(field, supplier="0000100001", event="EVT-001", currency="INR"):
         "FULL_QUANTITY_AVAILABLE": True, "PAYMENT_TERMS_CODE": "NET30", "INCOTERMS_CODE": "DDP",
         "LEAD_TIME_DAYS": 10, "TECHNICALLY_APPROVED": True, "RISK_SCORE": 80, "ESG_SCORE": 75,
         "PO_NUMBER": "0045000001", "PO_ITEM": "00010", "PO_DATE": "2026-06-01", "ORDER_QUANTITY": 1000,
-        "ORDER_UOM": "EA", "NET_PRICE": 800, "NET_ORDER_VALUE": 800000, "PO_STATUS": "COMPLETE",
+        "ORDER_UOM": "EA", "NET_PRICE": 10, "NET_ORDER_VALUE": 10000, "PO_STATUS": "COMPLETE",
         "DELETION_FLAG": False,
     }
     return values.get(field, "SYNTHETIC")
+
+
+def _history_row(headers, *, material_id, po_number, po_date, source_row_id):
+    overrides = {
+        "MATERIAL_ID": material_id,
+        "PO_NUMBER": po_number,
+        "PO_DATE": po_date,
+        "SOURCE_ROW_ID": source_row_id,
+        "SOURCE_EXTRACTED_AT": "2026-07-15T10:00:00",
+        "CURRENCY": "USD",
+        "NET_PRICE": 10,
+        "NET_ORDER_VALUE": 10000,
+    }
+    return [overrides.get(field, _value(field, currency="USD")) for field in headers]
 
 
 def _fixture_workbook():
@@ -101,11 +115,10 @@ def _fixture_workbook():
         rfq.append([_value("RFQ_NUMBER" if header == "RFQ-Number" else header, supplier, event, currency) for header in headers])
 
     po = wb.create_sheet("PO_HISTORY")
-    po_required = _required("POHistoryRow")
-    po_optional = ["EXCHANGE_RATE", "EXCHANGE_RATE_DATE", "COMPARISON_UOM"]
-    po_headers = po_required + [field for field in po_optional if field not in po_required]
+    po_headers = _required("POHistoryRow")
     po.append(po_headers)
-    po.append([_value(field) if field != "SOURCE_EXTRACTED_AT" else "2026-01-01T10:00:00" for field in po_headers])
+    po.append(_history_row(po_headers, material_id="MAT-1", po_number="0045000001", po_date="2026-06-01", source_row_id="PO-CURRENT-MAT-1"))
+    po.append(_history_row(po_headers, material_id="MAT-X", po_number="0045000002", po_date="2025-12-01", source_row_id="PO-OUTSIDE-WINDOW"))
 
     md = wb.create_sheet("UPLOAD_METADATA")
     md_headers = ["UPLOAD_ID", "SCHEMA_VERSION", "UPLOAD_MODE", "SOURCE_SYSTEM", "PURCHASING_ORG", "BASE_CURRENCY", "EXTRACTED_AT", "UPLOAD_CREATED_AT", "RFQ_SOURCE_TRANSACTION", "DATA_CLASSIFICATION", "ANONYMIZATION_STATUS", "SOURCE_FILE_HASH_SHA256", "HISTORY_START_DATE", "HISTORY_END_DATE", "HISTORY_SOURCE_TRANSACTION", "NOTES"]
@@ -129,8 +142,9 @@ def test_full_workbook_flow_is_review_only_and_preserves_mixed_currency():
     third = controller.run_governed_review(payload, filename="fixture.xlsx", confirmed_mappings=confirmed, selected_sourcing_event_id="EVT-001", env=env, session_state=session)
     assert third.review_state is ReviewState.ITEM_SELECTION_REQUIRED
     fourth = controller.run_governed_review(payload, filename="fixture.xlsx", confirmed_mappings=confirmed, selected_sourcing_event_id="EVT-001", selected_rfq_number="0010000001", selected_rfq_item="00010", env=env, session_state=session)
-    if fourth.review_state is ReviewState.CONDITIONAL_REVIEW_REQUIRED:
-        fourth = controller.run_governed_review(payload, filename="fixture.xlsx", confirmed_mappings=confirmed, selected_sourcing_event_id="EVT-001", selected_rfq_number="0010000001", selected_rfq_item="00010", acknowledged_warning_codes=("HISTORY_STALE",), env=env, session_state=session)
+    assert fourth.review_state is ReviewState.CONDITIONAL_REVIEW_REQUIRED
+    assert "HISTORY_ROW_OUT_OF_WINDOW" in fourth.orchestration_result.warnings
+    fourth = controller.run_governed_review(payload, filename="fixture.xlsx", confirmed_mappings=confirmed, selected_sourcing_event_id="EVT-001", selected_rfq_number="0010000001", selected_rfq_item="00010", acknowledged_warning_codes=("HISTORY_ROW_OUT_OF_WINDOW",), env=env, session_state=session)
     assert fourth.review_state is ReviewState.REVIEW_ONLY_COMPLETE
     assert fourth.dataframe is None and not fourth.analysis_handoff_allowed
     currencies = {item.normalization.normalized_values["SOURCE_CURRENCY"] for item in fourth.orchestration_result.enriched_quotes}
