@@ -59,15 +59,17 @@ def test_mode_eligibility_is_per_supplier_item_and_populates_findings():
     match = match_ranking_records((_quote(),), (_record("MG", "MATERIAL_GROUP"),), _evidence("MG"), Finding)[0]
     complete = calculate_mode_eligibility("QUICK_RFQ", (match,), _evidence("MG"), Finding)[0]
     stale_finding = Finding("Blocking", "PERFORMANCE_INPUT_STALE", "stale", "SUPPLIER_RANKING_INPUTS", 2, "QUALITY_PPM")
-    evidence = tuple(
-        replace.validation_findings and replace or CanonicalFieldEvidenceResult(
-            replace.ranking_record_id, replace.supplier_id, replace.canonical_field,
-            replace.canonical_value, "STALE", replace.value_origin, replace.source_reference,
-            (stale_finding,),
-        ) if replace.canonical_field == "QUALITY_PPM" else replace
-        for replace in _evidence("MG")
-    )
-    incomplete = calculate_mode_eligibility("QUICK_RFQ", (match,), evidence, Finding)[0]
+    evidence = []
+    for item in _evidence("MG"):
+        if item.canonical_field == "QUALITY_PPM":
+            evidence.append(CanonicalFieldEvidenceResult(
+                item.ranking_record_id, item.supplier_id, item.canonical_field,
+                item.canonical_value, "STALE", item.value_origin, item.source_reference,
+                (stale_finding,),
+            ))
+        else:
+            evidence.append(item)
+    incomplete = calculate_mode_eligibility("QUICK_RFQ", (match,), tuple(evidence), Finding)[0]
     assert complete.status == "RANKING_REVIEW_COMPLETE"
     assert incomplete.status == "RANKING_EVIDENCE_INVALID"
     assert incomplete.invalid_fields == ("QUALITY_PPM",)
