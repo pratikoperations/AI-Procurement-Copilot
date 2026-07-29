@@ -22,7 +22,7 @@ def test_malformed_route_flag_fails_closed():
 
 
 def test_no_file_returns_no_dataframe():
-    result = controller.run_governed_review(None, env={controller.ROUTE_FLAG: "true"})
+    result = controller.run_governed_review(None, env={controller.ROUTE_FLAG: "true"}, session_state={})
     assert result.review_state is ReviewState.NO_FILE
     assert result.dataframe is None and not result.analysis_handoff_allowed
 
@@ -44,7 +44,7 @@ def test_upload_hash_reset_preserves_same_file_and_clears_changed_file():
 def test_adapter_fatal_cannot_fall_through(monkeypatch):
     fake = SimpleNamespace(findings=(SimpleNamespace(severity="Fatal", code="X"),), mapping_reviews=(), available_sourcing_event_ids=())
     monkeypatch.setattr(controller, "adapt_v13_workbook", lambda *args, **kwargs: fake)
-    result = controller.run_governed_review(b"workbook", filename="x.xlsx", env={controller.ROUTE_FLAG: "true"})
+    result = controller.run_governed_review(b"workbook", filename="x.xlsx", env={controller.ROUTE_FLAG: "true"}, session_state={})
     assert result.review_state is ReviewState.ADAPTER_FATAL and result.dataframe is None
 
 
@@ -55,7 +55,8 @@ def test_insufficient_evidence_never_reaches_compatibility(monkeypatch):
     monkeypatch.setattr(controller, "orchestrate_adapter_result", lambda *args, **kwargs: orchestration)
     called = {"compatibility": False}
     monkeypatch.setattr(controller, "assess_legacy_compatibility", lambda *args, **kwargs: called.update(compatibility=True))
-    result = controller.run_governed_review(b"workbook", filename="x.xlsx", selected_sourcing_event_id="E1", env={controller.ROUTE_FLAG: "true"})
+    state = {controller.SESSION_UPLOAD_HASH_KEY: controller.upload_sha256(b"workbook")}
+    result = controller.run_governed_review(b"workbook", filename="x.xlsx", selected_sourcing_event_id="E1", env={controller.ROUTE_FLAG: "true"}, session_state=state)
     assert result.review_state is ReviewState.INSUFFICIENT_EVIDENCE
     assert result.dataframe is None and not called["compatibility"]
 
@@ -117,16 +118,17 @@ def _fixture_workbook():
 def test_full_workbook_flow_is_review_only_and_preserves_mixed_currency():
     payload = _fixture_workbook()
     env = {controller.ROUTE_FLAG: "true"}
-    first = controller.run_governed_review(payload, filename="fixture.xlsx", env=env)
+    session = {}
+    first = controller.run_governed_review(payload, filename="fixture.xlsx", env=env, session_state=session)
     assert first.review_state is ReviewState.MAPPING_CONFIRMATION_REQUIRED
     confirmed = (("RFQ_QUOTES", "RFQ-Number", "RFQ_NUMBER"),)
-    second = controller.run_governed_review(payload, filename="fixture.xlsx", confirmed_mappings=confirmed, env=env)
+    second = controller.run_governed_review(payload, filename="fixture.xlsx", confirmed_mappings=confirmed, env=env, session_state=session)
     assert second.review_state is ReviewState.EVENT_SELECTION_REQUIRED
-    third = controller.run_governed_review(payload, filename="fixture.xlsx", confirmed_mappings=confirmed, selected_sourcing_event_id="EVT-001", env=env)
+    third = controller.run_governed_review(payload, filename="fixture.xlsx", confirmed_mappings=confirmed, selected_sourcing_event_id="EVT-001", env=env, session_state=session)
     assert third.review_state is ReviewState.ITEM_SELECTION_REQUIRED
-    fourth = controller.run_governed_review(payload, filename="fixture.xlsx", confirmed_mappings=confirmed, selected_sourcing_event_id="EVT-001", selected_rfq_number="0010000001", selected_rfq_item="00010", env=env)
+    fourth = controller.run_governed_review(payload, filename="fixture.xlsx", confirmed_mappings=confirmed, selected_sourcing_event_id="EVT-001", selected_rfq_number="0010000001", selected_rfq_item="00010", env=env, session_state=session)
     if fourth.review_state is ReviewState.CONDITIONAL_REVIEW_REQUIRED:
-        fourth = controller.run_governed_review(payload, filename="fixture.xlsx", confirmed_mappings=confirmed, selected_sourcing_event_id="EVT-001", selected_rfq_number="0010000001", selected_rfq_item="00010", acknowledged_warning_codes=("HISTORY_STALE",), env=env)
+        fourth = controller.run_governed_review(payload, filename="fixture.xlsx", confirmed_mappings=confirmed, selected_sourcing_event_id="EVT-001", selected_rfq_number="0010000001", selected_rfq_item="00010", acknowledged_warning_codes=("HISTORY_STALE",), env=env, session_state=session)
     assert fourth.review_state is ReviewState.REVIEW_ONLY_COMPLETE
     assert fourth.dataframe is None and not fourth.analysis_handoff_allowed
     currencies = {item.normalization.normalized_values["SOURCE_CURRENCY"] for item in fourth.orchestration_result.enriched_quotes}
