@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any, Mapping
 
-
 RANKING_FIELDS = (
     "OTIF_PERCENT", "QUALITY_PPM", "SUPPLIER_AUDIT_SCORE",
     "COMPLAINT_RATE_PERCENT", "CAPACITY_BUFFER_PERCENT",
@@ -82,6 +81,8 @@ class RankingScopeMatch:
     ranking_input_version: int | None
     eligible: bool
     reason: str
+    fallback_record_id: str | None = None
+    blocking_findings: tuple[Any, ...] = ()
 
 
 @dataclass(frozen=True)
