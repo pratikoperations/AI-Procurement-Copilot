@@ -1,4 +1,7 @@
-"""Application integration controller for governed v1.3 review and E2 handoff."""
+"""Application integration controller for governed v1.3 review and E2 handoff.
+
+Review-only compatibility contract: dataframe=None until exact E2 digest confirmation.
+"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -10,7 +13,7 @@ from typing import Any, Iterable, Mapping, MutableMapping
 import pandas as pd
 
 from modules.rfq_analytical_handoff import build_analytical_handoff
-from modules.rfq_handoff_models import AnalyticalHandoffResult, HANDOFF_CONTRACT_VERSION
+from modules.rfq_handoff_models import AnalyticalHandoffResult
 from modules.rfq_legacy_compatibility import CompatibilityResult, assess_legacy_compatibility
 from modules.rfq_orchestration import OrchestrationResult, orchestrate_adapter_result
 from modules.rfq_review_state import ReviewState, classify_orchestration_state, stable_digest, warning_controls
@@ -135,6 +138,7 @@ def run_governed_review(
     env: Mapping[str, str] | None = None,
     session_state: MutableMapping[str, Any] | None = None,
 ) -> ApplicationDataResult:
+    del display_currency_mode
     enabled, route_warning = governed_route_enabled(env)
     if not enabled:
         return stopped_result(ReviewState.ROUTE_DISABLED, "Governed v1.3 route is disabled.", route_warning=route_warning)
@@ -179,14 +183,13 @@ def run_governed_review(
     handoff_flag, handoff_warning = analytical_handoff_enabled(env)
     if not handoff_flag:
         compatibility = assess_legacy_compatibility(orchestration_result, selected_rfq_number=str(selected_rfq_number), selected_rfq_item=str(selected_rfq_item))
-        reason = "Governed review complete. Analytical handoff feature is disabled."
-        if handoff_warning:
-            reason = handoff_warning
+        reason = handoff_warning or "Governed review complete. Analytical handoff feature is disabled."
         return stopped_result(ReviewState.REVIEW_ONLY_COMPLETE, reason, route_warning=handoff_warning, adapter_result=adapter_result, orchestration_result=orchestration_result, compatibility_result=compatibility)
     if blocking:
         compatibility = assess_legacy_compatibility(orchestration_result, selected_rfq_number=str(selected_rfq_number), selected_rfq_item=str(selected_rfq_item))
         return stopped_result(ReviewState.ANALYSIS_INCOMPATIBLE, "Compatibility-blocking warnings remain.", adapter_result=adapter_result, orchestration_result=orchestration_result, compatibility_result=compatibility)
 
+    ranking_confirmations = tuple(ranking_confirmations)
     approvals = {
         "confirmed_mappings": stable_digest(tuple(confirmed_mappings)),
         "ranking_confirmations": stable_digest([item.__dict__ for item in ranking_confirmations]),
