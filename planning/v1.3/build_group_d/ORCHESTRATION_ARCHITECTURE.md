@@ -26,23 +26,27 @@ Precedence: explicit caller date, `UPLOAD_CREATED_AT`, `EXTRACTED_AT`, latest va
 
 Material identity, UOM conversion, FX, Full Review history metadata/window, quotation expiry, and history staleness are governed without inventing business evidence.
 
-History staleness is calculated only from structurally valid, normalized, in-window history rows. History older than 60 days remains visible but is ineligible for historical benchmark evidence.
+History staleness is calculated independently for every structurally valid, normalized, in-window history row. Rows older than 60 days remain visible but are ineligible for benchmark matching. Current rows remain eligible even when stale rows are present.
+
+Excluded, stale, optional, or out-of-window history normalization defects remain visible at row level and do not automatically block current RFQ analysis. Applicable invalid Full Review history disables historical evidence and emits `HISTORY_NORMALIZATION_INVALID`.
 
 ## Deterministic historical matching
 
-The approved hierarchy is:
+The hierarchy is:
 
 1. unique exact `MATERIAL_ID`;
 2. unique exact `MATERIAL_GROUP` plus deterministic normalized description;
 3. approved quote-row to history-row mapping;
 4. explicit manual quote-row/history-row confirmation.
 
-No fuzzy automatic matching is permitted. Every result records match status, method, matched history row and reason. Ambiguous candidate sets receive no historical evidence credit.
+Approved mappings and manual confirmations may resolve ambiguous automatic candidates. Unresolved ambiguity emits `HISTORICAL_MATCH_AMBIGUOUS`, records candidate history row IDs and receives zero historical credit. No fuzzy automatic matching is permitted.
 
 ## Evidence and eligibility
 
 Policy `AIPC-EVIDENCE-COVERAGE-1.3.0` uses eight dimensions and a 70% gate.
 
+- Comparable-price evidence requires normalized unit price greater than zero.
+- Zero price remains structurally permitted but emits `ZERO_PRICE_REQUIRES_CLASSIFICATION` and receives no comparable-price credit.
 - `TECHNICALLY_APPROVED=False` does not earn quality credit.
 - Quality, risk and ESG scores receive credit only when numeric and within 0–100.
 - Commercial charges must be non-zero to count as evidence; governed text terms may count when non-blank.
