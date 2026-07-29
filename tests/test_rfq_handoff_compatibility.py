@@ -1,3 +1,4 @@
+from pathlib import Path
 from types import SimpleNamespace
 
 import pandas as pd
@@ -53,3 +54,19 @@ def test_confirmed_handoff_returns_only_governed_dataframe():
     assert result.dataframe is frame
     assert result.blockers == ()
     assert result.handoff_digest == "abc"
+
+
+def test_review_ui_preserves_normalization_and_evidence_columns():
+    source = Path("modules/rfq_review_ui.py").read_text(encoding="utf-8")
+    for label in ("FX Rate", "FX Date", "Source UOM", "Evidence %", "History Match"):
+        assert f'"{label}"' in source
+
+
+def test_app_preserves_public_navigation_and_claim_safety_structure():
+    source = Path("app.py").read_text(encoding="utf-8")
+    assert 'st.selectbox(\n    "Explore the sourcing workflow"' in source
+    assert "This application supports human procurement review" in source
+    assert "does not claim production deployment" in source
+    assert "sections = [\n" in source
+    assert "render_handoff_confirmation" in source
+    assert "run_engine_stages" in source
