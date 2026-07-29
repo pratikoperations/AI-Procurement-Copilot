@@ -1,4 +1,4 @@
-"""AI Procurement Copilot — Portfolio Edition v1.0.1."""
+"""AI Procurement Copilot — Portfolio Presentation Release v1.2."""
 
 import json
 import streamlit as st
@@ -17,8 +17,7 @@ from modules.dashboard import (
 )
 from modules.decision_engine import generate_decision, generate_executive_narrative
 from modules.executive_outputs import (
-    generate_executive_memo, generate_explainability_panel,
-    generate_interview_talking_points, generate_supplier_email,
+    generate_executive_memo, generate_explainability_panel, generate_supplier_email,
 )
 from modules.exports import (
     build_decision_package_json, build_excel_workbook,
@@ -47,12 +46,24 @@ profile = ensure_category_profile(assumptions.get("category_profile"))
 assumptions["category_profile"] = profile
 assumptions.setdefault("annual_volume_unit", profile.get("unit", "unit"))
 
-st.title(APP_NAME)
-st.subheader(EDITION)
-st.caption("Transparent, category-aware procurement decision intelligence with explicit currency, unit, evidence, and recommendation governance.")
-st.success(f"{BUILD} — export integrity and category-aware communication controls are active.")
+st.title(f"{APP_NAME} v1.2")
+st.subheader("Governed, category-aware procurement decision support for RFQ comparison and sourcing evaluation.")
+st.caption(
+    "Built for procurement managers, category managers and sourcing teams reviewing supplier quotations, "
+    "commercial trade-offs and award readiness."
+)
+status_columns = st.columns(4)
+status_columns[0].info("Portfolio demonstration")
+status_columns[1].info("Read-only operation")
+status_columns[2].info("Validation-gated")
+status_columns[3].info("No live ERP integration")
+st.warning(
+    "This application supports human procurement review. It does not claim production deployment, "
+    "autonomous awards, live ERP integration or realized savings."
+)
+st.caption(f"{EDITION} | {BUILD}")
 
-with st.expander("Selected Category Intelligence", expanded=True):
+with st.expander("Selected Category Intelligence", expanded=False):
     c1, c2, c3 = st.columns(3)
     c1.metric("Category", profile["category"])
     c2.metric("Commodity", profile["selected_commodity"])
@@ -170,7 +181,6 @@ supplier_email = generate_supplier_email(
     eligibility,
 )
 explainability_text = generate_explainability_panel(recommended)
-interview_talking_points = generate_interview_talking_points()
 display_currency = assumptions["display_currency"]
 fx_rate = assumptions["fx_rate"]
 volume = assumptions["annual_volume"]
@@ -206,7 +216,12 @@ with st.expander("Validation Assurance Gate", expanded=True):
     c4.metric("Business Rules", business_rules["status"])
     st.caption(data_confidence["source_label"])
     st.write(data_confidence["explanation"])
-    st.write(f"**Supplied data:** {data_confidence['actual_supplied_data_percentage']}% | **Defaulted:** {data_confidence['defaulted_data_percentage']}% | **Missing critical:** {data_confidence['missing_critical_data_percentage']}% | **Inferred:** {data_confidence['inferred_data_percentage']}%")
+    st.write(
+        f"**Supplied data:** {data_confidence['actual_supplied_data_percentage']}% | "
+        f"**Defaulted:** {data_confidence['defaulted_data_percentage']}% | "
+        f"**Missing critical:** {data_confidence['missing_critical_data_percentage']}% | "
+        f"**Inferred:** {data_confidence['inferred_data_percentage']}%"
+    )
     if business_rules["blocking_issues"]:
         for issue in business_rules["blocking_issues"]:
             st.error(issue)
@@ -227,13 +242,23 @@ with st.expander("Validation Assurance Gate", expanded=True):
 render_executive_dashboard(scored_df, assumptions, confidence)
 st.markdown("---")
 
-tabs = st.tabs([
-    "1. Decision Summary", "2. Cost & Risk", "3. Scenarios & Negotiation",
-    "4. Procurement Intelligence", "5. Supplier Intelligence", "6. Executive Outputs",
-    "7. Downloads", "8. Interview Guide",
-])
+sections = [
+    "1. Decision Summary",
+    "2. Cost and Risk",
+    "3. Scenarios and Negotiation",
+    "4. Procurement Intelligence",
+    "5. Supplier Intelligence",
+    "6. Executive Outputs",
+    "7. Downloads",
+]
+selected_section = st.selectbox(
+    "Explore the sourcing workflow",
+    sections,
+    index=0,
+    help="Choose one section at a time. This compact navigation is designed for desktop and mobile use.",
+)
 
-with tabs[0]:
+if selected_section == sections[0]:
     st.header("Lowest Price vs Best Value Decision")
     if eligibility["final_award_language_allowed"]:
         st.write(decision["message"])
@@ -244,7 +269,7 @@ with tabs[0]:
             st.write(f"- {issue}")
     render_supplier_snapshot(scored_df, assumptions)
 
-with tabs[1]:
+elif selected_section == sections[1]:
     st.subheader(f"{assumptions['category']} — {assumptions['commodity']}")
     render_should_cost_section(should_cost_df, should_cost["target_unit_cost_usd"], assumptions)
     render_tco_breakdown(scored_df, assumptions)
@@ -254,12 +279,12 @@ with tabs[1]:
         else:
             st.write("Risk includes payment terms, incoterms, lead time, MOQ, OTIF, quality, and packaging continuity exposure.")
 
-with tabs[2]:
+elif selected_section == sections[2]:
     render_allocation(allocation_df, assumptions)
     render_scenario_table(scenario_df, assumptions)
     render_negotiation(playbook_text, negotiation_result, assumptions)
 
-with tabs[3]:
+elif selected_section == sections[3]:
     if eligibility["recommendation_allowed"]:
         render_procurement_intelligence(
             intelligence_decision, strategy_result, optimized_allocation,
@@ -270,7 +295,7 @@ with tabs[3]:
         st.error("Procurement award recommendation is blocked until validation issues are corrected.")
         st.text_area("Validation outcome", executive_narrative, height=380)
 
-with tabs[4]:
+elif selected_section == sections[4]:
     if eligibility["status"] != "Eligible":
         st.warning(f"Supplier Intelligence is analytical and provisional. Eligibility status: {eligibility['status']}.")
     render_supplier_intelligence(
@@ -279,7 +304,7 @@ with tabs[4]:
         fx_rate=fx_rate,
     )
 
-with tabs[5]:
+elif selected_section == sections[5]:
     st.header("Executive Sourcing Memo")
     st.text_area("Generated executive sourcing memo", executive_memo, height=520)
     st.header("Supplier Clarification Email")
@@ -288,26 +313,26 @@ with tabs[5]:
     st.write(explainability_text)
     st.caption("Transparent, rule-guided, auditable, procurement-controlled, and not a black-box award decision.")
 
-with tabs[6]:
+else:
     st.header("Download Decision Package")
-    c1, c2, c3 = st.columns(3)
-    c1.download_button("Download Excel Analysis", excel_package, "ai_procurement_copilot_analysis.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    c2.download_button("Download Executive Memo", text_to_bytes(executive_memo), "executive_sourcing_memo.txt", "text/plain")
-    c3.download_button("Download Supplier Email", text_to_bytes(supplier_email), "supplier_clarification_email.txt", "text/plain")
-    c4, c5, c6 = st.columns(3)
-    c4.download_button("Download Supplier Scores Report", dataframe_to_csv_bytes(readable_scores), "supplier_scores_report.csv", "text/csv")
-    c5.download_button("Download Allocation Report", dataframe_to_csv_bytes(readable_allocation), "supplier_allocation_report.csv", "text/csv")
-    c6.download_button("Decision Machine-Readable Audit Data", json_package, "procurement_decision_audit.json", "application/json")
-    c7, c8, c9 = st.columns(3)
-    c7.download_button("Download Supplier Comparison Report", dataframe_to_csv_bytes(readable_comparison), "supplier_comparison_report.csv", "text/csv")
-    c8.download_button("Supplier 360 Machine-Readable Audit Data", supplier_profiles_json, "supplier_360_audit.json", "application/json")
-    c9.download_button("Download Supplier Narrative", text_to_bytes(supplier_narrative), "executive_supplier_narrative.txt", "text/plain")
+    st.subheader("Business-facing outputs")
+    c1, c2 = st.columns(2)
+    c1.download_button("Download Excel Analysis", excel_package, "ai_procurement_copilot_analysis.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
+    c2.download_button("Download Executive Memo", text_to_bytes(executive_memo), "executive_sourcing_memo.txt", "text/plain", use_container_width=True)
+    c3, c4 = st.columns(2)
+    c3.download_button("Download Supplier Email", text_to_bytes(supplier_email), "supplier_clarification_email.txt", "text/plain", use_container_width=True)
+    c4.download_button("Download Supplier Scores Report", dataframe_to_csv_bytes(readable_scores), "supplier_scores_report.csv", "text/csv", use_container_width=True)
+    c5, c6 = st.columns(2)
+    c5.download_button("Download Allocation Report", dataframe_to_csv_bytes(readable_allocation), "supplier_allocation_report.csv", "text/csv", use_container_width=True)
+    c6.download_button("Download Supplier Comparison Report", dataframe_to_csv_bytes(readable_comparison), "supplier_comparison_report.csv", "text/csv", use_container_width=True)
+    c7, _ = st.columns(2)
+    c7.download_button("Download Supplier Narrative", text_to_bytes(supplier_narrative), "executive_supplier_narrative.txt", "text/plain", use_container_width=True)
+
+    st.subheader("Machine-readable audit outputs")
+    c8, c9 = st.columns(2)
+    c8.download_button("Decision Audit Data", json_package, "procurement_decision_audit.json", "application/json", use_container_width=True)
+    c9.download_button("Supplier 360 Audit Data", supplier_profiles_json, "supplier_360_audit.json", "application/json", use_container_width=True)
     st.caption("Business-readable reports are separated from machine-readable audit data.")
 
-with tabs[7]:
-    st.header("Interview Talking Points")
-    st.write(interview_talking_points)
-    st.info("Positioning: category-aware, currency-normalized, evidence-governed procurement decision support with consistent screen and download outputs.")
-
 st.markdown("---")
-st.caption(f"{BUILD} | Application status: {STATUS}")
+st.caption(f"{BUILD} | Application status: {STATUS} | Human procurement review remains mandatory.")
