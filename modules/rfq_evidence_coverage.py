@@ -49,22 +49,18 @@ def _meaningful_charge(value: Any) -> bool:
     return amount is not None and amount != 0
 
 
-def quotation_coverage(
-    values: Mapping[str, Any],
-    normalized: Mapping[str, Any],
-    *,
-    has_history_match: bool,
-) -> EvidenceCoverage:
+def quotation_coverage(values: Mapping[str, Any], normalized: Mapping[str, Any], *, has_history_match: bool) -> EvidenceCoverage:
     quoted = _decimal(values.get("QUOTED_QUANTITY"))
     requested = _decimal(values.get("REQUESTED_QUANTITY"))
+    normalized_price = _decimal(normalized.get("NORMALIZED_UNIT_PRICE"))
     full_quantity = values.get("FULL_QUANTITY_AVAILABLE") is True
-    commercial_text = any(_meaningful_text(values.get(k)) for k in ("INCOTERMS_CODE", "PAYMENT_TERMS_CODE"))
-    commercial_charge = any(_meaningful_charge(values.get(k)) for k in ("FREIGHT_AMOUNT", "PACKING_AMOUNT", "DISCOUNT_AMOUNT"))
+    commercial_text = any(_meaningful_text(values.get(key)) for key in ("INCOTERMS_CODE", "PAYMENT_TERMS_CODE"))
+    commercial_charge = any(_meaningful_charge(values.get(key)) for key in ("FREIGHT_AMOUNT", "PACKING_AMOUNT", "DISCOUNT_AMOUNT"))
     lead_time = _decimal(values.get("LEAD_TIME_DAYS"))
     delivery = (lead_time is not None and lead_time >= 0) or values.get("PROMISED_DELIVERY_DATE") is not None
     quality = values.get("TECHNICALLY_APPROVED") is True or _score_valid(values.get("QUALITY_SCORE"))
-    dims = {
-        "comparable_price": _decimal(normalized.get("NORMALIZED_UNIT_PRICE")) is not None,
+    dimensions = {
+        "comparable_price": normalized_price is not None and normalized_price > 0,
         "quantity_availability": quoted is not None and requested is not None and quoted > 0 and requested > 0 and (full_quantity or quoted >= requested),
         "commercial_terms": commercial_text or commercial_charge,
         "delivery": delivery,
@@ -73,8 +69,8 @@ def quotation_coverage(
         "esg": _score_valid(values.get("ESG_SCORE")),
         "historical_benchmark": bool(has_history_match),
     }
-    coverage = sum(weight for name, weight in WEIGHTS.items() if dims[name])
-    return EvidenceCoverage(POLICY_VERSION, dims, coverage, "PER_QUOTATION")
+    coverage = sum(weight for name, weight in WEIGHTS.items() if dimensions[name])
+    return EvidenceCoverage(POLICY_VERSION, dimensions, coverage, "PER_QUOTATION")
 
 
 def aggregate_item(coverages: Sequence[EvidenceCoverage]) -> EvidenceCoverage:
@@ -84,10 +80,7 @@ def aggregate_item(coverages: Sequence[EvidenceCoverage]) -> EvidenceCoverage:
     return EvidenceCoverage(POLICY_VERSION, minimum.dimension_results, minimum.coverage_percent, "MINIMUM_VALID_SUPPLIER_COVERAGE")
 
 
-def aggregate_event(
-    item_results: Mapping[str, EvidenceCoverage],
-    item_quantities: Mapping[str, Any],
-) -> tuple[Decimal, str]:
+def aggregate_event(item_results: Mapping[str, EvidenceCoverage], item_quantities: Mapping[str, Any]) -> tuple[Decimal, str]:
     if not item_results:
         return Decimal("0"), "NO_ITEMS"
     usable: dict[str, Decimal] = {}
