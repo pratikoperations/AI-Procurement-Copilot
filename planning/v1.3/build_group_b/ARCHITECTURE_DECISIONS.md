@@ -2,7 +2,7 @@
 
 ## ADR-001 — One sourcing event per analysis
 
-**Decision:** One analysis session evaluates one `SOURCING_EVENT_ID`. A workbook may be rejected or require event selection if it contains multiple events.
+**Decision:** One analysis session evaluates one `SOURCING_EVENT_ID`. A workbook may contain multiple events only when the user explicitly selects exactly one `SOURCING_EVENT_ID` before analysis. Cross-event combined analysis is prohibited.
 
 **Reason:** Prevents cross-event supplier, quantity, currency and recommendation contamination.
 
@@ -41,3 +41,23 @@ Description-similarity matching is excluded from automatic use in Build Group B 
 ## ADR-008 — Reference-snapshot scope
 
 **Decision:** Initial snapshot families may include supplier display mapping, material/category mapping, UOM conversion, FX policy, scoring weights, PO history and supplier performance. Only approved immutable snapshots may support governed analysis. Build Group B creates no runtime snapshot store.
+
+## ADR-009 — Hash identity and storage
+
+**Decision:** `SOURCE_FILE_HASH_SHA256` records the original source export hash inside `UPLOAD_METADATA`. `UPLOAD_FILE_HASH_SHA256` is calculated after upload and stored in the external event/audit record, never inside the workbook it hashes.
+
+## ADR-010 — Expired quotations
+
+**Decision:** Expired quotations remain visible as blocked evidence but cannot support active comparison, recommendation language or award-oriented outputs.
+
+## ADR-011 — Formula-cell policy
+
+**Decision:** Formula cells in identity, quantity, price, currency, UOM, date, status, FX and key fields are rejected as Blocking or Fatal depending on whether valid rows remain. Formula cells in optional descriptive fields produce a Warning. Cached formula results are never silently treated as source values.
+
+## ADR-012 — Tax comparability
+
+**Decision:** Tax is excluded from comparable TCO by default. It may be included only when an approved policy classifies it as non-recoverable and comparable.
+
+## ADR-013 — Historical staleness
+
+**Decision:** Historical evidence older than 60 days from the approved evaluation date produces a Warning by default. An approved reference-data policy may override the threshold.
