@@ -2,14 +2,15 @@
 
 ## Scope
 
-Only the authorized 15 files may change. Build C, Build D and all procurement engines remain unchanged.
+Only the authorized 15 files may change. Build B/C, Build D and all procurement engines remain unchanged.
 
 ## Route isolation
 
 - Governed data bypasses legacy fuzzy mapping and legacy currency normalization.
 - Legacy and synthetic routes bypass Build C and Build D.
-- A governed stop state cannot fall through to another route.
-- Scoring is unreachable before `HANDOFF_CONFIRMED`.
+- Governed data always returns no analytical DataFrame.
+- Governed processing stops before validation, scoring, TCO, recommendation, allocation and negotiation.
+- Governed failures cannot fall through to another route.
 
 ## Review governance
 
@@ -18,24 +19,35 @@ Only the authorized 15 files may change. Build C, Build D and all procurement en
 - Warning policy version is `AIPC-COMPATIBILITY-WARNING-DISPOSITION-1.3.0`.
 - Unknown warnings are compatibility blocking.
 - Mapping, event and RFQ-item choices are explicit.
-- Composite identity changes invalidate handoff.
+- Final governed state is `REVIEW_ONLY_COMPLETE`.
 
-## Compatibility
+## Canonical-schema boundary
 
-- Manifest version is `AIPC-LEGACY-COMPATIBILITY-MANIFEST-1.3.0`.
-- Exactly one event and RFQ item, one comparison UOM and at least two eligible suppliers.
-- Supplier name, positive canonical USD price, positive MOQ, non-negative lead time, payment terms and Incoterms are mandatory.
-- Ranking-sensitive existing-engine inputs may not be silently defaulted.
+- `GOVERNED_RANKING_INPUTS_NOT_CANONICAL` is always present in compatibility review.
+- `CanonicalRecord.original_values` and ignored columns are provenance-only.
+- Malformed or populated ignored ranking columns never enter calculations or a DataFrame.
+- Future analytical handoff requires a separately authorized canonical Build B/C schema extension.
 
 ## Currency
 
-- Source currencies may include USD, INR and governed foreign currencies.
-- Source price, currency, FX rate/date and normalized value remain visible.
-- Existing engines receive canonical USD only.
-- Display modes support USD, INR and Both.
-- Both is one result with two presentations.
-- Governed data is not normalized a second time.
-- No non-USD value may be labelled USD.
+- Source currencies may include USD, INR and other governed currencies.
+- Workbook `BASE_CURRENCY` remains the Build D review comparison currency.
+- Source price, source currency, FX rate/date, normalized review value and row provenance remain visible.
+- INR comparison values are never labelled USD.
+- USD, INR and Both remain review/display modes only.
+- Governed data is never normalized a second time.
+
+## Session reset
+
+- A workbook SHA-256 is calculated before adapter replay uses prior selections.
+- A changed hash clears mapping, event, item, warning and former handoff state.
+- Same-file reruns preserve current review choices.
+
+## Validation
+
+- A generated XLSX fixture covers Build C, Build D and Build E with multiple events, item selection, mixed USD/INR quotations, governed FX evidence, mapping confirmation, warning acknowledgement and review-only completion.
+- Adversarial tests prove ignored columns remain provenance-only, INR is not falsely labelled USD, prior workbook decisions do not transfer, and governed processing cannot reach scoring.
+- Full repository tests and Streamlit smoke test pass.
 
 ## Claims and rollback
 
@@ -43,7 +55,3 @@ Only the authorized 15 files may change. Build C, Build D and all procurement en
 - New route is a governed v1.3 workbook-review preview.
 - Environment flag is disabled by default and malformed values fail closed.
 - No deployment, persistence, SAP write-back, tag or release changes.
-
-## Validation
-
-Focused state, controller, compatibility, currency, UI-contract and app-route tests pass; full repository tests and Streamlit smoke test pass.
