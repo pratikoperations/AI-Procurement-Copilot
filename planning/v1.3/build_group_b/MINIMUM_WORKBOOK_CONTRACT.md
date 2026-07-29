@@ -83,3 +83,16 @@ The intake layer must preserve original source values and create separate govern
 ## Compatibility rule
 
 This contract is additive. It does not replace or alter the frozen v1.1 seven-sheet ERP preview or the legacy flat RFQ upload. Legacy removal requires separate authorization after deterministic parity is demonstrated.
+
+## Hash semantics
+
+- `SOURCE_FILE_HASH_SHA256` identifies the original SAP/Fiori/company export before canonical preparation and may be recorded in `UPLOAD_METADATA`.
+- `UPLOAD_FILE_HASH_SHA256` identifies the completed canonical workbook presented to the application. It is calculated during ingestion and stored in the external event/audit record, not inside the workbook being hashed.
+- This separation prevents self-referential workbook hashing.
+
+## Controlled analysis rules
+
+- A workbook may contain more than one `SOURCING_EVENT_ID`, but the user must explicitly select exactly one event before analysis. Cross-event aggregation is prohibited.
+- Expired quotations remain visible as blocked evidence and are excluded from active comparison and recommendation calculations.
+- Tax is excluded from comparable TCO unless an approved policy identifies it as non-recoverable and comparable.
+- Historical data older than 60 days produces a default staleness warning unless an approved policy overrides the threshold.
