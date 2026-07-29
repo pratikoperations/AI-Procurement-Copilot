@@ -5,12 +5,25 @@
 - Evaluation-date precedence is deterministic and recorded.
 - Comparison currency never defaults silently to USD.
 - Currency and UOM normalization preserve source values and expose provenance.
-- Missing FX/UOM evidence blocks normalization.
+- Missing or invalid quantity, price, `PRICE_UNIT`, FX or UOM evidence blocks normalization.
+- Source quantity is positive, source price is non-negative and `PRICE_UNIT` is positive.
 - Expired quotations are visible but ineligible.
-- Full Review history metadata, window, and 60-day staleness are governed.
+- Full Review history metadata and window are governed.
+- History staleness uses only eligible, normalized, in-window rows.
+- Stale history remains visible but receives zero historical benchmark credit.
+- Historical matching follows the deterministic hierarchy: exact material ID, material group plus normalized description, approved mapping, then manual confirmation.
+- Historical match output records method, matched source row, eligibility and reason.
+- No fuzzy historical match is performed.
+- Quality evidence requires `TECHNICALLY_APPROVED=True` or a valid 0–100 quality score.
+- Risk and ESG evidence require numeric 0–100 scores.
 - Evidence weights total 100%; missing evidence receives zero and no partial credit.
-- Item coverage uses the minimum valid supplier; event aggregation discloses its method.
+- Item coverage uses minimum valid supplier coverage.
+- Each RFQ item has one unique positive requested quantity for event weighting.
+- Conflicting item quantities block event eligibility and are independent of supplier row order.
+- Invalid quantities never enter the event-weight denominator.
+- Equal-item fallback is explicitly disclosed when permitted.
 - Eligibility language is analysis-only.
 - Adapter findings are preserved.
-- Focused tests, full regression tests, and Streamlit smoke test pass.
-- No UI, scoring, TCO, recommendation, persistence, SAP, deployment, tag, release, or Build Group E change.
+- Tax remains excluded and no unused tax-policy parameter is exposed.
+- Focused tests, full regression tests and Streamlit smoke test pass.
+- No UI, scoring, TCO, recommendation, persistence, SAP, deployment, tag, release or Build Group E change.
