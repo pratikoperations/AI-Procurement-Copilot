@@ -45,7 +45,7 @@ def _metadata():
     }
 
 
-def _book(alias_otif: bool = False, *, ranking_overrides=None, extra_ranking_property=False):
+def _book(alias_otif: bool = False, *, ranking_overrides=None):
     wb = Workbook(); rfq = wb.active; rfq.title = "RFQ_QUOTES"
     headers = _required("RFQQuoteRow"); rfq.append(headers)
     for supplier in ("0000100001", "0000100002"):
@@ -66,8 +66,6 @@ def _book(alias_otif: bool = False, *, ranking_overrides=None, extra_ranking_pro
         } and value is not None}
         for key, value in (ranking_overrides or {}).items():
             row[key] = deepcopy(value)
-        if extra_ranking_property:
-            row["UNCONTROLLED_SCORE"] = 99
         rows.append(row)
     ranking_headers = list(rows[0])
     if alias_otif:
@@ -107,8 +105,8 @@ def test_noncanonical_ranking_alias_requires_origin_bound_confirmation():
     assert not any(item.code == "RANKING_MAPPING_CONFIRMATION_REQUIRED" and item.field_name == "OTIF_PERCENT" for item in confirmed.findings)
 
 
-def test_runtime_schema_rejects_unknown_ranking_property():
-    result = adapt_v13_workbook(_book(extra_ranking_property=True), filename="schema.xlsx", evaluation_date=date(2026, 8, 1))
+def test_runtime_schema_rejects_invalid_scope_combination():
+    result = adapt_v13_workbook(_book(ranking_overrides={"RANKING_SCOPE": "MATERIAL_GROUP", "PLANT": "1001"}), filename="schema.xlsx", evaluation_date=date(2026, 8, 1))
     assert any(item.code == "RANKING_ROW_SCHEMA_INVALID" for item in result.findings)
     assert all(not record.row_valid for record in result.supplier_ranking_inputs)
 
