@@ -28,6 +28,12 @@ from modules.negotiation import generate_negotiation_playbook, govern_negotiatio
 from modules.negotiation_engine import build_negotiation_intelligence
 from modules.procurement_intelligence_ui import render_procurement_intelligence
 from modules.recommendation import best_value_decision, executive_value_breakdown, recommendation_confidence
+from modules.rfq_integration_controller import run_governed_review
+from modules.rfq_review_state import ReviewState
+from modules.rfq_review_ui import (
+    render_event_selection, render_governed_review, render_item_selection,
+    render_mapping_reviews, render_warning_acknowledgements,
+)
 from modules.risk_intelligence import assess_procurement_risks
 from modules.scenario import run_scenario_table
 from modules.scenario_engine import SCENARIOS, run_intelligence_scenario
@@ -75,17 +81,90 @@ with st.expander("Selected Category Intelligence", expanded=False):
     st.caption(profile["implementation_note"])
 
 uploaded_file = None
+is_governed_route = assumptions["data_source"] == "Governed v1.3 Workbook Review Preview"
 if assumptions["data_source"] == "Upload RFQ CSV/Excel":
     uploaded_file = st.file_uploader("Upload RFQ CSV or Excel file", type=["csv", "xlsx"])
+elif is_governed_route:
+    uploaded_file = st.file_uploader("Upload governed v1.3 workbook", type=["xlsx"])
 
-try:
-    suppliers_df = load_uploaded_rfq(uploaded_file) if uploaded_file is not None else get_demo_data(
-        assumptions["category"], assumptions["commodity"]
+if is_governed_route:
+    confirmed_mappings = tuple(st.session_state.get("governed_v13_confirmed_mappings", ()))
+    selected_event = st.session_state.get("governed_v13_selected_event")
+    selected_number = st.session_state.get("governed_v13_selected_rfq_number")
+    selected_item = st.session_state.get("governed_v13_selected_rfq_item")
+    acknowledged = tuple(st.session_state.get("governed_v13_acknowledged_warnings", ()))
+    handoff_digest = st.session_state.get("governed_v13_handoff_digest")
+
+    governed_result = run_governed_review(
+        uploaded_file,
+        filename=None if uploaded_file is None else uploaded_file.name,
+        selected_sourcing_event_id=selected_event,
+        selected_rfq_number=selected_number,
+        selected_rfq_item=selected_item,
+        confirmed_mappings=confirmed_mappings,
+        acknowledged_warning_codes=acknowledged,
+        comparison_currency="USD",
+        display_currency_mode=assumptions["display_currency"],
+        handoff_confirmation_digest=handoff_digest,
     )
-    suppliers_df = normalize_comparison_basis(suppliers_df, assumptions.get("fx_rate"), "USD")
-except Exception as exc:
-    st.error(f"The RFQ file could not be read or normalized: {exc}")
-    st.stop()
+
+    if governed_result.review_state is ReviewState.MAPPING_CONFIRMATION_REQUIRED and governed_result.adapter_result is not None:
+        render_governed_review(governed_result)
+        selected_mappings = render_mapping_reviews(governed_result.adapter_result)
+        pending_count = sum(1 for item in governed_result.adapter_result.mapping_reviews if item.requires_confirmation)
+        if pending_count and len(selected_mappings) == pending_count and st.button("Apply mapping confirmations"):
+            st.session_state["governed_v13_confirmed_mappings"] = selected_mappings
+            for key in ("governed_v13_selected_event", "governed_v13_selected_rfq_number", "governed_v13_selected_rfq_item", "governed_v13_acknowledged_warnings", "governed_v13_handoff_digest"):
+                st.session_state.pop(key, None)
+            st.rerun()
+        st.stop()
+
+    if governed_result.review_state is ReviewState.EVENT_SELECTION_REQUIRED and governed_result.adapter_result is not None:
+        render_governed_review(governed_result)
+        event = render_event_selection(governed_result.adapter_result)
+        if event and st.button("Apply sourcing-event selection"):
+            st.session_state["governed_v13_selected_event"] = event
+            for key in ("governed_v13_selected_rfq_number", "governed_v13_selected_rfq_item", "governed_v13_acknowledged_warnings", "governed_v13_handoff_digest"):
+                st.session_state.pop(key, None)
+            st.rerun()
+        st.stop()
+
+    if governed_result.review_state is ReviewState.ITEM_SELECTION_REQUIRED and governed_result.orchestration_result is not None:
+        render_governed_review(governed_result)
+        rfq_number, rfq_item = render_item_selection(governed_result.orchestration_result)
+        if rfq_number and rfq_item and st.button("Apply RFQ-item selection"):
+            st.session_state["governed_v13_selected_rfq_number"] = rfq_number
+            st.session_state["governed_v13_selected_rfq_item"] = rfq_item
+            st.session_state.pop("governed_v13_acknowledged_warnings", None)
+            st.session_state.pop("governed_v13_handoff_digest", None)
+            st.rerun()
+        st.stop()
+
+    if governed_result.review_state is ReviewState.CONDITIONAL_REVIEW_REQUIRED and governed_result.orchestration_result is not None and governed_result.adapter_result is not None:
+        render_governed_review(governed_result)
+        warning_codes = render_warning_acknowledgements(governed_result.orchestration_result, governed_result.adapter_result.mode)
+        if warning_codes and st.button("Apply warning acknowledgements"):
+            st.session_state["governed_v13_acknowledged_warnings"] = warning_codes
+            st.session_state.pop("governed_v13_handoff_digest", None)
+            st.rerun()
+        st.stop()
+
+    confirmation_digest = render_governed_review(governed_result)
+    if confirmation_digest:
+        st.session_state["governed_v13_handoff_digest"] = confirmation_digest
+        st.rerun()
+    if governed_result.dataframe is None or not governed_result.analysis_handoff_allowed:
+        st.stop()
+    suppliers_df = governed_result.dataframe
+else:
+    try:
+        suppliers_df = load_uploaded_rfq(uploaded_file) if uploaded_file is not None else get_demo_data(
+            assumptions["category"], assumptions["commodity"]
+        )
+        suppliers_df = normalize_comparison_basis(suppliers_df, assumptions.get("fx_rate"), "USD")
+    except Exception as exc:
+        st.error(f"The RFQ file could not be read or normalized: {exc}")
+        st.stop()
 
 for warning in validate_category_unit(suppliers_df, assumptions["category"], assumptions["commodity"]):
     st.error(warning)
