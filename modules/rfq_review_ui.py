@@ -6,6 +6,7 @@ from typing import Any
 import pandas as pd
 import streamlit as st
 
+from modules.ranking_input_models import RankingMappingConfirmation
 from modules.rfq_review_state import ReviewState, warning_disposition
 
 PREVIEW_LABEL = "Governed v1.3 Workbook Review Preview"
@@ -40,10 +41,10 @@ def render_findings(result: Any) -> None:
 
 
 def render_mapping_reviews(adapter_result: Any) -> tuple[tuple[str, str, str], ...]:
-    pending = [item for item in adapter_result.mapping_reviews if item.requires_confirmation]
+    pending = [item for item in adapter_result.mapping_reviews if item.requires_confirmation and item.sheet != "SUPPLIER_RANKING_INPUTS"]
     if not pending:
         return ()
-    st.subheader("Governed mapping confirmation")
+    st.subheader("Governed quotation mapping confirmation")
     confirmed: list[tuple[str, str, str]] = []
     for item in pending:
         label = f"{item.sheet}: '{item.source_header}' → {item.canonical_field}"
@@ -52,6 +53,38 @@ def render_mapping_reviews(adapter_result: Any) -> tuple[tuple[str, str, str], .
         if checked and item.canonical_field:
             confirmed.append((item.sheet, item.source_header, item.canonical_field))
     return tuple(confirmed)
+
+
+def render_ranking_mapping_confirmations(adapter_result: Any) -> tuple[RankingMappingConfirmation, ...]:
+    """Create one typed confirmation for each alias and observed VALUE_ORIGINS context."""
+    pending = [item for item in adapter_result.mapping_reviews if item.requires_confirmation and item.sheet == "SUPPLIER_RANKING_INPUTS" and item.canonical_field]
+    if not pending:
+        return ()
+    st.subheader("Governed ranking-alias confirmation")
+    confirmations: list[RankingMappingConfirmation] = []
+    for item in pending:
+        origins = sorted({
+            str(record.value_origins.get(item.canonical_field) or "")
+            for record in adapter_result.supplier_ranking_inputs
+            if record.canonical_values.get(item.canonical_field) is not None
+        })
+        origins = [origin for origin in origins if origin]
+        st.write(f"**{item.source_header} → {item.canonical_field}**")
+        st.caption(f"Detected scale: 0_TO_100_ONLY | Required origins: {', '.join(origins) or 'None detected'}")
+        for origin in origins:
+            key = f"ranking-mapping:{item.source_header}:{item.canonical_field}:{origin}"
+            if st.checkbox(f"Confirm {item.canonical_field} for origin {origin}", value=False, key=key):
+                confirmations.append(RankingMappingConfirmation(
+                    upload_hash_sha256=adapter_result.upload_file_hash_sha256,
+                    schema_version=adapter_result.schema_version,
+                    alias_registry_version=adapter_result.alias_registry_version,
+                    sheet="SUPPLIER_RANKING_INPUTS",
+                    source_header=item.source_header,
+                    canonical_field=str(item.canonical_field),
+                    detected_scale="0_TO_100_ONLY",
+                    value_origin=origin,
+                ))
+    return tuple(confirmations)
 
 
 def render_event_selection(adapter_result: Any) -> str | None:
@@ -101,10 +134,15 @@ def render_normalized_preview(orchestration_result: Any) -> None:
             "Supplier Name": values.get("SUPPLIER_NAME"),
             "Source Currency": normalized.get("SOURCE_CURRENCY"),
             "Source Price": normalized.get("SOURCE_PRICE"),
+            "FX Rate": normalized.get("EXCHANGE_RATE_USED"),
+            "FX Date": normalized.get("EXCHANGE_RATE_DATE_USED"),
             "Workbook Comparison Currency": normalized.get("COMPARISON_CURRENCY"),
             "Normalized Review Unit Price": normalized.get("NORMALIZED_UNIT_PRICE"),
+            "Source UOM": normalized.get("SOURCE_UOM"),
             "Comparison UOM": normalized.get("COMPARISON_UOM"),
             "Eligible for review": item.eligible_for_analysis,
+            "Evidence %": None if item.evidence is None else item.evidence.coverage_percent,
+            "History Match": None if item.historical_match is None else item.historical_match.method,
             "Source Row ID": item.record.provenance.source_row_id,
         })
     if rows:
