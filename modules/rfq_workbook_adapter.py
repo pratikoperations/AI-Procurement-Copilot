@@ -1,4 +1,4 @@
-"""Governed adapter for the v1.3 three-sheet procurement workbook."""
+"""Governed adapter for the versioned v1.3 procurement workbook."""
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
@@ -18,6 +18,20 @@ from modules.erp_workbook_loader import (
     WorkbookLoadError,
     load_erp_workbook,
 )
+from modules.ranking_input_contract import RankingContractError, load_contract_bundle
+from modules.ranking_input_matching import (
+    calculate_mode_eligibility,
+    cross_row_findings,
+    match_ranking_records,
+)
+from modules.ranking_input_models import (
+    CanonicalFieldEvidenceResult,
+    CanonicalRankingRecord,
+    RankingMappingConfirmation,
+    RankingModeEligibility,
+    RankingScopeMatch,
+)
+from modules.ranking_input_semantics import generate_evidence_results
 
 CONTRACT_ROOT = Path(__file__).resolve().parents[1] / "planning" / "v1.3" / "build_group_b"
 SCHEMA_PATH = CONTRACT_ROOT / "minimum_workbook_schema_v1.3.0.json"
@@ -45,6 +59,7 @@ SHEET_LEVEL_ROW_BLOCKING_CODES = {
     "HIGH_RISK_MAPPING_CONFIRMATION_REQUIRED", "MANDATORY_HEADER_MISSING",
 }
 VALIDITY_SEVERITIES = {"Fatal", "Blocking"}
+RANKING_SHEET = "SUPPLIER_RANKING_INPUTS"
 
 
 @dataclass(frozen=True)
@@ -112,6 +127,10 @@ class AdapterResult:
     upload_metadata: Mapping[str, Any] | None
     mapping_reviews: tuple[MappingReview, ...]
     findings: tuple[Finding, ...]
+    supplier_ranking_inputs: tuple[CanonicalRankingRecord, ...] = ()
+    ranking_evidence_results: tuple[CanonicalFieldEvidenceResult, ...] = ()
+    ranking_scope_matches: tuple[RankingScopeMatch, ...] = ()
+    ranking_mode_eligibility: tuple[RankingModeEligibility, ...] = ()
 
     @property
     def has_fatal(self) -> bool:
@@ -224,21 +243,31 @@ def _map_headers(
 
 def _schema_type(property_schema: Mapping[str, Any]) -> str | None:
     reference = property_schema.get("$ref")
-    return reference.rsplit("/", 1)[-1] if reference else property_schema.get("type")
+    if reference:
+        return reference.rsplit("/", 1)[-1]
+    kind = property_schema.get("type")
+    if isinstance(kind, list):
+        return next((item for item in kind if item != "null"), None)
+    for option in property_schema.get("anyOf", []):
+        if "$ref" in option:
+            return option["$ref"].rsplit("/", 1)[-1]
+        if option.get("type") != "null":
+            return option.get("type")
+    return kind
 
 
 def _coerce(value: Any, property_schema: Mapping[str, Any]) -> Any:
     if value is None or (isinstance(value, str) and not value.strip()):
         return None
     kind = _schema_type(property_schema)
-    if kind == "string":
+    if kind in {"string", "nonEmptyString", "evidenceStatus", "valueOrigin"}:
         return str(value).strip()
     if kind == "integer":
         number = Decimal(str(value))
         if isinstance(value, bool) or number != number.to_integral_value():
             raise ValueError("must be an integer")
         return int(number)
-    if kind == "number":
+    if kind in {"number", "percent", "score"}:
         if isinstance(value, bool):
             raise ValueError("must be numeric")
         return Decimal(str(value))
@@ -263,6 +292,13 @@ def _coerce(value: Any, property_schema: Mapping[str, Any]) -> Any:
         if isinstance(value, date):
             return datetime.combine(value, datetime.min.time())
         return datetime.fromisoformat(str(value).strip().replace("Z", "+00:00"))
+    if kind == "object":
+        if isinstance(value, Mapping):
+            return dict(value)
+        parsed = json.loads(str(value))
+        if not isinstance(parsed, Mapping):
+            raise ValueError("must be a JSON object")
+        return dict(parsed)
     return value
 
 
@@ -313,7 +349,7 @@ def _parse_sheet(
                 continue
             try:
                 canonical[canonical_name] = _coerce(value, row_schema.get("properties", {}).get(canonical_name, {}))
-            except (ValueError, TypeError, InvalidOperation) as exc:
+            except (ValueError, TypeError, InvalidOperation, json.JSONDecodeError) as exc:
                 severity = "Fatal" if canonical_name in required else "Blocking"
                 findings.append(Finding(severity, "VALUE_TYPE_INVALID", f"Invalid '{canonical_name}': {exc}", sheet, row_number, canonical_name))
                 canonical[canonical_name] = None
@@ -327,6 +363,148 @@ def _parse_sheet(
             canonical_values=canonical,
             normalized_values={},
             provenance=Provenance(filename, sheet, row_number, row_id, source_hash, upload_hash, str(schema.get("version", "unknown")), str(registry.get("registry_version", "unknown"))),
+        ))
+    return records, reviews
+
+
+def _detect_schema_version(workbook: Any) -> str:
+    if "UPLOAD_METADATA" not in workbook.sheetnames:
+        return "1.3.0"
+    rows = workbook["UPLOAD_METADATA"].iter_rows(values_only=True)
+    headers = next(rows, None)
+    first = next(rows, None)
+    if not headers or not first:
+        return "1.3.0"
+    index = {str(value).strip(): position for position, value in enumerate(headers) if value is not None}
+    position = index.get("SCHEMA_VERSION")
+    if position is None or position >= len(first) or first[position] in (None, ""):
+        return "1.3.0"
+    return str(first[position]).strip()
+
+
+def _ranking_alias_index(row_schema: Mapping[str, Any], registry: Mapping[str, Any]) -> dict[str, list[str]]:
+    aliases = registry.get("sheets", {}).get(RANKING_SHEET, {})
+    index: dict[str, list[str]] = {}
+    for canonical in row_schema.get("properties", {}):
+        for label in (canonical, *aliases.get(canonical, [])):
+            index.setdefault(_normalise_header(label), []).append(canonical)
+    return index
+
+
+def _confirmation_valid(
+    confirmations: Sequence[RankingMappingConfirmation],
+    *,
+    upload_hash: str,
+    schema_version: str,
+    alias_version: str,
+    source_header: str,
+    canonical_field: str,
+) -> bool:
+    return any(
+        item.upload_hash_sha256 == upload_hash
+        and item.schema_version == schema_version
+        and item.alias_registry_version == alias_version
+        and item.sheet == RANKING_SHEET
+        and item.source_header == source_header
+        and item.canonical_field == canonical_field
+        and item.detected_scale == "0_TO_100_ONLY"
+        and item.value_origin in {"SOURCE_MAPPED", "USER_CONFIRMED", "DERIVED_FROM_HISTORY", "REFERENCE_ENRICHED"}
+        for item in confirmations
+    )
+
+
+def _parse_ranking_sheet(
+    workbook: Any,
+    filename: str,
+    upload_hash: str,
+    source_hash: str | None,
+    schema: Mapping[str, Any],
+    registry: Mapping[str, Any],
+    confirmations: Sequence[RankingMappingConfirmation],
+    findings: list[Finding],
+) -> tuple[list[CanonicalRankingRecord], list[MappingReview]]:
+    if RANKING_SHEET not in workbook.sheetnames:
+        findings.append(Finding("Blocking", "SUPPLIER_RANKING_INPUTS_SHEET_MISSING", "v1.3.1 workbook has no supplier ranking-input sheet.", RANKING_SHEET))
+        return [], []
+    row_schema = schema["$defs"]["SupplierRankingInputRow"]
+    aliases = registry.get("sheets", {}).get(RANKING_SHEET, {})
+    rejected = {_normalise_header(key): key for key in registry.get("rejected_semantic_aliases", {})}
+    index = _ranking_alias_index(row_schema, registry)
+    rows = workbook[RANKING_SHEET].iter_rows()
+    header_cells = next(rows, None)
+    if not header_cells:
+        findings.append(Finding("Fatal", "RANKING_REQUIRED_HEADER_MISSING", "Ranking sheet has no header row.", RANKING_SHEET))
+        return [], []
+    headers = ["" if cell.value is None else str(cell.value).strip() for cell in header_cells]
+    mapped: dict[int, str] = {}
+    reviews: list[MappingReview] = []
+    used: set[str] = set()
+    for position, source in enumerate(headers):
+        normalized = _normalise_header(source)
+        if normalized in rejected:
+            reviews.append(MappingReview(RANKING_SHEET, source, None, "REJECTED", None, True, "Rejected semantic alias"))
+            findings.append(Finding("Blocking", "RANKING_FIELD_SEMANTICS_UNCONFIRMED", f"Header '{source}' is a rejected semantic alias.", RANKING_SHEET))
+            continue
+        candidates = tuple(dict.fromkeys(index.get(normalized, [])))
+        if len(candidates) > 1:
+            findings.append(Finding("Fatal", "DUPLICATE_RANKING_CANONICAL_TARGET", f"Header '{source}' maps ambiguously.", RANKING_SHEET))
+            reviews.append(MappingReview(RANKING_SHEET, source, None, "AMBIGUOUS", None, True, "Multiple candidates"))
+            continue
+        if not candidates:
+            findings.append(Finding("Information", "UNLISTED_RANKING_HEADER_IGNORED", f"Unlisted ranking header '{source}' is ignored.", RANKING_SHEET))
+            reviews.append(MappingReview(RANKING_SHEET, source, None, "UNMAPPED", None, False, "Exact canonical header required"))
+            continue
+        canonical = candidates[0]
+        if canonical in used:
+            findings.append(Finding("Fatal", "DUPLICATE_RANKING_CANONICAL_TARGET", f"Multiple columns map to '{canonical}'.", RANKING_SHEET, field_name=canonical))
+            reviews.append(MappingReview(RANKING_SHEET, source, canonical, "AMBIGUOUS", None, True, "Duplicate canonical target"))
+            continue
+        is_canonical = source == canonical
+        confirmed = is_canonical or _confirmation_valid(
+            confirmations,
+            upload_hash=upload_hash,
+            schema_version="1.3.1",
+            alias_version="1.3.1",
+            source_header=source,
+            canonical_field=canonical,
+        )
+        needs_confirmation = not is_canonical and not confirmed
+        reviews.append(MappingReview(RANKING_SHEET, source, canonical, "EXACT_CANONICAL" if is_canonical else "APPROVED_ALIAS", None, needs_confirmation, "Every non-canonical ranking alias requires confirmation" if needs_confirmation else None))
+        if needs_confirmation:
+            findings.append(Finding("Blocking", "RANKING_MAPPING_CONFIRMATION_REQUIRED", f"Mapping '{source}' to '{canonical}' requires bound confirmation.", RANKING_SHEET, field_name=canonical))
+        mapped[position] = canonical
+        used.add(canonical)
+    required = set(row_schema.get("required", []))
+    for missing in sorted(required - set(mapped.values())):
+        findings.append(Finding("Fatal", "RANKING_REQUIRED_HEADER_MISSING", f"Mandatory ranking header '{missing}' is not mapped.", RANKING_SHEET, field_name=missing))
+    records: list[CanonicalRankingRecord] = []
+    for row_number, cells in enumerate(rows, start=2):
+        raw_values = [cell.value for cell in cells]
+        if _empty(raw_values):
+            continue
+        canonical: dict[str, Any] = {}
+        for position, value in enumerate(raw_values):
+            field = mapped.get(position)
+            if field is None:
+                continue
+            try:
+                canonical[field] = _coerce(value, row_schema.get("properties", {}).get(field, {}))
+            except (ValueError, TypeError, InvalidOperation, json.JSONDecodeError) as exc:
+                canonical[field] = None
+                findings.append(Finding("Blocking", "RANKING_INPUT_INVALID_TYPE", f"Invalid '{field}': {exc}", RANKING_SHEET, row_number, field))
+        for field in required:
+            if canonical.get(field) is None:
+                findings.append(Finding("Fatal", "RANKING_REQUIRED_HEADER_MISSING", f"Mandatory ranking value '{field}' is missing.", RANKING_SHEET, row_number, field))
+        row_id = str(canonical.get("SOURCE_ROW_ID") or canonical.get("RANKING_INPUT_RECORD_ID") or f"{RANKING_SHEET}:{row_number}")
+        provenance = Provenance(filename, RANKING_SHEET, row_number, row_id, source_hash, upload_hash, "1.3.1", "1.3.1")
+        origins = canonical.get("VALUE_ORIGINS") if isinstance(canonical.get("VALUE_ORIGINS"), Mapping) else {}
+        records.append(CanonicalRankingRecord(
+            canonical_values=canonical,
+            value_origins=dict(origins),
+            source_evidence_status=canonical.get("SOURCE_EVIDENCE_STATUS"),
+            provenance=provenance,
+            row_valid=not any(item.severity in VALIDITY_SEVERITIES and item.sheet == RANKING_SHEET and item.row_number == row_number for item in findings),
+            active=bool(canonical.get("ACTIVE_FLAG", True)),
         ))
     return records, reviews
 
@@ -486,11 +664,13 @@ def adapt_v13_workbook(
     filename: str | None = None,
     selected_sourcing_event_id: str | None = None,
     confirmed_mappings: Iterable[tuple[str, str, str]] = (),
+    ranking_confirmations: Iterable[RankingMappingConfirmation] = (),
+    evaluation_date: date | None = None,
     max_file_size_bytes: int = DEFAULT_MAX_FILE_SIZE_BYTES,
     schema_path: Path = SCHEMA_PATH,
     alias_path: Path = ALIAS_PATH,
 ) -> AdapterResult:
-    """Return typed adapter evidence without invoking downstream engines."""
+    """Return typed adapter and ranking evidence without invoking downstream engines."""
     resolved_filename = _filename(source, filename)
     try:
         load_erp_workbook(source, filename=resolved_filename, max_file_size_bytes=max_file_size_bytes)
@@ -498,29 +678,53 @@ def adapt_v13_workbook(
         raise WorkbookAdapterError(str(exc)) from exc
     payload = _read_bytes(source)
     upload_hash = sha256(payload).hexdigest()
-    schema = _load_contract(schema_path)
-    registry = _load_contract(alias_path)
     findings: list[Finding] = []
     confirmed = set(confirmed_mappings)
     workbook = load_workbook(BytesIO(payload), read_only=True, data_only=False, keep_links=False)
+    ranking_records: list[CanonicalRankingRecord] = []
+    ranking_reviews: list[MappingReview] = []
     try:
-        for unknown in sorted(set(workbook.sheetnames) - set(APPROVED_SHEETS)):
+        version = _detect_schema_version(workbook)
+        if schema_path != SCHEMA_PATH or alias_path != ALIAS_PATH:
+            schema = _load_contract(schema_path)
+            registry = _load_contract(alias_path)
+            approved_sheets = APPROVED_SHEETS
+            core_schema = schema
+        else:
+            try:
+                bundle = load_contract_bundle(version)
+            except RankingContractError as exc:
+                raise WorkbookAdapterError(str(exc)) from exc
+            schema = bundle.schema
+            registry = bundle.alias_registry
+            approved_sheets = bundle.approved_sheets
+            core_schema = bundle.core_schema
+        for unknown in sorted(set(workbook.sheetnames) - set(approved_sheets)):
             findings.append(Finding("Information", "UNKNOWN_SHEET_IGNORED", f"Unknown sheet '{unknown}' is not interpreted.", unknown))
         if "RFQ_QUOTES" not in workbook.sheetnames:
             findings.append(Finding("Fatal", "RFQ_QUOTES_MISSING", "Mandatory sheet 'RFQ_QUOTES' is missing."))
-        metadata_records, metadata_reviews = _parse_sheet(workbook, "UPLOAD_METADATA", resolved_filename, upload_hash, None, schema, registry, confirmed, findings)
-        metadata = _validate_metadata(metadata_records, schema, findings)
+        metadata_records, metadata_reviews = _parse_sheet(workbook, "UPLOAD_METADATA", resolved_filename, upload_hash, None, core_schema, registry, confirmed, findings)
+        metadata = _validate_metadata(metadata_records, core_schema, findings)
+        if version == "1.3.1" and metadata is not None:
+            metadata = dict(metadata)
+            metadata["SCHEMA_VERSION"] = "1.3.1"
+            findings[:] = [item for item in findings if not (item.code == "SCHEMA_VERSION_UNSUPPORTED" and item.field_name == "SCHEMA_VERSION")]
         source_hash = None if metadata is None else metadata.get("SOURCE_FILE_HASH_SHA256")
         inferred_mode = "FULL_SOURCING_REVIEW" if "PO_HISTORY" in workbook.sheetnames else "QUICK_RFQ"
         mode = str((metadata or {}).get("UPLOAD_MODE") or inferred_mode)
-        rfq_records, rfq_reviews = _parse_sheet(workbook, "RFQ_QUOTES", resolved_filename, upload_hash, source_hash, schema, registry, confirmed, findings)
-        po_records, po_reviews = _parse_sheet(workbook, "PO_HISTORY", resolved_filename, upload_hash, source_hash, schema, registry, confirmed, findings)
+        rfq_records, rfq_reviews = _parse_sheet(workbook, "RFQ_QUOTES", resolved_filename, upload_hash, source_hash, core_schema, registry, confirmed, findings)
+        po_records, po_reviews = _parse_sheet(workbook, "PO_HISTORY", resolved_filename, upload_hash, source_hash, core_schema, registry, confirmed, findings)
+        if version == "1.3.1":
+            ranking_records, ranking_reviews = _parse_ranking_sheet(
+                workbook, resolved_filename, upload_hash, source_hash, schema, registry,
+                tuple(ranking_confirmations), findings,
+            )
     finally:
         workbook.close()
     if mode == "FULL_SOURCING_REVIEW" and not po_records:
         findings.append(Finding("Warning", "PO_HISTORY_UNAVAILABLE", "Full review has no valid PO history rows.", "PO_HISTORY"))
     _validate_values([*rfq_records, *po_records], findings)
-    _validate_row_currencies([*rfq_records, *po_records], schema, findings)
+    _validate_row_currencies([*rfq_records, *po_records], core_schema, findings)
     _validate_keys([*rfq_records, *po_records], findings)
     rfq_records = _apply_row_validity(rfq_records, findings)
     po_records = _apply_row_validity(po_records, findings)
@@ -536,10 +740,25 @@ def adapt_v13_workbook(
     rfq_records = _apply_event_eligibility(rfq_records, selected_sourcing_event_id, selection_required)
     _validate_no_valid_rfq(rfq_records, findings, selected_event=selected_sourcing_event_id)
     _validate_supplier_counts(rfq_records, findings)
+    ranking_evidence: tuple[CanonicalFieldEvidenceResult, ...] = ()
+    ranking_matches: tuple[RankingScopeMatch, ...] = ()
+    ranking_eligibility: tuple[RankingModeEligibility, ...] = ()
+    if version == "1.3.1":
+        findings.extend(cross_row_findings(ranking_records, Finding))
+        ranking_evidence = generate_evidence_results(ranking_records, evaluation_date or date.today(), Finding)
+        for item in ranking_evidence:
+            findings.extend(item.validation_findings)
+        ranking_matches = match_ranking_records(rfq_records, ranking_records, ranking_evidence)
+        for match in ranking_matches:
+            if not match.eligible:
+                findings.append(Finding("Blocking", match.reason, f"Ranking evidence is not eligible for supplier '{match.supplier_id}'.", RANKING_SHEET))
+        ranking_eligibility = calculate_mode_eligibility(mode, ranking_matches, ranking_evidence)
+        if ranking_eligibility and all(item.status == "RANKING_REVIEW_COMPLETE" for item in ranking_eligibility):
+            findings.append(Finding("Information", "CANONICAL_RANKING_INPUTS_AVAILABLE_FOR_REVIEW", "Canonical ranking inputs are available for governed review only.", RANKING_SHEET))
     return AdapterResult(
         filename=resolved_filename,
         mode=mode,
-        schema_version=str(schema.get("version", "unknown")),
+        schema_version=version,
         alias_registry_version=str(registry.get("registry_version", "unknown")),
         upload_file_hash_sha256=upload_hash,
         source_file_hash_sha256=source_hash,
@@ -548,6 +767,10 @@ def adapt_v13_workbook(
         rfq_quotes=tuple(rfq_records),
         po_history=tuple(po_records),
         upload_metadata=metadata,
-        mapping_reviews=tuple([*metadata_reviews, *rfq_reviews, *po_reviews]),
+        mapping_reviews=tuple([*metadata_reviews, *rfq_reviews, *po_reviews, *ranking_reviews]),
         findings=tuple(findings),
+        supplier_ranking_inputs=tuple(ranking_records),
+        ranking_evidence_results=ranking_evidence,
+        ranking_scope_matches=ranking_matches,
+        ranking_mode_eligibility=ranking_eligibility,
     )
