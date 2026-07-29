@@ -132,6 +132,7 @@ def run_governed_review(
     display_currency_mode: str = "USD",
     handoff_confirmation_digest: str | None = None,
     env: Mapping[str, str] | None = None,
+    session_state: MutableMapping[str, Any] | None = None,
 ) -> ApplicationDataResult:
     """Run governed intake to a review-only terminal state."""
     del display_currency_mode, handoff_confirmation_digest
@@ -140,6 +141,19 @@ def run_governed_review(
         return stopped_result(ReviewState.ROUTE_DISABLED, "Governed v1.3 route is disabled.", route_warning=route_warning)
     if source is None:
         return stopped_result(ReviewState.NO_FILE, "Upload a governed v1.3 workbook.")
+
+    if session_state is None:
+        try:
+            import streamlit as st
+            session_state = st.session_state
+        except Exception:
+            session_state = None
+    if session_state is not None and reset_session_for_upload(session_state, source):
+        selected_sourcing_event_id = None
+        selected_rfq_number = None
+        selected_rfq_item = None
+        confirmed_mappings = ()
+        acknowledged_warning_codes = ()
 
     approved_history_mappings = approved_history_mappings or {}
     manual_history_confirmations = manual_history_confirmations or set()
