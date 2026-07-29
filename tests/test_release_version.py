@@ -26,3 +26,10 @@ def test_app_docstring_and_display_use_v1_2():
         "Version 1.2 - Portfolio Presentation Release" in item.value
         for item in app.caption
     )
+
+
+def test_sidebar_uses_governed_v1_2_release_metadata():
+    source = Path("modules/sidebar.py").read_text(encoding="utf-8")
+    assert "from modules.config import DEFAULT_FX_RATE, EDITION" in source
+    assert "st.sidebar.caption(EDITION)" in source
+    assert "Portfolio Edition v1.0" not in source
