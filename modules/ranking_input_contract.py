@@ -70,28 +70,32 @@ def _merge_aliases(frozen: Mapping[str, Any], ranking: Mapping[str, Any]) -> dic
     return merged
 
 
+def _frozen_bundle(frozen_schema: Mapping[str, Any], frozen_aliases: Mapping[str, Any]) -> ContractBundle:
+    return ContractBundle(
+        schema_version="1.3.0",
+        alias_registry_version="1.3.0",
+        schema=frozen_schema,
+        core_schema=frozen_schema,
+        alias_registry=frozen_aliases,
+        approved_sheets=("RFQ_QUOTES", "PO_HISTORY", "UPLOAD_METADATA"),
+        row_definitions={
+            "RFQ_QUOTES": "RFQQuoteRow",
+            "PO_HISTORY": "POHistoryRow",
+            "UPLOAD_METADATA": "UploadMetadataRow",
+        },
+        validator=None,
+    )
+
+
 def load_contract_bundle(version: str) -> ContractBundle:
     frozen_schema = _load(V130_SCHEMA)
     frozen_aliases = _load(V130_ALIASES)
     if str(frozen_schema.get("version")) != "1.3.0" or str(frozen_aliases.get("registry_version")) != "1.3.0":
         raise RankingContractError("Frozen v1.3.0 contract versions do not match.")
-    if version == "1.3.0":
-        return ContractBundle(
-            schema_version=version,
-            alias_registry_version=version,
-            schema=frozen_schema,
-            core_schema=frozen_schema,
-            alias_registry=frozen_aliases,
-            approved_sheets=("RFQ_QUOTES", "PO_HISTORY", "UPLOAD_METADATA"),
-            row_definitions={
-                "RFQ_QUOTES": "RFQQuoteRow",
-                "PO_HISTORY": "POHistoryRow",
-                "UPLOAD_METADATA": "UploadMetadataRow",
-            },
-            validator=None,
-        )
     if version != "1.3.1":
-        raise RankingContractError(f"Unsupported schema version '{version}'.")
+        # Preserve the established adapter behavior: unsupported metadata versions
+        # are parsed with the frozen contract and returned as governed findings.
+        return _frozen_bundle(frozen_schema, frozen_aliases)
     schema = _load(V131_SCHEMA)
     ranking_aliases = _load(V131_ALIASES)
     if str(schema.get("version")) != version or str(ranking_aliases.get("registry_version")) != version:
