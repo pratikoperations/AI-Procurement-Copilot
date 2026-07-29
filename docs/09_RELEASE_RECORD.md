@@ -2,11 +2,13 @@
 
 ## Release identity
 
-- Proposed release: **AI Procurement Copilot v1.2 — Portfolio Presentation Release**
+- Release: **AI Procurement Copilot v1.2 — Portfolio Presentation Release**
 - Pull request: PR #14
 - Branch: `release/v1.2-portfolio-presentation`
-- State: draft, open and unmerged
 - Frozen baseline: v1.1 at `b85cd37aaae709058eb15350d680b18c03da46ba`
+- Reviewed implementation head: `6838effb6f47b327419d7801c01c6284514f0cbb`
+- Release-governance status: Build Group D approved; ready-for-review and merge authorized by the repository owner
+- Authoritative hosted application: `https://ai-procurement-copilot-v1-2.streamlit.app/`
 
 ## Release purpose
 
@@ -77,29 +79,29 @@ Quality Checks run 488, run ID `30255807628`, passed dependency installation, Py
 
 The four application-view assets are synthetic illustrative representations based on the implemented interface. They are not presented as direct hosted screenshots.
 
-## Build Group D verification status
+## Build Group D — final verification and approval
 
-Completed:
+Completed and owner-approved:
 
 - final claim-safety audit;
 - README and documentation path review;
 - final changed-file boundary review;
 - confirmation that no procurement-engine or ERP-foundation implementation file was added by Build Groups C or D;
-- confirmation of green automated quality evidence at the approved Build Group C head;
-- proposed v1.2 freeze statement.
-
-Blocked:
-
-- authoritative hosted v1.2 preview verification;
-- direct browser screenshot review;
+- authoritative hosted v1.2 application verification;
+- direct hosted layout and navigation review;
 - mobile validation at approximately 360 px, 390 px and 412 px;
 - tablet and desktop validation;
-- confirmation that hosted views contain no Interview Guide;
-- pixel-level comparison between hosted output and illustrative assets.
+- confirmation that the public hosted application contains no Interview Guide;
+- hosted download and output review;
+- explicit owner approval of Build Group D and the complete v1.2 Portfolio Presentation Release.
 
-No authoritative v1.2 deployment URL was found in the README, PR #14 metadata or discussion, repository search or public search during the audit. The final verification report is recorded in `docs/10_FINAL_VERIFICATION_REPORT.md`.
+Hosted application verified by the repository owner:
 
-**Merge-readiness status: NOT READY.** PR #14 must remain draft and unmerged until the authoritative v1.2 hosted URL is supplied and all outstanding hosted and viewport checks pass.
+`https://ai-procurement-copilot-v1-2.streamlit.app/`
+
+Reviewed implementation head `6838effb6f47b327419d7801c01c6284514f0cbb` passed Quality Checks run 492, run ID `30434354425`, with conclusion `success`. The run passed Python compilation, 226 regression tests and the canonical Streamlit smoke test, with 0 failures, 0 errors, 0 skips and 1 warning.
+
+**Merge-readiness status: APPROVED.** The repository owner explicitly authorized the release-record update, ready-for-review transition and merge of PR #14, subject to a head-SHA guard and green CI for this final documentation-only release-record commit.
 
 ## Explicit exclusions
 
@@ -115,24 +117,25 @@ No authoritative v1.2 deployment URL was found in the README, PR #14 metadata or
 - production-readiness claims;
 - realized-savings claims.
 
-## Required pre-merge gates
+## Pre-merge gate closure
 
-- Full automated test suite green
-- Canonical Streamlit smoke green
-- Hosted v1.2 preview verified
-- Actual mobile screenshots reviewed at 360, 390 and 412 px plus tablet and desktop
-- Public hosted screenshots contain no Interview Guide
-- README and docs pass claim-safety review
-- Final changed-file audit confirms no excluded logic files
-- Owner explicitly authorizes ready-for-review and merge
+- Full automated test suite green: **passed at reviewed implementation head**
+- Canonical Streamlit smoke green: **passed at reviewed implementation head**
+- Hosted v1.2 preview verified: **passed by owner review**
+- Mobile screenshots reviewed at 360, 390 and 412 px plus tablet and desktop: **passed by owner review**
+- Public hosted application contains no Interview Guide: **passed by owner review**
+- README and docs claim-safety review: **passed**
+- Final changed-file audit confirms no excluded logic files: **passed**
+- Owner explicitly authorized ready-for-review and merge: **approved**
+- Final documentation-only release-record head CI: **required before merge**
 
-## Proposed freeze statement
+## Freeze statement
 
 > AI Procurement Copilot v1.2 is a portfolio presentation release built on the frozen v1.1 baseline. It improves executive communication, responsive navigation, documentation and public visual evidence without changing procurement-engine or ERP-foundation logic. The application remains read-only, validation-gated and human-controlled, with no claim of live ERP integration, write-back, autonomous awards, production readiness or realized savings.
 
 ## Known limitations
 
-The system remains a portfolio demonstration. It has not been validated for production security, enterprise scale, live ERP connectivity, live organizational data or realized business outcomes. Final hosted and pixel-level mobile verification remain pending.
+The system remains a governed procurement decision-support portfolio application. It has not been validated for production security, enterprise scale, live ERP connectivity, live organizational data or realized business outcomes. The hosted application is portfolio evidence, not a live organizational deployment.
 
 ## Relationship to v1.1
 
