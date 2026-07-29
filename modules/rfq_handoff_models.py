@@ -3,13 +3,21 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from typing import Any
+from typing import Any, Mapping
 
 import pandas as pd
 
 HANDOFF_CONTRACT_VERSION = "AIPC-E2-HANDOFF-1.3.1"
 HANDOFF_DIGEST_VERSION = "AIPC-E2-HANDOFF-DIGEST-1.3.1"
 HANDOFF_MANIFEST_VERSION = "AIPC-E2-HANDOFF-MANIFEST-1.3.1"
+ENGINE_STAGES = (
+    "INPUT_VALIDATION",
+    "SCORING_TCO",
+    "SCORED_OUTPUT_VALIDATION",
+    "RECOMMENDATION",
+    "ALLOCATION",
+    "NEGOTIATION",
+)
 
 
 @dataclass(frozen=True)
@@ -70,3 +78,20 @@ class AnalyticalHandoffResult:
     blockers: tuple[str, ...]
     warnings: tuple[str, ...]
     findings: tuple[Any, ...]
+
+
+@dataclass(frozen=True)
+class EngineStageResult:
+    stage: str
+    status: str
+    input_digest: str
+    supplier_ids: tuple[str, ...]
+    finding_code: str | None = None
+    message: str | None = None
+
+
+@dataclass(frozen=True)
+class EngineExecutionResult:
+    completed: bool
+    outputs: Mapping[str, Any]
+    stages: tuple[EngineStageResult, ...]
