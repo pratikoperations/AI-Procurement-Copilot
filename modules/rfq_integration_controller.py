@@ -1,6 +1,10 @@
 """Application integration controller for governed v1.3 review and E2 handoff.
 
-Review-only compatibility contract: dataframe=None until exact E2 digest confirmation.
+Review-only compatibility contract:
+dataframe=None
+analysis_handoff_allowed=False
+handoff_confirmed=False
+until exact E2 digest confirmation.
 """
 from __future__ import annotations
 
