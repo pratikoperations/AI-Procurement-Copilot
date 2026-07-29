@@ -10,25 +10,22 @@ from modules.rfq_review_state import ReviewState, warning_disposition
 
 PREVIEW_LABEL = "Governed v1.3 Workbook Review Preview"
 PREVIEW_CAPTION = (
-    "Preview capability for controlled workbook review and human-confirmed analytical handoff. "
-    "This is not a v1.3 application release, production deployment, autonomous award process, "
-    "or live ERP integration."
+    "Review-only capability for controlled workbook intake, normalization, evidence and provenance review. "
+    "Governed workbooks do not enter scoring, TCO, recommendation, allocation or negotiation. "
+    "This is not a v1.3 application release, production deployment, autonomous award process, or live ERP integration."
 )
 
 
 def _finding_rows(result: Any) -> list[dict[str, Any]]:
-    rows: list[dict[str, Any]] = []
-    for finding in result.findings:
-        rows.append({
-            "Severity": getattr(finding, "severity", "Information"),
-            "Code": getattr(finding, "code", "UNKNOWN"),
-            "Message": getattr(finding, "message", str(finding)),
-            "Sheet": getattr(finding, "sheet", None),
-            "Row": getattr(finding, "row_number", None),
-            "Field": getattr(finding, "field_name", None),
-            "Source Row ID": getattr(finding, "source_row_id", None),
-        })
-    return rows
+    return [{
+        "Severity": getattr(finding, "severity", "Information"),
+        "Code": getattr(finding, "code", "UNKNOWN"),
+        "Message": getattr(finding, "message", str(finding)),
+        "Sheet": getattr(finding, "sheet", None),
+        "Row": getattr(finding, "row_number", None),
+        "Field": getattr(finding, "field_name", None),
+        "Source Row ID": getattr(finding, "source_row_id", None),
+    } for finding in result.findings]
 
 
 def render_findings(result: Any) -> None:
@@ -68,19 +65,14 @@ def render_event_selection(adapter_result: Any) -> str | None:
 
 def render_item_selection(orchestration_result: Any) -> tuple[str | None, str | None]:
     keys = sorted({
-        (
-            str(item.record.canonical_values.get("RFQ_NUMBER") or ""),
-            str(item.record.canonical_values.get("RFQ_ITEM") or ""),
-        )
-        for item in orchestration_result.enriched_quotes
-        if item.eligible_for_analysis
+        (str(item.record.canonical_values.get("RFQ_NUMBER") or ""), str(item.record.canonical_values.get("RFQ_ITEM") or ""))
+        for item in orchestration_result.enriched_quotes if item.eligible_for_analysis
     })
     options = ["Select one RFQ item", *[f"{number} | {item}" for number, item in keys]]
     selected = st.selectbox("RFQ item", options, index=0, key="governed_v13_item")
     if selected == options[0]:
         return None, None
-    number, item = selected.split(" | ", 1)
-    return number, item
+    return tuple(selected.split(" | ", 1))
 
 
 def render_warning_acknowledgements(orchestration_result: Any, mode: str) -> tuple[str, ...]:
@@ -111,11 +103,11 @@ def render_normalized_preview(orchestration_result: Any) -> None:
             "Source Price": normalized.get("SOURCE_PRICE"),
             "FX Rate": normalized.get("EXCHANGE_RATE_USED"),
             "FX Date": normalized.get("EXCHANGE_RATE_DATE_USED"),
-            "Canonical Currency": normalized.get("COMPARISON_CURRENCY"),
-            "Canonical Unit Price": normalized.get("NORMALIZED_UNIT_PRICE"),
+            "Workbook Comparison Currency": normalized.get("COMPARISON_CURRENCY"),
+            "Normalized Review Unit Price": normalized.get("NORMALIZED_UNIT_PRICE"),
             "Source UOM": normalized.get("SOURCE_UOM"),
             "Comparison UOM": normalized.get("COMPARISON_UOM"),
-            "Eligible": item.eligible_for_analysis,
+            "Eligible for review": item.eligible_for_analysis,
             "Evidence %": None if item.evidence is None else item.evidence.coverage_percent,
             "History Match": None if item.historical_match is None else item.historical_match.method,
             "Source Row ID": item.record.provenance.source_row_id,
@@ -128,17 +120,18 @@ def render_compatibility(result: Any) -> None:
     compatibility = result.compatibility_result
     if compatibility is None:
         return
-    st.subheader("Legacy analytical compatibility")
-    if compatibility.blockers:
-        for blocker in compatibility.blockers:
-            st.error(blocker)
+    st.subheader("Future analytical compatibility")
+    st.error(
+        "GOVERNED_RANKING_INPUTS_NOT_CANONICAL — frozen-engine ranking inputs require a future canonical Build B/C contract extension."
+    )
+    for blocker in compatibility.blockers:
+        st.error(blocker)
     manifest = pd.DataFrame([item.__dict__ for item in compatibility.manifest])
     if not manifest.empty:
         st.dataframe(manifest, use_container_width=True)
 
 
-def render_governed_review(result: Any) -> str | None:
-    """Render a completed controller result and return a confirmation digest if selected."""
+def render_governed_review(result: Any) -> None:
     st.header(PREVIEW_LABEL)
     st.caption(PREVIEW_CAPTION)
     st.write(f"**Review state:** {result.review_state.value}")
@@ -155,12 +148,5 @@ def render_governed_review(result: Any) -> str | None:
         st.caption(f"Aggregation: {result.orchestration_result.event_aggregation_method}")
         render_normalized_preview(result.orchestration_result)
     render_compatibility(result)
-    if result.review_state is ReviewState.READY_FOR_HANDOFF and result.review_identity is not None:
-        accepted = st.checkbox(
-            "I reviewed the mappings, sourcing event, RFQ item, findings, source and normalized currency values, evidence limitations, and compatibility manifest. Use this exact reviewed dataset for analytical processing.",
-            value=False,
-            key=f"handoff:{result.review_identity.digest}",
-        )
-        if accepted:
-            return result.review_identity.digest
-    return None
+    if result.review_state is ReviewState.REVIEW_ONLY_COMPLETE:
+        st.info("Governed review is complete. Analytical handoff is intentionally disabled.")
