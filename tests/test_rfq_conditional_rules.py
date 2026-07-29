@@ -1,20 +1,11 @@
 from datetime import date, datetime
 from types import SimpleNamespace
 
-from modules.rfq_conditional_rules import (
-    evaluate_conditional_rules,
-    evaluate_history_staleness,
-    resolve_evaluation_date,
-)
+from modules.rfq_conditional_rules import evaluate_conditional_rules, evaluate_history_staleness, resolve_evaluation_date
 
 
 def rec(row_id, values, eligible=True):
-    return SimpleNamespace(
-        canonical_values=values,
-        provenance=SimpleNamespace(source_row_id=row_id),
-        eligible_for_analysis=eligible,
-        row_valid=eligible,
-    )
+    return SimpleNamespace(canonical_values=values, provenance=SimpleNamespace(source_row_id=row_id), eligible_for_analysis=eligible, row_valid=eligible)
 
 
 def result(mode="QUICK_RFQ", metadata=None, quotes=(), history=()):
@@ -47,9 +38,7 @@ def test_material_id_requires_approval():
     quote = rec("Q1", {"VALIDITY_END_DATE": date(2026, 8, 1)})
     flags, _, _ = evaluate_conditional_rules(result(quotes=(quote,)), date(2026, 7, 29))
     assert not flags["Q1"]
-    flags, _, _ = evaluate_conditional_rules(
-        result(quotes=(quote,)), date(2026, 7, 29), approved_free_text_row_ids={"Q1"}
-    )
+    flags, _, _ = evaluate_conditional_rules(result(quotes=(quote,)), date(2026, 7, 29), approved_free_text_row_ids={"Q1"})
     assert flags["Q1"]
 
 
@@ -60,15 +49,7 @@ def test_full_review_requires_metadata():
 
 def test_out_of_window_history_is_ineligible():
     history = rec("H1", {"PO_DATE": date(2025, 12, 31), "SOURCE_EXTRACTED_AT": datetime(2026, 7, 20)})
-    adapter = result(
-        mode="FULL_SOURCING_REVIEW",
-        metadata={
-            "HISTORY_START_DATE": date(2026, 1, 1),
-            "HISTORY_END_DATE": date(2026, 7, 29),
-            "HISTORY_SOURCE_TRANSACTION": "ME80FN",
-        },
-        history=(history,),
-    )
+    adapter = result(mode="FULL_SOURCING_REVIEW", metadata={"HISTORY_START_DATE": date(2026, 1, 1), "HISTORY_END_DATE": date(2026, 7, 29), "HISTORY_SOURCE_TRANSACTION": "ME80FN"}, history=(history,))
     _, flags, findings = evaluate_conditional_rules(adapter, date(2026, 7, 29))
     assert not flags["H1"] and any(finding.code == "HISTORY_ROW_OUT_OF_WINDOW" for finding in findings)
 
@@ -83,6 +64,14 @@ def test_all_eligible_history_stale_gets_no_current_rows():
     history = rec("H1", {"SOURCE_EXTRACTED_AT": datetime(2026, 4, 1)})
     current, findings = evaluate_history_staleness((history,), {"H1"}, date(2026, 7, 29))
     assert current == set() and findings[0].code == "HISTORY_STALE"
+
+
+def test_mixed_current_and_stale_history_keeps_only_current_row():
+    stale = rec("H1", {"SOURCE_EXTRACTED_AT": datetime(2026, 4, 1)})
+    current_row = rec("H2", {"SOURCE_EXTRACTED_AT": datetime(2026, 7, 25)})
+    current, findings = evaluate_history_staleness((stale, current_row), {"H1", "H2"}, date(2026, 7, 29))
+    assert current == {"H2"}
+    assert findings[0].code == "HISTORY_STALE"
 
 
 def test_newer_ineligible_row_does_not_mask_stale_eligible_history():
