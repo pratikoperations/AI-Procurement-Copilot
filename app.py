@@ -221,7 +221,7 @@ playbook_text = generate_negotiation_playbook(
     lowest["Quoted Unit Price USD"], negotiation_result["annual_saving_usd"],
 )
 
-optimized_allocation = optimize_allocation(scored_df, assumptions["annual_volume"], assumptions["max_supplier_share"], assumptions["min_backup_share"])
+optimized_allocation = optimize_allocation(scored_df, assumptions["annual_volume"])
 risk_result = assess_procurement_risks(scored_df, optimized_allocation["allocation_df"])
 strategy_result = recommend_strategy(scored_df, assumptions["annual_volume"])
 intelligence_decision = generate_decision(scored_df, optimized_allocation["allocation_df"], risk_result)
@@ -290,7 +290,12 @@ render_executive_dashboard(scored_df, assumptions, confidence)
 st.markdown("---")
 
 sections = ["1. Decision Summary", "2. Cost and Risk", "3. Scenarios and Negotiation", "4. Procurement Intelligence", "5. Supplier Intelligence", "6. Executive Outputs", "7. Downloads"]
-selected_section = st.selectbox("Explore the sourcing workflow", sections, index=0, help="Choose one section at a time. This compact navigation is designed for desktop and mobile use.")
+selected_section = st.selectbox(
+    "Explore the sourcing workflow",
+    sections,
+    index=0,
+    help="Choose one section at a time. This compact navigation is designed for desktop and mobile use.",
+)
 
 if selected_section == sections[0]:
     st.header("Lowest Price vs Best Value Decision")
