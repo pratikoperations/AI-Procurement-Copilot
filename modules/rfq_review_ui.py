@@ -1,4 +1,4 @@
-"""Streamlit review surfaces for the governed v1.3 workbook preview."""
+"""Streamlit review surfaces for governed v1.3 workbook and E2 handoff."""
 from __future__ import annotations
 
 from typing import Any
@@ -8,11 +8,10 @@ import streamlit as st
 
 from modules.rfq_review_state import ReviewState, warning_disposition
 
-PREVIEW_LABEL = "Governed v1.3 Workbook Review Preview"
+PREVIEW_LABEL = "Governed v1.3 Workbook Review"
 PREVIEW_CAPTION = (
-    "Review-only capability for controlled workbook intake, normalization, evidence and provenance review. "
-    "Governed workbooks do not enter scoring, TCO, recommendation, allocation or negotiation. "
-    "This is not a v1.3 application release, production deployment, autonomous award process, or live ERP integration."
+    "Controlled workbook intake, normalization, evidence and provenance review. "
+    "Analytical handoff is available only for confirmed, fully governed Full Sourcing Review workbooks."
 )
 
 
@@ -43,7 +42,7 @@ def render_mapping_reviews(adapter_result: Any) -> tuple[tuple[str, str, str], .
     pending = [item for item in adapter_result.mapping_reviews if item.requires_confirmation]
     if not pending:
         return ()
-    st.subheader("High-risk mapping confirmation")
+    st.subheader("Governed mapping confirmation")
     confirmed: list[tuple[str, str, str]] = []
     for item in pending:
         label = f"{item.sheet}: '{item.source_header}' → {item.canonical_field}"
@@ -101,15 +100,10 @@ def render_normalized_preview(orchestration_result: Any) -> None:
             "Supplier Name": values.get("SUPPLIER_NAME"),
             "Source Currency": normalized.get("SOURCE_CURRENCY"),
             "Source Price": normalized.get("SOURCE_PRICE"),
-            "FX Rate": normalized.get("EXCHANGE_RATE_USED"),
-            "FX Date": normalized.get("EXCHANGE_RATE_DATE_USED"),
             "Workbook Comparison Currency": normalized.get("COMPARISON_CURRENCY"),
             "Normalized Review Unit Price": normalized.get("NORMALIZED_UNIT_PRICE"),
-            "Source UOM": normalized.get("SOURCE_UOM"),
             "Comparison UOM": normalized.get("COMPARISON_UOM"),
             "Eligible for review": item.eligible_for_analysis,
-            "Evidence %": None if item.evidence is None else item.evidence.coverage_percent,
-            "History Match": None if item.historical_match is None else item.historical_match.method,
             "Source Row ID": item.record.provenance.source_row_id,
         })
     if rows:
@@ -120,15 +114,30 @@ def render_compatibility(result: Any) -> None:
     compatibility = result.compatibility_result
     if compatibility is None:
         return
-    st.subheader("Future analytical compatibility")
-    st.error(
-        "GOVERNED_RANKING_INPUTS_NOT_CANONICAL — frozen-engine ranking inputs require a future canonical Build B/C contract extension."
-    )
+    st.subheader("Analytical compatibility")
     for blocker in compatibility.blockers:
         st.error(blocker)
     manifest = pd.DataFrame([item.__dict__ for item in compatibility.manifest])
     if not manifest.empty:
         st.dataframe(manifest, use_container_width=True)
+
+
+def render_handoff_confirmation(result: Any) -> bool:
+    handoff = result.handoff_result
+    if result.review_state is not ReviewState.READY_FOR_HANDOFF or handoff is None or not handoff.digest or handoff.manifest is None:
+        return False
+    st.subheader("Governed analytical handoff")
+    st.write(f"**Selected RFQ:** {handoff.manifest.selected_rfq_number} | {handoff.manifest.selected_rfq_item}")
+    st.write(f"**Suppliers:** {len(handoff.manifest.suppliers)}")
+    st.write(f"**Analytical basis:** {handoff.manifest.analytical_currency} / {handoff.manifest.comparison_uom}")
+    st.code(handoff.digest)
+    st.caption("The digest binds the upload, selected item, supplier set, canonical ranking evidence, commercial inputs and analytical assumptions.")
+    confirmed = st.checkbox(
+        "I confirm analytical handoff for this exact RFQ item, supplier set, canonical ranking evidence and USD comparison basis.",
+        value=False,
+        key="governed_v13_handoff_ack",
+    )
+    return bool(confirmed and st.button("Confirm governed analytical handoff", type="primary"))
 
 
 def render_governed_review(result: Any) -> None:
@@ -149,4 +158,6 @@ def render_governed_review(result: Any) -> None:
         render_normalized_preview(result.orchestration_result)
     render_compatibility(result)
     if result.review_state is ReviewState.REVIEW_ONLY_COMPLETE:
-        st.info("Governed review is complete. Analytical handoff is intentionally disabled.")
+        st.info("Governed review is complete. Analytical handoff remains disabled for this route or workbook.")
+    elif result.review_state is ReviewState.HANDOFF_CONFIRMED:
+        st.success("Governed analytical handoff confirmed for the displayed digest.")
