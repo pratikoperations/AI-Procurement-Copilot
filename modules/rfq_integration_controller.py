@@ -166,10 +166,10 @@ def run_governed_review(
     pending_mappings = tuple(item for item in adapter_result.mapping_reviews if item.requires_confirmation)
     if pending_mappings:
         return stopped_result(ReviewState.MAPPING_CONFIRMATION_REQUIRED, "Confirm all high-risk normalized mappings.", adapter_result=adapter_result)
-    if any(finding.severity == "Fatal" for finding in adapter_result.findings):
-        return stopped_result(ReviewState.ADAPTER_FATAL, "Fatal workbook findings must be corrected.", adapter_result=adapter_result)
     if len(adapter_result.available_sourcing_event_ids) > 1 and not selected_sourcing_event_id:
         return stopped_result(ReviewState.EVENT_SELECTION_REQUIRED, "Select one sourcing event.", adapter_result=adapter_result)
+    if any(finding.severity == "Fatal" for finding in adapter_result.findings):
+        return stopped_result(ReviewState.ADAPTER_FATAL, "Fatal workbook findings must be corrected.", adapter_result=adapter_result)
 
     orchestration_result = orchestrate_adapter_result(
         adapter_result,
