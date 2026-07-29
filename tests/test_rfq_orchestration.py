@@ -120,14 +120,22 @@ def test_material_group_description_match():
 
 
 def test_approved_mapped_identifier_match():
-    quote = record("Q1", material="NEW")
-    result = orchestrate_full([quote], [history(material="OLD")], approved_history_mappings={"Q1": "H1"})
+    quote = record("Q1", material="NEW", description="New Material", group="NEW-GROUP")
+    result = orchestrate_full(
+        [quote],
+        [history(material="OLD", description="Old Material", group="OLD-GROUP")],
+        approved_history_mappings={"Q1": "H1"},
+    )
     assert result.enriched_quotes[0].historical_match.method == "APPROVED_MAPPED_IDENTIFIER"
 
 
 def test_manual_confirmation_match():
-    quote = record("Q1", material="NEW")
-    result = orchestrate_full([quote], [history(material="OLD")], manual_history_confirmations={("Q1", "H1")})
+    quote = record("Q1", material="NEW", description="New Material", group="NEW-GROUP")
+    result = orchestrate_full(
+        [quote],
+        [history(material="OLD", description="Old Material", group="OLD-GROUP")],
+        manual_history_confirmations={("Q1", "H1")},
+    )
     assert result.enriched_quotes[0].historical_match.method == "MANUAL_CONFIRMATION"
 
 
@@ -137,7 +145,10 @@ def test_ambiguous_exact_candidates_do_not_match():
 
 
 def test_no_history_match_receives_no_history_credit():
-    result = orchestrate_full([record("Q1", material="M2")], [history(material="M1")])
+    result = orchestrate_full(
+        [record("Q1", material="M2", description="New Material", group="NEW-GROUP")],
+        [history(material="M1", description="Old Material", group="OLD-GROUP")],
+    )
     assert result.enriched_quotes[0].evidence.dimension_results["historical_benchmark"] is False
 
 
