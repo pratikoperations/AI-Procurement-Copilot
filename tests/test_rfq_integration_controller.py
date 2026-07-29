@@ -76,7 +76,7 @@ def _value(field, supplier="0000100001", event="EVT-001", currency="INR"):
         "MATERIAL_ID": "MAT-1", "MATERIAL_DESCRIPTION": "Synthetic carton", "MATERIAL_GROUP": "PACK",
         "PURCHASING_ORG": "1000", "REQUESTED_QUANTITY": 1000, "QUOTED_QUANTITY": 1000,
         "QUOTATION_UOM": "EA", "COMPARISON_UOM": "EA", "BASE_UNIT_PRICE": 830 if currency == "INR" else 10,
-        "PRICE_UNIT": 1, "CURRENCY": currency, "EXCHANGE_RATE": 0.01204819277 if currency == "USD" else None,
+        "PRICE_UNIT": 1, "CURRENCY": currency, "EXCHANGE_RATE": 83 if currency == "INR" else None,
         "EXCHANGE_RATE_DATE": "2026-07-29", "QUOTATION_DATE": "2026-07-01", "VALIDITY_END_DATE": "2026-12-31",
         "QUOTATION_STATUS": "VALID", "SOURCE_TRANSACTION": "ME49", "SOURCE_FILE_NAME": "fixture.xlsx",
         "SOURCE_EXTRACTED_AT": "2026-07-29T10:00:00", "SOURCE_ROW_ID": f"RFQ-{event}-{supplier}",
@@ -101,14 +101,16 @@ def _fixture_workbook():
         rfq.append([_value("RFQ_NUMBER" if header == "RFQ-Number" else header, supplier, event, currency) for header in headers])
 
     po = wb.create_sheet("PO_HISTORY")
-    po_headers = _required("POHistoryRow")
+    po_required = _required("POHistoryRow")
+    po_optional = ["EXCHANGE_RATE", "EXCHANGE_RATE_DATE", "COMPARISON_UOM"]
+    po_headers = po_required + [field for field in po_optional if field not in po_required]
     po.append(po_headers)
     po.append([_value(field) if field != "SOURCE_EXTRACTED_AT" else "2026-01-01T10:00:00" for field in po_headers])
 
     md = wb.create_sheet("UPLOAD_METADATA")
     md_headers = ["UPLOAD_ID", "SCHEMA_VERSION", "UPLOAD_MODE", "SOURCE_SYSTEM", "PURCHASING_ORG", "BASE_CURRENCY", "EXTRACTED_AT", "UPLOAD_CREATED_AT", "RFQ_SOURCE_TRANSACTION", "DATA_CLASSIFICATION", "ANONYMIZATION_STATUS", "SOURCE_FILE_HASH_SHA256", "HISTORY_START_DATE", "HISTORY_END_DATE", "HISTORY_SOURCE_TRANSACTION", "NOTES"]
     md.append(md_headers)
-    md.append(["UP-001", "1.3.0", "FULL_SOURCING_REVIEW", "SAP", "1000", "INR", "2026-07-29T10:00:00", "2026-07-29T10:05:00", "ME49", "SYNTHETIC", "SYNTHETIC", "a" * 64, "2026-01-01", "2026-07-29", "ME2N", "Integration fixture"])
+    md.append(["UP-001", "1.3.0", "FULL_SOURCING_REVIEW", "SAP", "1000", "USD", "2026-07-29T10:00:00", "2026-07-29T10:05:00", "ME49", "SYNTHETIC", "SYNTHETIC", "a" * 64, "2026-01-01", "2026-07-29", "ME2N", "Integration fixture"])
     stream = BytesIO()
     wb.save(stream)
     wb.close()
@@ -133,4 +135,4 @@ def test_full_workbook_flow_is_review_only_and_preserves_mixed_currency():
     assert fourth.dataframe is None and not fourth.analysis_handoff_allowed
     currencies = {item.normalization.normalized_values["SOURCE_CURRENCY"] for item in fourth.orchestration_result.enriched_quotes}
     assert currencies == {"INR", "USD"}
-    assert fourth.orchestration_result.comparison_currency == "INR"
+    assert fourth.orchestration_result.comparison_currency == "USD"
