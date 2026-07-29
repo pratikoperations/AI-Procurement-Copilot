@@ -4,11 +4,16 @@
 
 - Release: **AI Procurement Copilot v1.2 — Portfolio Presentation Release**
 - Pull request: PR #14
-- Branch: `release/v1.2-portfolio-presentation`
-- Frozen baseline: v1.1 at `b85cd37aaae709058eb15350d680b18c03da46ba`
+- Release branch: `release/v1.2-portfolio-presentation`
+- Frozen v1.1 baseline: `b85cd37aaae709058eb15350d680b18c03da46ba`
 - Reviewed implementation head: `6838effb6f47b327419d7801c01c6284514f0cbb`
-- Release-governance status: Build Group D approved; ready-for-review and merge authorized by the repository owner
+- Final documentation-only release-record head: `e61a26eef65ffd7e6bd015ae2168e26a5c42747f`
+- Final merge commit and frozen `main`: `4803b1d72fa8a6509d9d7faf0e9decc677c447be`
+- Release status: **completed, merged and frozen**
 - Authoritative hosted application: `https://ai-procurement-copilot-v1-2.streamlit.app/`
+- Tag: **not created by deliberate release decision**
+- GitHub Release: **not created by deliberate release decision**
+- Further v1.2 modification: **not authorized**
 
 ## Release purpose
 
@@ -101,7 +106,11 @@ Hosted application verified by the repository owner:
 
 Reviewed implementation head `6838effb6f47b327419d7801c01c6284514f0cbb` passed Quality Checks run 492, run ID `30434354425`, with conclusion `success`. The run passed Python compilation, 226 regression tests and the canonical Streamlit smoke test, with 0 failures, 0 errors, 0 skips and 1 warning.
 
-**Merge-readiness status: APPROVED.** The repository owner explicitly authorized the release-record update, ready-for-review transition and merge of PR #14, subject to a head-SHA guard and green CI for this final documentation-only release-record commit.
+The final documentation-only release-record head `e61a26eef65ffd7e6bd015ae2168e26a5c42747f` passed Quality Checks run 493, run ID `30440102419`, with conclusion `success`. Dependency installation, Python compilation, the regression suite and canonical Streamlit smoke all passed.
+
+PR #14 was marked ready for review and merged using the repository-approved merge method with an expected-head guard. The resulting merge commit was `4803b1d72fa8a6509d9d7faf0e9decc677c447be`.
+
+**Final release status: COMPLETED, MERGED AND FROZEN.**
 
 ## Explicit exclusions
 
@@ -117,25 +126,32 @@ Reviewed implementation head `6838effb6f47b327419d7801c01c6284514f0cbb` passed Q
 - production-readiness claims;
 - realized-savings claims.
 
-## Pre-merge gate closure
+## Release-gate closure
 
 - Full automated test suite green: **passed at reviewed implementation head**
 - Canonical Streamlit smoke green: **passed at reviewed implementation head**
-- Hosted v1.2 preview verified: **passed by owner review**
-- Mobile screenshots reviewed at 360, 390 and 412 px plus tablet and desktop: **passed by owner review**
+- Hosted v1.2 application verified: **passed by owner review**
+- Mobile layouts reviewed at 360, 390 and 412 px plus tablet and desktop: **passed by owner review**
 - Public hosted application contains no Interview Guide: **passed by owner review**
+- Hosted downloads and outputs: **passed by owner review**
 - README and docs claim-safety review: **passed**
 - Final changed-file audit confirms no excluded logic files: **passed**
-- Owner explicitly authorized ready-for-review and merge: **approved**
-- Final documentation-only release-record head CI: **required before merge**
+- Final documentation-only release-record head CI: **passed — run #493, run ID `30440102419`**
+- Owner authorization to merge: **approved**
+- PR #14 merge: **completed**
+- Frozen `main` SHA verification: **`4803b1d72fa8a6509d9d7faf0e9decc677c447be`**
 
 ## Freeze statement
 
-> AI Procurement Copilot v1.2 is a portfolio presentation release built on the frozen v1.1 baseline. It improves executive communication, responsive navigation, documentation and public visual evidence without changing procurement-engine or ERP-foundation logic. The application remains read-only, validation-gated and human-controlled, with no claim of live ERP integration, write-back, autonomous awards, production readiness or realized savings.
+> AI Procurement Copilot v1.2 is a portfolio presentation release built on the frozen v1.1 baseline. It improves executive communication, responsive navigation, documentation and public visual evidence without changing procurement-engine or ERP-foundation logic. The application remains read-only, validation-gated and human-controlled, with no claim of live ERP integration, write-back, autonomous awards, production readiness or realized savings. The release is frozen at `4803b1d72fa8a6509d9d7faf0e9decc677c447be`; no further v1.2 code, documentation, tagging or release action is authorized without a separate controlled approval.
 
 ## Known limitations
 
 The system remains a governed procurement decision-support portfolio application. It has not been validated for production security, enterprise scale, live ERP connectivity, live organizational data or realized business outcomes. The hosted application is portfolio evidence, not a live organizational deployment.
+
+## Tag and GitHub Release decision
+
+No v1.2 tag was created. No GitHub Release was created. This was a deliberate release-governance decision, not an incomplete release gate. Either action requires separate owner authorization.
 
 ## Relationship to v1.1
 
