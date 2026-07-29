@@ -9,11 +9,17 @@
 - Source quantity is positive, source price is non-negative and `PRICE_UNIT` is positive.
 - Expired quotations are visible but ineligible.
 - Full Review history metadata and window are governed.
-- History staleness uses only eligible, normalized, in-window rows.
+- History staleness is evaluated per eligible, normalized, in-window row.
+- Mixed current/stale history keeps only current rows eligible.
 - Stale history remains visible but receives zero historical benchmark credit.
-- Historical matching follows the deterministic hierarchy: exact material ID, material group plus normalized description, approved mapping, then manual confirmation.
-- Historical match output records method, matched source row, eligibility and reason.
+- Historical matching follows exact material ID, material group plus normalized description, approved mapping, then manual confirmation.
+- Approved mappings and manual confirmations may resolve ambiguous automatic candidates.
+- Unresolved ambiguity emits `HISTORICAL_MATCH_AMBIGUOUS`, records candidate row IDs and receives no history credit.
 - No fuzzy historical match is performed.
+- Excluded, stale, out-of-window and optional history normalization blockers do not automatically block current RFQ analysis.
+- Applicable invalid Full Review history emits `HISTORY_NORMALIZATION_INVALID` and disables historical evidence.
+- Comparable-price evidence requires normalized unit price greater than zero.
+- Zero price remains structurally valid, emits `ZERO_PRICE_REQUIRES_CLASSIFICATION` and earns no comparable-price credit.
 - Quality evidence requires `TECHNICALLY_APPROVED=True` or a valid 0–100 quality score.
 - Risk and ESG evidence require numeric 0–100 scores.
 - Evidence weights total 100%; missing evidence receives zero and no partial credit.
