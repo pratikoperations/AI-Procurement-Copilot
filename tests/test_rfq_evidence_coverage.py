@@ -26,6 +26,11 @@ def test_missing_evidence_gets_zero_not_partial():
     assert quotation_coverage({}, {}, has_history_match=False).coverage_percent == 0
 
 
+def test_zero_price_does_not_receive_comparable_price_credit():
+    coverage = quotation_coverage(complete(), {"NORMALIZED_UNIT_PRICE": Decimal("0")}, has_history_match=False)
+    assert coverage.dimension_results["comparable_price"] is False
+
+
 def test_item_uses_minimum_supplier_coverage():
     high = quotation_coverage(complete(), {"NORMALIZED_UNIT_PRICE": 1}, has_history_match=True)
     low = quotation_coverage({"REQUESTED_QUANTITY": 100, "QUOTED_QUANTITY": 100}, {"NORMALIZED_UNIT_PRICE": 1}, has_history_match=False)
@@ -67,8 +72,7 @@ def test_invalid_score_ranges_receive_no_credit(field, value):
 
 
 def test_zero_commercial_charge_alone_is_not_evidence():
-    values = {"FREIGHT_AMOUNT": 0}
-    coverage = quotation_coverage(values, {}, has_history_match=False)
+    coverage = quotation_coverage({"FREIGHT_AMOUNT": 0}, {}, has_history_match=False)
     assert coverage.dimension_results["commercial_terms"] is False
 
 
