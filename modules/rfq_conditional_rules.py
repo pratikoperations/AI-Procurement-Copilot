@@ -22,12 +22,7 @@ def _as_date(value: Any) -> date | None:
     return None
 
 
-def resolve_evaluation_date(
-    metadata: Mapping[str, Any] | None,
-    records: Iterable[Any],
-    explicit: date | None = None,
-    today: date | None = None,
-):
+def resolve_evaluation_date(metadata: Mapping[str, Any] | None, records: Iterable[Any], explicit: date | None = None, today: date | None = None):
     if explicit:
         return explicit, "EXPLICIT_INPUT", ()
     metadata = metadata or {}
@@ -35,11 +30,7 @@ def resolve_evaluation_date(
         resolved = _as_date(metadata.get(field))
         if resolved:
             return resolved, field, ()
-    candidates = [
-        resolved
-        for record in records
-        if (resolved := _as_date(getattr(record, "canonical_values", {}).get("SOURCE_EXTRACTED_AT")))
-    ]
+    candidates = [resolved for record in records if (resolved := _as_date(getattr(record, "canonical_values", {}).get("SOURCE_EXTRACTED_AT")))]
     if candidates:
         return max(candidates), "LATEST_SOURCE_EXTRACTED_AT", ()
     return today or date.today(), "SYSTEM_DATE", (
@@ -47,12 +38,7 @@ def resolve_evaluation_date(
     )
 
 
-def evaluate_conditional_rules(
-    adapter_result: Any,
-    evaluation_date: date,
-    *,
-    approved_free_text_row_ids: set[str] | None = None,
-):
+def evaluate_conditional_rules(adapter_result: Any, evaluation_date: date, *, approved_free_text_row_ids: set[str] | None = None):
     approved_free_text_row_ids = approved_free_text_row_ids or set()
     findings: list[RuleFinding] = []
     quote_flags: dict[str, bool] = {}
@@ -99,26 +85,23 @@ def evaluate_conditional_rules(
     return quote_flags, history_flags, tuple(findings)
 
 
-def evaluate_history_staleness(
-    history_records: Iterable[Any],
-    eligible_row_ids: set[str],
-    evaluation_date: date,
-    *,
-    history_staleness_days: int = 60,
-):
-    dated_rows: list[tuple[str, date]] = []
+def evaluate_history_staleness(history_records: Iterable[Any], eligible_row_ids: set[str], evaluation_date: date, *, history_staleness_days: int = 60):
+    current_ids: set[str] = set()
+    stale_ids: list[str] = []
     for record in history_records:
         row_id = record.provenance.source_row_id
         if row_id not in eligible_row_ids:
             continue
         extracted = _as_date(record.canonical_values.get("SOURCE_EXTRACTED_AT"))
-        if extracted:
-            dated_rows.append((row_id, extracted))
-    if not dated_rows:
-        return set(), ()
-    latest = max(extracted for _, extracted in dated_rows)
-    if (evaluation_date - latest).days <= history_staleness_days:
-        return {row_id for row_id, _ in dated_rows}, ()
-    return set(), (
-        RuleFinding("Warning", "HISTORY_STALE", f"Eligible history evidence is older than {history_staleness_days} days."),
-    )
+        if extracted is None:
+            continue
+        if (evaluation_date - extracted).days <= history_staleness_days:
+            current_ids.add(row_id)
+        else:
+            stale_ids.append(row_id)
+    findings = ()
+    if stale_ids:
+        findings = (
+            RuleFinding("Warning", "HISTORY_STALE", f"History rows older than {history_staleness_days} days were excluded: {', '.join(sorted(stale_ids))}."),
+        )
+    return current_ids, findings
