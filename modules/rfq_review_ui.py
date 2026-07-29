@@ -12,7 +12,7 @@ PREVIEW_LABEL = "Governed v1.3 Workbook Review Preview"
 PREVIEW_CAPTION = (
     "Controlled workbook intake, normalization, evidence and provenance review. "
     "Analytical handoff is available only for confirmed, fully governed Full Sourcing Review workbooks. "
-    "This remains human-controlled decision support and is not an autonomous award process, production deployment or live ERP integration."
+    "This is not a v1.3 application release, autonomous award process, production deployment or live ERP integration."
 )
 
 
