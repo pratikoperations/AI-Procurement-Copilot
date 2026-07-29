@@ -17,6 +17,17 @@ def test_schema_is_additive_v131_with_fourth_sheet():
     assert json.loads(FROZEN_PATH.read_text(encoding="utf-8"))["version"] == "1.3.0"
 
 
+def test_v131_preserves_frozen_v130_row_contracts_by_reference():
+    contract = schema()
+    refs = {
+        name: contract["properties"][name]["items"]["$ref"]
+        for name in ("RFQ_QUOTES", "PO_HISTORY", "UPLOAD_METADATA")
+    }
+    assert refs["RFQ_QUOTES"].endswith("minimum-workbook-v1.3.0.schema.json#/$defs/RFQQuoteRow")
+    assert refs["PO_HISTORY"].endswith("minimum-workbook-v1.3.0.schema.json#/$defs/POHistoryRow")
+    assert refs["UPLOAD_METADATA"].endswith("minimum-workbook-v1.3.0.schema.json#/$defs/UploadMetadataRow")
+
+
 def test_all_ranking_fields_are_typed_and_mode_governed():
     contract = schema()
     props = contract["$defs"]["SupplierRankingInputRow"]["properties"]
