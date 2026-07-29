@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import date
 from io import BytesIO
 import json
 from pathlib import Path
@@ -82,7 +83,7 @@ def _book(alias_otif: bool = False):
 
 
 def test_v131_generated_workbook_produces_ranking_review_evidence():
-    result = adapt_v13_workbook(_book(), filename="c2.xlsx")
+    result = adapt_v13_workbook(_book(), filename="c2.xlsx", evaluation_date=date(2026, 8, 1))
     assert result.schema_version == "1.3.1"
     assert len(result.supplier_ranking_inputs) == 2
     assert len(result.ranking_evidence_results) == 20
@@ -92,7 +93,7 @@ def test_v131_generated_workbook_produces_ranking_review_evidence():
 
 
 def test_noncanonical_ranking_alias_requires_bound_confirmation():
-    result = adapt_v13_workbook(_book(alias_otif=True), filename="c2.xlsx")
+    result = adapt_v13_workbook(_book(alias_otif=True), filename="c2.xlsx", evaluation_date=date(2026, 8, 1))
     review = next(item for item in result.mapping_reviews if item.source_header == "OTIF %")
     assert review.requires_confirmation
     assert any(item.code == "RANKING_MAPPING_CONFIRMATION_REQUIRED" for item in result.findings)
