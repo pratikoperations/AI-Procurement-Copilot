@@ -72,24 +72,41 @@ Unresolved mappings require explicit user confirmation or correction.
 
 ## Evidence coverage
 
-Evidence coverage is calculated over approved applicable dimensions, not raw cell completeness.
+Evidence policy ID: `AIPC-EVIDENCE-COVERAGE-1.3.0`.
 
-Initial governed dimension groups:
+Coverage is calculated per active supplier quotation per RFQ item. Only valid, active quotations enter item recommendation gating. Blocked quotations remain visible but contribute no recommendation evidence. Event coverage is the requested-quantity-weighted aggregation of evaluated RFQ-item coverage; if requested quantities are not comparable, use an equal-item average and disclose that fallback.
 
-1. comparable price basis;
-2. quantity and availability;
-3. commercial terms;
-4. delivery evidence;
-5. quality evidence;
-6. risk evidence;
-7. ESG evidence;
-8. historical benchmark evidence.
+| Dimension | Minimum approved evidence | Weight |
+|---|---|---:|
+| Comparable price basis | valid base price, positive price unit, currency, comparison UOM, and required FX/UOM conversions | 25% |
+| Quantity and availability | requested quantity, quoted quantity, and full-quantity availability or an approved quantity-coverage rule | 15% |
+| Commercial terms | at least one approved payment-term or Incoterms evidence set | 10% |
+| Delivery | lead time or promised delivery date | 10% |
+| Quality | approved quality score or governed quality evidence | 10% |
+| Risk | approved risk score or governed risk evidence | 10% |
+| ESG | approved ESG score or governed ESG evidence | 5% |
+| Historical benchmark | approved non-stale historical match with disclosed match level | 15% |
 
-Only applicable dimensions enter the denominator. A dimension is covered only when its minimum approved fields pass validation.
+Rules:
 
-- Coverage at or above 70% permits conditional best-value language, subject to all blocking rules.
+- Non-applicable dimensions are removed from the denominator only through an approved, versioned policy.
+- Missing applicable dimensions receive zero coverage for that dimension.
+- Partial evidence does not receive partial credit unless a future approved policy defines it.
+- Coverage at or above 70% permits conditional best-value language, subject to all Blocking rules.
 - Coverage below 70% permits analysis but withholds final recommendation language.
-- Omitted dimensions and adjusted weights must be disclosed.
+- Omitted dimensions, denominator changes, adjusted scoring weights and aggregation method must be disclosed.
+
+## Formula-cell controls
+
+- Formula cells in identity, quantity, price, currency, UOM, date, status, FX and key fields are Blocking or Fatal depending on whether valid quotation records remain.
+- Formula cells in optional descriptive fields are Warning findings.
+- Cached formula values must not be silently accepted as source evidence.
+
+## Additional governed defaults
+
+- Expired quotations remain visible as blocked evidence and are excluded from active comparison.
+- Tax is excluded from comparable TCO unless an approved policy classifies it as non-recoverable and comparable.
+- Historical evidence older than 60 days creates a default staleness Warning unless an approved policy overrides it.
 
 ## Null handling
 
