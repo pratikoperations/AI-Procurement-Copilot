@@ -67,6 +67,38 @@ def assess_procurement_risks(scored_df, allocation_df=None):
         "Mitigation": "Use FX adjustment bands, hedging policy, or local-currency quotation where practical.",
     })
 
+    if str(top.get("Material", "")).strip() == "Kraft Paper":
+        mill_allocation = float(top.get("Mill Allocation %", 100))
+        moisture = float(top.get("Moisture %", 15))
+        fibre_availability = float(top.get("Fibre Availability %", 0))
+        continuity = float(top.get("Quality Continuity Score", 0))
+        risks.extend([
+            {
+                "Risk": "Kraft mill allocation risk",
+                "Severity": _severity(mill_allocation),
+                "Evidence": f"Recommended supplier mill allocation is {mill_allocation:.1f}%.",
+                "Mitigation": "Secure mill allocation visibility, backup mill approval, and supply-trigger escalation clauses.",
+            },
+            {
+                "Risk": "Kraft moisture and yield risk",
+                "Severity": _severity(min(100, moisture * 7)),
+                "Evidence": f"Reported Kraft Paper moisture is {moisture:.1f}%.",
+                "Mitigation": "Define moisture tolerance, incoming inspection, rejection, and yield-loss recovery terms.",
+            },
+            {
+                "Risk": "Kraft fibre availability risk",
+                "Severity": _severity(max(0, 100 - fibre_availability)),
+                "Evidence": f"Required fibre-profile availability is {fibre_availability:.1f}%.",
+                "Mitigation": "Qualify alternate fibre sources and agree allocation priority during paper shortages.",
+            },
+            {
+                "Risk": "Kraft quality continuity risk",
+                "Severity": _severity(max(0, 100 - continuity)),
+                "Evidence": f"Quality-continuity score is {continuity:.1f}/100.",
+                "Mitigation": "Use controlled BF/GSM specifications, COA review, trial approval, and periodic mill-quality audits.",
+            },
+        ])
+
     risks.extend([
         {"Risk": "Country risk", "Severity": "Low", "Evidence": "Country-level external data is not supplied.", "Mitigation": "Complete country-risk review before final award."},
         {"Risk": "Geographic risk", "Severity": "Low", "Evidence": "Plant/location diversification data is limited.", "Mitigation": "Confirm manufacturing site and alternate-site capability."},
