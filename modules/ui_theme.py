@@ -1,4 +1,4 @@
-"""Presentation-only design tokens and Streamlit UI hardening for Build S1.1/S1.3."""
+"""Presentation-only design tokens and Streamlit UI hardening for Build S1.1/S1.3/S1.5."""
 
 from __future__ import annotations
 
@@ -23,6 +23,7 @@ UI_CSS = """
     --aipc-radius-md: 0.75rem;
     --aipc-border: rgba(128, 128, 128, 0.28);
     --aipc-surface: rgba(128, 128, 128, 0.06);
+    --aipc-focus: #F2C94C;
     --aipc-info: #2F80ED;
     --aipc-success: #2E8B57;
     --aipc-warning: #B7791F;
@@ -61,6 +62,23 @@ UI_CSS = """
     min-width: 0;
 }
 
+/* Visible keyboard focus without suppressing native semantics. */
+:where(
+    button,
+    a,
+    input,
+    textarea,
+    [role="button"],
+    [role="radio"],
+    [role="checkbox"],
+    [role="combobox"],
+    [tabindex]:not([tabindex="-1"])
+):focus-visible {
+    outline: 3px solid var(--aipc-focus) !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.85) !important;
+}
+
 /* Consistent card treatment for metrics and status surfaces. */
 [data-testid="stMetric"] {
     height: 100%;
@@ -69,7 +87,7 @@ UI_CSS = """
     border: 1px solid var(--aipc-border);
     border-radius: var(--aipc-radius-md);
     background: var(--aipc-surface);
-    overflow: hidden;
+    overflow: visible;
 }
 
 [data-testid="stMetricLabel"],
@@ -77,9 +95,14 @@ UI_CSS = """
 [data-testid="stMetricDelta"] {
     max-width: 100%;
     min-width: 0;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
 }
 
-[data-testid="stMetricValue"] > div {
+[data-testid="stMetricLabel"] > div,
+[data-testid="stMetricValue"] > div,
+[data-testid="stMetricDelta"] > div {
     white-space: normal;
     overflow-wrap: anywhere;
     word-break: break-word;
@@ -90,6 +113,12 @@ UI_CSS = """
     border-radius: var(--aipc-radius-md);
     padding-top: var(--aipc-space-3);
     padding-bottom: var(--aipc-space-3);
+    overflow-wrap: anywhere;
+}
+
+[data-testid="stAlert"] p,
+[data-testid="stAlert"] div {
+    white-space: normal;
     overflow-wrap: anywhere;
 }
 
@@ -114,11 +143,7 @@ UI_CSS = """
     border-radius: var(--aipc-radius-md);
 }
 
-[data-testid="stDataFrame"] {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
+[data-testid="stDataFrame"],
 [data-testid="stTable"] {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -171,18 +196,31 @@ UI_CSS = """
 [data-baseweb="input"] > div,
 [data-testid="stNumberInput"] input,
 [data-testid="stTextInput"] input {
+    min-height: 2.75rem;
     border-radius: var(--aipc-radius-sm);
 }
 
-/* Tablet layout: allow dense status and metric rows to wrap instead of overflowing. */
+/* Tablet layout: dense status and metric rows wrap without page-level overflow. */
 @media (max-width: 1024px) {
+    [data-testid="stMainBlockContainer"] {
+        width: 100%;
+        max-width: 100%;
+    }
+
     [data-testid="stHorizontalBlock"] {
+        width: 100%;
+        max-width: 100%;
         flex-wrap: wrap;
     }
 
     [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-        flex: 1 1 calc(50% - var(--aipc-space-4));
+        flex: 1 1 min(20rem, 100%);
         width: auto !important;
+        max-width: 100%;
+    }
+
+    [data-testid="stMetric"] {
+        width: 100%;
         max-width: 100%;
     }
 }
@@ -209,7 +247,7 @@ UI_CSS = """
     }
 
     [data-testid="stMetricValue"] > div {
-        font-size: clamp(1.6rem, 8vw, 2.35rem);
+        font-size: clamp(1.45rem, 7vw, 2.15rem);
     }
 
     [data-testid="stExpanderDetails"] {
@@ -220,6 +258,17 @@ UI_CSS = """
     [data-testid="stFileUploaderDropzone"] {
         padding-left: var(--aipc-space-3);
         padding-right: var(--aipc-space-3);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }
 """
