@@ -8,6 +8,11 @@ from modules.rfq_integration_controller import governed_route_enabled
 from modules.unit_display import annual_volume_label, canonical_unit, quantity_basis_caption
 
 
+FX_RATE_MIN = 60
+FX_RATE_MAX = 150
+FX_RATE_STEP = 1
+
+
 def build_sidebar_result(**values):
     """Build the governed sidebar return contract with a guaranteed category profile."""
     result = dict(values)
@@ -55,7 +60,13 @@ def render_sidebar():
 
     st.sidebar.markdown("---")
     st.sidebar.subheader("Currency")
-    fx_rate = st.sidebar.slider("USD-INR FX Rate", 75, 95, DEFAULT_FX_RATE)
+    fx_rate = st.sidebar.slider(
+        "USD-INR FX Rate",
+        min_value=FX_RATE_MIN,
+        max_value=FX_RATE_MAX,
+        value=DEFAULT_FX_RATE,
+        step=FX_RATE_STEP,
+    )
     display_currency = st.sidebar.radio("Display Currency", ["USD", "INR", "Both"], index=2)
 
     st.sidebar.markdown("---")
