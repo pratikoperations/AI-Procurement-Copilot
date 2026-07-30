@@ -46,9 +46,9 @@ def validate_rfq_dataframe(df):
     missing_required = [column for column in REQUIRED_RFQ_COLUMNS if column not in df.columns]
     if missing_required:
         errors.append(
-            "Mandatory RFQ fields are missing after column mapping: "
+            "Missing required columns after intelligent mapping: "
             + ", ".join(missing_required)
-            + ". Add these columns or rename the source headers clearly, then upload the file again."
+            + ". These are mandatory RFQ fields. Add the columns or rename the source headers clearly, then upload the file again."
         )
 
     if "Supplier" in df.columns:
