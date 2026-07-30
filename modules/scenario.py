@@ -1,48 +1,37 @@
 """Scenario stress testing engine."""
-
 import pandas as pd
-
 from modules.scoring import enrich_supplier_scores
 from modules.recommendation import recommendation_confidence
 
 
 def run_scenario_table(base_df, assumptions):
     """Run standard procurement stress scenarios and return winning supplier by scenario."""
+    is_kraft = assumptions.get("category") == "Raw Material Procurement" and assumptions.get("commodity") == "Kraft Paper"
+    material_label = "Paper Price +20%" if is_kraft else "Raw Material +20%"
     scenarios = [
         {"Scenario": "Base Case", "raw_material_shock": 0.0, "freight_shock": 0.0, "demand_change": 0.0},
-        {"Scenario": "Raw Material +20%", "raw_material_shock": 0.20, "freight_shock": 0.0, "demand_change": 0.0},
+        {"Scenario": material_label, "raw_material_shock": 0.20, "freight_shock": 0.0, "demand_change": 0.0},
         {"Scenario": "Freight +50%", "raw_material_shock": 0.0, "freight_shock": 0.50, "demand_change": 0.0},
         {"Scenario": "Demand -25%", "raw_material_shock": 0.0, "freight_shock": 0.0, "demand_change": -0.25},
         {"Scenario": "Combined Stress", "raw_material_shock": 0.20, "freight_shock": 0.50, "demand_change": -0.20},
     ]
-
     rows = []
     unit = str(assumptions.get("category_profile", {}).get("unit", assumptions.get("unit", "unit")))
     if assumptions.get("category") == "Raw Material Procurement":
         unit = str(assumptions.get("category_profile", {}).get("unit", "kg"))
-
     for scenario in scenarios:
         scenario_assumptions = assumptions.copy()
-        scenario_assumptions.update(
-            {
-                "raw_material_shock": scenario["raw_material_shock"],
-                "freight_shock": scenario["freight_shock"],
-                "demand_change": scenario["demand_change"],
-            }
-        )
+        scenario_assumptions.update({
+            "raw_material_shock": scenario["raw_material_shock"],
+            "freight_shock": scenario["freight_shock"],
+            "demand_change": scenario["demand_change"],
+        })
         scored = enrich_supplier_scores(base_df, scenario_assumptions)
         winner = scored.iloc[0]
-        rows.append(
-            {
-                "Scenario": scenario["Scenario"],
-                "Winning Supplier": winner["Supplier"],
-                "Winning Score": winner["total_score"],
-                f"Risk-Adjusted TCO per {unit} (USD)": winner["adjusted_tco_unit_usd"],
-                "Annual TCO (USD)": winner["annual_tco_usd"],
-                "Risk Resilience Score": winner["risk_score"],
-                "Failure Probability": winner["failure_probability"],
-                "Confidence": recommendation_confidence(scored),
-            }
-        )
-
+        rows.append({
+            "Scenario": scenario["Scenario"], "Winning Supplier": winner["Supplier"],
+            "Winning Score": winner["total_score"], f"Risk-Adjusted TCO per {unit} (USD)": winner["adjusted_tco_unit_usd"],
+            "Annual TCO (USD)": winner["annual_tco_usd"], "Risk Resilience Score": winner["risk_score"],
+            "Failure Probability": winner["failure_probability"], "Confidence": recommendation_confidence(scored),
+        })
     return pd.DataFrame(rows)
