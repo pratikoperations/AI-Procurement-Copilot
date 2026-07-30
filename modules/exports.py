@@ -4,6 +4,7 @@ from io import BytesIO
 import json
 
 import pandas as pd
+import streamlit as st
 
 from modules.unit_display import add_annual_volume_metadata
 from modules.utils import build_currency_display_frame, normalize_display_currency
@@ -20,6 +21,7 @@ READABLE_SCORE_COLUMNS = {
 }
 
 SCENARIO_ANNUAL_TCO_CANDIDATES = ("Annual TCO (USD)", "Annual TCO USD", "annual_tco_usd")
+EXPORT_CACHE_MAX_ENTRIES = 16
 
 
 def dataframe_to_csv_bytes(df):
@@ -42,6 +44,7 @@ def _drop_existing_inr_columns(frame, labels):
     return result.drop(columns=[column for column in removable if column in result.columns], errors="ignore")
 
 
+@st.cache_data(show_spinner=False, max_entries=EXPORT_CACHE_MAX_ENTRIES)
 def build_readable_supplier_scores(scored_df, data_confidence, eligibility, supplier_comparison=None, display_currency="USD", fx_rate=83, annual_volume=None, annual_volume_unit=None):
     mode = normalize_display_currency(display_currency)
     available = [column for column in READABLE_SCORE_COLUMNS if column in scored_df.columns]
@@ -62,6 +65,7 @@ def build_readable_supplier_scores(scored_df, data_confidence, eligibility, supp
     return add_annual_volume_metadata(report, annual_volume, annual_volume_unit)
 
 
+@st.cache_data(show_spinner=False, max_entries=EXPORT_CACHE_MAX_ENTRIES)
 def build_readable_supplier_comparison(comparison_df, data_confidence, eligibility, display_currency="USD", fx_rate=83, annual_volume=None, annual_volume_unit=None):
     mode = normalize_display_currency(display_currency)
     source = comparison_df.copy()
@@ -77,6 +81,7 @@ def build_readable_supplier_comparison(comparison_df, data_confidence, eligibili
     return add_annual_volume_metadata(report, annual_volume, annual_volume_unit)
 
 
+@st.cache_data(show_spinner=False, max_entries=EXPORT_CACHE_MAX_ENTRIES)
 def build_readable_allocation(allocation_df, display_currency="USD", fx_rate=83, annual_volume=None, annual_volume_unit=None):
     source = _drop_existing_inr_columns(allocation_df, ["Estimated Annual TCO"])
     mapping = _available_currency_mapping(source, {"Estimated Annual TCO USD": "Estimated Annual TCO", "Estimated Annual TCO (USD)": "Estimated Annual TCO", "annual_tco_usd": "Estimated Annual TCO"})
@@ -84,6 +89,7 @@ def build_readable_allocation(allocation_df, display_currency="USD", fx_rate=83,
     return add_annual_volume_metadata(report, annual_volume, annual_volume_unit)
 
 
+@st.cache_data(show_spinner=False, max_entries=EXPORT_CACHE_MAX_ENTRIES)
 def build_readable_should_cost(should_cost_df, display_currency="USD", fx_rate=83, annual_volume=None, annual_volume_unit=None):
     source = _drop_existing_inr_columns(should_cost_df, ["Unit Cost", "Annual Impact"])
     mapping = _available_currency_mapping(source, {"Unit Cost USD": "Unit Cost", "Unit Cost (USD)": "Unit Cost", "Annual Impact USD": "Annual Impact", "Annual Impact (USD)": "Annual Impact"})
@@ -91,6 +97,7 @@ def build_readable_should_cost(should_cost_df, display_currency="USD", fx_rate=8
     return add_annual_volume_metadata(report, annual_volume, annual_volume_unit)
 
 
+@st.cache_data(show_spinner=False, max_entries=EXPORT_CACHE_MAX_ENTRIES)
 def build_readable_scenarios(scenario_df, display_currency="USD", fx_rate=83, annual_volume=None, annual_volume_unit=None):
     source = _drop_existing_inr_columns(scenario_df, ["Annual TCO"])
     annual_column = next((column for column in SCENARIO_ANNUAL_TCO_CANDIDATES if column in source.columns), None)
@@ -99,11 +106,13 @@ def build_readable_scenarios(scenario_df, display_currency="USD", fx_rate=83, an
     return add_annual_volume_metadata(report, annual_volume, annual_volume_unit)
 
 
+@st.cache_data(show_spinner=False, max_entries=EXPORT_CACHE_MAX_ENTRIES)
 def build_decision_package_json(recommended_supplier, value_metrics, allocation_df, scenario_df, negotiation_result, eligibility=None):
     payload = {"recommended_supplier": recommended_supplier.to_dict() if hasattr(recommended_supplier, "to_dict") else dict(recommended_supplier), "value_metrics": dict(value_metrics), "allocation": allocation_df.to_dict(orient="records"), "scenarios": scenario_df.to_dict(orient="records"), "negotiation": dict(negotiation_result), "eligibility": dict(eligibility or {})}
     return json.dumps(payload, indent=2, default=str).encode("utf-8")
 
 
+@st.cache_data(show_spinner=False, max_entries=EXPORT_CACHE_MAX_ENTRIES)
 def build_excel_workbook(scored_df, should_cost_df, allocation_df, scenario_df, readable_scores=None, readable_comparison=None, display_currency="USD", fx_rate=83, annual_volume=None, annual_volume_unit=None):
     scores = readable_scores if readable_scores is not None else build_readable_supplier_scores(scored_df, {}, {}, display_currency=display_currency, fx_rate=fx_rate, annual_volume=annual_volume, annual_volume_unit=annual_volume_unit)
     comparison = readable_comparison
