@@ -12,13 +12,22 @@ def recommend_allocation(
     min_esg_score=50,
 ):
     """Recommend a supplier allocation split using score, risk, ESG, and concentration constraints."""
-    qualified = scored_df[
-        (scored_df["risk_score"] >= min_risk_score)
-        & (scored_df["esg_score"] >= min_esg_score)
+    eligible = scored_df.copy()
+    if "technical_eligible" in eligible.columns:
+        eligible = eligible[eligible["technical_eligible"].astype(bool)]
+
+    qualified = eligible[
+        (eligible["risk_score"] >= min_risk_score)
+        & (eligible["esg_score"] >= min_esg_score)
     ].copy()
 
     if qualified.empty:
-        qualified = scored_df.head(2).copy()
+        qualified = eligible.head(2).copy()
+    if qualified.empty:
+        return pd.DataFrame(columns=[
+            "Supplier", "Recommended Allocation %", "Role",
+            "Advanced TCO Unit USD", "Estimated Annual TCO USD", "Reason",
+        ])
 
     rows = []
     remaining = 100.0
@@ -45,7 +54,7 @@ def recommend_allocation(
                     "Role": "Primary Supplier" if idx == 0 else "Backup / Continuity Supplier" if idx == 1 else "Contingency Supplier",
                     "Advanced TCO Unit USD": supplier["adjusted_tco_unit_usd"],
                     "Estimated Annual TCO USD": proposed / 100 * supplier["adjusted_tco_unit_usd"] * annual_volume,
-                    "Reason": "Allocation respects weighted score, risk threshold, ESG threshold, and supplier concentration limit.",
+                    "Reason": "Allocation respects technical eligibility, weighted score, risk threshold, ESG threshold, and supplier concentration limit.",
                 }
             )
             remaining -= proposed
