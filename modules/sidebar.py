@@ -8,7 +8,6 @@ from modules.rfq_integration_controller import governed_route_enabled
 from modules.ui_theme import apply_ui_theme
 from modules.unit_display import annual_volume_label, canonical_unit, quantity_basis_caption
 
-
 FX_RATE_MIN = 60
 FX_RATE_MAX = 150
 FX_RATE_STEP = 1
@@ -36,25 +35,24 @@ def render_sidebar():
     if route_warning:
         st.sidebar.warning(route_warning)
 
-    category = st.sidebar.selectbox(
-        "Category Engine",
-        SUPPORTED_CATEGORIES,
-        index=0,
-    )
-
+    category = st.sidebar.selectbox("Category Engine", SUPPORTED_CATEGORIES, index=0)
     base_profile = ensure_category_profile(get_category_profile(category))
-    commodity = st.sidebar.selectbox(
-        "Commodity / Material",
-        base_profile["commodities"],
-        index=0,
-    )
+    commodity = st.sidebar.selectbox("Commodity / Material", base_profile["commodities"], index=0)
     category_profile = ensure_category_profile(get_category_profile(category, commodity))
 
     if category_profile["engine_status"] != "Active":
-        st.sidebar.warning(
-            "Raw-material architecture is available as a foundation preview. "
-            "Full category-specific scoring is planned for Build 0.9.4."
-        )
+        st.sidebar.warning("Raw-material architecture is available as a foundation preview. Full category-specific scoring is planned for Build 0.9.4.")
+
+    kraft_variant = "Recycled Kraft"
+    kraft_gsm = 150
+    kraft_strength_grade = "22 BF"
+    if category == "Raw Material Procurement" and commodity == "Kraft Paper":
+        with st.sidebar.expander("Kraft Paper Assumptions", expanded=True):
+            st.caption("Controlled synthetic profiles for portfolio demonstration; not live market specifications.")
+            kraft_variant = st.selectbox("Fibre Basis", ["Recycled Kraft", "Virgin Kraft"], index=0)
+            kraft_gsm = st.selectbox("GSM", [120, 150, 180], index=1)
+            kraft_strength_grade = st.selectbox("Strength Grade", ["18 BF", "22 BF", "28 BF"], index=1)
+            st.caption("Downstream linkage: Corrugated Board should-cost assumption review.")
 
     with st.sidebar.expander("Future Category Engines"):
         for item in FUTURE_CATEGORIES:
@@ -62,26 +60,15 @@ def render_sidebar():
 
     st.sidebar.markdown("---")
     st.sidebar.subheader("Currency")
-    fx_rate = st.sidebar.slider(
-        "USD-INR FX Rate",
-        min_value=FX_RATE_MIN,
-        max_value=FX_RATE_MAX,
-        value=DEFAULT_FX_RATE,
-        step=FX_RATE_STEP,
-    )
+    fx_rate = st.sidebar.slider("USD-INR FX Rate", min_value=FX_RATE_MIN, max_value=FX_RATE_MAX, value=DEFAULT_FX_RATE, step=FX_RATE_STEP)
     display_currency = st.sidebar.radio("Display Currency", ["USD", "INR", "Both"], index=2)
 
     st.sidebar.markdown("---")
     st.sidebar.subheader("Scenario Assumptions")
     annual_volume_unit = canonical_unit(category_profile.get("unit", "unit"))
-    annual_volume = st.sidebar.number_input(
-        annual_volume_label(annual_volume_unit),
-        min_value=1000,
-        value=500000,
-        step=10000,
-    )
+    annual_volume = st.sidebar.number_input(annual_volume_label(annual_volume_unit), min_value=1000, value=500000, step=10000)
     st.sidebar.caption(quantity_basis_caption(annual_volume, annual_volume_unit))
-    raw_material_shock = st.sidebar.slider("Raw Material Shock %", -20, 40, 0) / 100
+    raw_material_shock = st.sidebar.slider("Paper / Raw Material Shock %" if commodity == "Kraft Paper" else "Raw Material Shock %", -20, 40, 0) / 100
     freight_shock = st.sidebar.slider("Freight Shock %", -20, 80, 0) / 100
     demand_change = st.sidebar.slider("Demand Change %", -50, 50, 0) / 100
 
@@ -93,19 +80,10 @@ def render_sidebar():
     min_esg_score = st.sidebar.slider("Minimum ESG Score", 0, 100, 50)
 
     return build_sidebar_result(
-        data_source=data_source,
-        category=category,
-        commodity=commodity,
-        category_profile=category_profile,
-        fx_rate=fx_rate,
-        display_currency=display_currency,
-        annual_volume=annual_volume,
-        annual_volume_unit=annual_volume_unit,
-        raw_material_shock=raw_material_shock,
-        freight_shock=freight_shock,
-        demand_change=demand_change,
-        max_supplier_share=max_supplier_share,
-        min_backup_share=min_backup_share,
-        min_risk_score=min_risk_score,
-        min_esg_score=min_esg_score,
+        data_source=data_source, category=category, commodity=commodity, category_profile=category_profile,
+        fx_rate=fx_rate, display_currency=display_currency, annual_volume=annual_volume,
+        annual_volume_unit=annual_volume_unit, raw_material_shock=raw_material_shock,
+        freight_shock=freight_shock, demand_change=demand_change, max_supplier_share=max_supplier_share,
+        min_backup_share=min_backup_share, min_risk_score=min_risk_score, min_esg_score=min_esg_score,
+        kraft_variant=kraft_variant, kraft_gsm=kraft_gsm, kraft_strength_grade=kraft_strength_grade,
     )
