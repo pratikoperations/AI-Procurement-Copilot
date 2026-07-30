@@ -1,6 +1,8 @@
 """Supplier Intelligence orchestration and executive-readable comparison."""
 
 import pandas as pd
+
+from modules.c1_ux import technical_eligibility_label
 from modules.supplier360_engine import build_supplier360_profiles
 from modules.supplier_recommendation_engine import generate_executive_supplier_narrative, generate_supplier_recommendations
 
@@ -15,6 +17,7 @@ def build_supplier_intelligence(scored_df, category, commodity):
         profile["quoted_price"] = float(row.get("Quoted Unit Price USD", 0))
         profile["adjusted_tco"] = float(row.get("adjusted_tco_unit_usd", 0))
         profile["risk_score"] = float(row.get("risk_score", 60))
+        profile["technical_eligibility"] = technical_eligibility_label(row.get("technical_eligible"))
         profile["lead_time"] = float(row.get("Lead Time Days", 0))
         profile["moq"] = float(row.get("MOQ", 0))
         profile["payment_terms"] = str(row.get("Payment Terms", "Not provided"))
@@ -60,6 +63,7 @@ def build_supplier_intelligence(scored_df, category, commodity):
         innovation = profile["innovation"]
         rows.append({
             "Supplier": profile["supplier_name"],
+            "Technical Eligibility": profile["technical_eligibility"],
             "Original Currency": profile["original_currency"],
             "Original Unit Price": profile["original_unit_price"],
             "Normalized Currency": profile["normalized_currency"],
