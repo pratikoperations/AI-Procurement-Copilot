@@ -5,6 +5,7 @@ import streamlit as st
 from modules.category_engine import ensure_category_profile, get_category_profile
 from modules.config import DEFAULT_FX_RATE, EDITION, FUTURE_CATEGORIES, SUPPORTED_CATEGORIES
 from modules.rfq_integration_controller import governed_route_enabled
+from modules.ui_theme import apply_ui_theme
 from modules.unit_display import annual_volume_label, canonical_unit, quantity_basis_caption
 
 
@@ -23,6 +24,7 @@ def build_sidebar_result(**values):
 
 def render_sidebar():
     """Render sidebar controls and always return a complete assumptions dictionary."""
+    apply_ui_theme()
     st.sidebar.title("AI Procurement Copilot")
     st.sidebar.caption(EDITION)
 
