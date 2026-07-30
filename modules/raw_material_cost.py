@@ -16,17 +16,21 @@ KRAFT_VARIANT_ADJUSTMENTS = {
     "Recycled Kraft": {"commodity_index": 0.00, "quality_premium": 0.00},
     "Virgin Kraft": {"commodity_index": 0.11, "quality_premium": 0.03},
 }
-
 KRAFT_STRENGTH_PREMIUM = {"18 BF": 0.00, "22 BF": 0.025, "28 BF": 0.055}
 KRAFT_GSM_PREMIUM = {120: 0.00, 150: 0.015, 180: 0.03}
 
 LABELS = {
-    "commodity_index": "Commodity / Paper Index",
-    "conversion_premium": "Conversion / Mill Premium",
+    "commodity_index": "Commodity Index",
+    "conversion_premium": "Conversion / Producer Premium",
     "freight": "Freight",
     "duty": "Duty / Import Cost",
     "quality_premium": "Grade / Quality Premium",
     "supplier_margin": "Supplier Margin",
+}
+KRAFT_LABELS = {
+    **LABELS,
+    "commodity_index": "Paper Index",
+    "conversion_premium": "Mill / Producer Premium",
 }
 
 
@@ -79,7 +83,8 @@ def calculate_raw_material_should_cost(
 def raw_material_should_cost_dataframe(should_cost, annual_volume, fx_rate):
     total = float(should_cost.get("target_unit_cost_usd", 0.0))
     rows = []
-    for key, label in LABELS.items():
+    labels = KRAFT_LABELS if should_cost.get("commodity") == "Kraft Paper" else LABELS
+    for key, label in labels.items():
         value = float(should_cost.get(key, 0.0))
         rows.append({
             "Component": label,
