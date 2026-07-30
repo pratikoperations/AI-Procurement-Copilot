@@ -3,27 +3,15 @@
 import pandas as pd
 
 from modules.intelligent_rfq import quality_report_messages
+from modules.kraft_paper_validation import validate_kraft_paper_dataframe
 
 REQUIRED_RFQ_COLUMNS = [
-    "Supplier",
-    "Quoted Unit Price USD",
-    "MOQ",
-    "Lead Time Days",
-    "Payment Terms",
-    "Incoterms",
+    "Supplier", "Quoted Unit Price USD", "MOQ", "Lead Time Days", "Payment Terms", "Incoterms",
 ]
 
 OPTIONAL_RFQ_COLUMNS = [
-    "OTIF %",
-    "Quality PPM",
-    "Audit Score",
-    "Complaint Rate %",
-    "Capacity Buffer %",
-    "Recyclability",
-    "Certification",
-    "Carbon Score",
-    "EPR Readiness",
-    "PCR Content %",
+    "OTIF %", "Quality PPM", "Audit Score", "Complaint Rate %", "Capacity Buffer %",
+    "Recyclability", "Certification", "Carbon Score", "EPR Readiness", "PCR Content %",
     "Supplier Capacity",
 ]
 
@@ -32,11 +20,8 @@ def validate_rfq_dataframe(df):
     """Return structured validation and intelligent upload diagnostics."""
     errors = []
     warnings = []
-
     if df is None or df.empty:
-        errors.append(
-            "No supplier quotations are available for analysis. Add a header row and at least one supplier quotation, then upload the RFQ again."
-        )
+        errors.append("No supplier quotations are available for analysis. Add a header row and at least one supplier quotation, then upload the RFQ again.")
         return {"is_valid": False, "errors": errors, "warnings": warnings, "quality_report": None}
 
     quality_report = df.attrs.get("rfq_quality_report")
@@ -45,39 +30,23 @@ def validate_rfq_dataframe(df):
 
     missing_required = [column for column in REQUIRED_RFQ_COLUMNS if column not in df.columns]
     if missing_required:
-        errors.append(
-            "Missing required columns after intelligent mapping: "
-            + ", ".join(missing_required)
-            + ". These are mandatory RFQ fields. Add the columns or rename the source headers clearly, then upload the file again."
-        )
+        errors.append("Missing required columns after intelligent mapping: " + ", ".join(missing_required) + ". These are mandatory RFQ fields. Add the columns or rename the source headers clearly, then upload the file again.")
 
     if "Supplier" in df.columns:
         supplier_values = df["Supplier"]
         if supplier_values.isna().any() or supplier_values.astype(str).str.strip().eq("").any():
-            errors.append(
-                "One or more supplier names are blank. Complete every supplier-name cell before continuing."
-            )
+            errors.append("One or more supplier names are blank. Complete every supplier-name cell before continuing.")
         duplicate_mask = supplier_values.astype(str).str.strip().str.lower().duplicated(keep=False)
         if duplicate_mask.any():
             names = sorted(supplier_values.loc[duplicate_mask].astype(str).unique().tolist())
-            warnings.append(
-                "Duplicate supplier entries require review: "
-                + ", ".join(names)
-                + ". Confirm whether these are separate bids or duplicate rows before award use."
-            )
+            warnings.append("Duplicate supplier entries require review: " + ", ".join(names) + ". Confirm whether these are separate bids or duplicate rows before award use.")
 
-    numeric_rules = {
-        "Quoted Unit Price USD": "greater than zero",
-        "MOQ": "greater than zero",
-        "Lead Time Days": "zero or greater",
-    }
+    numeric_rules = {"Quoted Unit Price USD": "greater than zero", "MOQ": "greater than zero", "Lead Time Days": "zero or greater"}
     for column, rule in numeric_rules.items():
         if column in df.columns:
             numeric = pd.to_numeric(df[column], errors="coerce")
             if numeric.isna().any():
-                errors.append(
-                    f"'{column}' contains blank or non-numeric values. Enter a valid number in every supplier row and upload the RFQ again."
-                )
+                errors.append(f"'{column}' contains blank or non-numeric values. Enter a valid number in every supplier row and upload the RFQ again.")
             elif column == "Lead Time Days" and (numeric < 0).any():
                 errors.append(f"'{column}' must be {rule}. Correct the affected supplier row before continuing.")
             elif column != "Lead Time Days" and (numeric <= 0).any():
@@ -85,70 +54,33 @@ def validate_rfq_dataframe(df):
 
     missing_optional = [column for column in OPTIONAL_RFQ_COLUMNS if column not in df.columns]
     if missing_optional:
-        warnings.append(
-            "Optional scoring fields are missing, so governed defaults will be used: "
-            + ", ".join(missing_optional)
-            + ". Add them for stronger data confidence; the current analysis remains provisional."
-        )
-
+        warnings.append("Optional scoring fields are missing, so governed defaults will be used: " + ", ".join(missing_optional) + ". Add them for stronger data confidence; the current analysis remains provisional.")
     if len(df) < 2:
-        warnings.append(
-            "Only one supplier quotation is available. Add at least one more supplier for a meaningful comparative sourcing analysis."
-        )
-
+        warnings.append("Only one supplier quotation is available. Add at least one more supplier for a meaningful comparative sourcing analysis.")
     if quality_report and quality_report["quality_score"] < 70:
-        warnings.append(
-            "RFQ data quality is below 70/100. Review column mapping, missing values and duplicate rows before relying on the analysis for an award decision."
-        )
+        warnings.append("RFQ data quality is below 70/100. Review column mapping, missing values and duplicate rows before relying on the analysis for an award decision.")
 
-    return {
-        "is_valid": not errors,
-        "errors": errors,
-        "warnings": list(dict.fromkeys(warnings)),
-        "quality_report": quality_report,
-    }
+    if "Material" in df.columns and df["Material"].astype(str).eq("Kraft Paper").all():
+        kraft_result = validate_kraft_paper_dataframe(df)
+        errors.extend(kraft_result["errors"])
+        warnings.extend(kraft_result["warnings"])
+
+    return {"is_valid": not errors, "errors": list(dict.fromkeys(errors)), "warnings": list(dict.fromkeys(warnings)), "quality_report": quality_report}
 
 
 def validate_scored_output(scored_df):
     """Validate key outputs after scoring."""
-    required_output_columns = [
-        "Supplier",
-        "adjusted_tco_unit_usd",
-        "annual_tco_usd",
-        "risk_score",
-        "performance_score",
-        "esg_score",
-        "total_score",
-    ]
-
+    required_output_columns = ["Supplier", "adjusted_tco_unit_usd", "annual_tco_usd", "risk_score", "performance_score", "esg_score", "total_score"]
     errors = [column for column in required_output_columns if column not in scored_df.columns]
     if errors:
-        return {
-            "is_valid": False,
-            "errors": [
-                "The scored output is incomplete and cannot support a recommendation. Missing fields: "
-                + ", ".join(errors)
-                + ". Re-run the analysis after correcting the RFQ inputs."
-            ],
-        }
-
-    score_columns = ["risk_score", "performance_score", "esg_score", "total_score"]
+        return {"is_valid": False, "errors": ["The scored output is incomplete and cannot support a recommendation. Missing fields: " + ", ".join(errors) + ". Re-run the analysis after correcting the RFQ inputs."]}
     invalid_scores = []
-    for column in score_columns:
+    for column in ["risk_score", "performance_score", "esg_score", "total_score"]:
         if ((scored_df[column] < 0) | (scored_df[column] > 100)).any():
             invalid_scores.append(column)
-
     messages = []
     if invalid_scores:
-        messages.append(
-            "The following scored fields fall outside the permitted 0–100 range: "
-            + ", ".join(invalid_scores)
-            + ". The recommendation is blocked until the scoring output is corrected."
-        )
-
+        messages.append("The following scored fields fall outside the permitted 0–100 range: " + ", ".join(invalid_scores) + ". The recommendation is blocked until the scoring output is corrected.")
     if (scored_df["adjusted_tco_unit_usd"] <= 0).any():
-        messages.append(
-            "Adjusted TCO must be greater than zero for every supplier. Review price and cost inputs before continuing."
-        )
-
+        messages.append("Adjusted TCO must be greater than zero for every supplier. Review price and cost inputs before continuing.")
     return {"is_valid": not messages, "errors": messages}
