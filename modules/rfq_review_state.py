@@ -8,7 +8,7 @@ from hashlib import sha256
 import json
 from typing import Any, Iterable, Mapping
 
-WARNING_POLICY_VERSION = "AIPC-COMPATIBILITY-WARNING-DISPOSITION-1.3.0"
+WARNING_POLICY_VERSION = "AIPC-COMPATIBILITY-WARNING-DISPOSITION-1.3.1"
 
 
 class ReviewState(str, Enum):
@@ -65,6 +65,10 @@ class ReviewIdentity:
     approved_mapping_digest: str
     approved_history_mapping_digest: str
     manual_history_confirmation_digest: str
+    warning_acknowledgement_digest: str = ""
+    analytical_assumptions_digest: str = ""
+    dataframe_digest: str = ""
+    handoff_contract_version: str = ""
 
     @property
     def digest(self) -> str:

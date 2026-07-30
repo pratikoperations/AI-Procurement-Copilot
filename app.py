@@ -27,12 +27,15 @@ from modules.exports import (
 from modules.negotiation import generate_negotiation_playbook, govern_negotiation_brief, simulate_negotiation
 from modules.negotiation_engine import build_negotiation_intelligence
 from modules.procurement_intelligence_ui import render_procurement_intelligence
+from modules.ranking_input_models import RankingMappingConfirmation
 from modules.recommendation import best_value_decision, executive_value_breakdown, recommendation_confidence
+from modules.rfq_analytical_handoff import filter_analytical_assumptions, run_engine_stages
 from modules.rfq_integration_controller import run_governed_review
 from modules.rfq_review_state import ReviewState
 from modules.rfq_review_ui import (
-    render_event_selection, render_governed_review, render_item_selection,
-    render_mapping_reviews, render_warning_acknowledgements,
+    render_event_selection, render_governed_review, render_handoff_confirmation,
+    render_item_selection, render_mapping_reviews, render_ranking_mapping_confirmations,
+    render_warning_acknowledgements,
 )
 from modules.risk_intelligence import assess_procurement_risks
 from modules.scenario import run_scenario_table
@@ -89,6 +92,10 @@ elif is_governed_route:
 
 if is_governed_route:
     confirmed_mappings = tuple(st.session_state.get("governed_v13_confirmed_mappings", ()))
+    ranking_confirmations = tuple(
+        RankingMappingConfirmation(**item)
+        for item in st.session_state.get("governed_v13_ranking_confirmations", ())
+    )
     selected_event = st.session_state.get("governed_v13_selected_event")
     selected_number = st.session_state.get("governed_v13_selected_rfq_number")
     selected_item = st.session_state.get("governed_v13_selected_rfq_item")
@@ -102,19 +109,34 @@ if is_governed_route:
         selected_rfq_number=selected_number,
         selected_rfq_item=selected_item,
         confirmed_mappings=confirmed_mappings,
+        ranking_confirmations=ranking_confirmations,
         acknowledged_warning_codes=acknowledged,
         comparison_currency="USD",
         display_currency_mode=assumptions["display_currency"],
         handoff_confirmation_digest=handoff_digest,
+        analytical_assumptions=filter_analytical_assumptions(assumptions),
     )
 
     if governed_result.review_state is ReviewState.MAPPING_CONFIRMATION_REQUIRED and governed_result.adapter_result is not None:
         render_governed_review(governed_result)
         selected_mappings = render_mapping_reviews(governed_result.adapter_result)
-        pending_count = sum(1 for item in governed_result.adapter_result.mapping_reviews if item.requires_confirmation)
-        if pending_count and len(selected_mappings) == pending_count and st.button("Apply mapping confirmations"):
+        selected_ranking = render_ranking_mapping_confirmations(governed_result.adapter_result)
+        pending_quotes = sum(1 for item in governed_result.adapter_result.mapping_reviews if item.requires_confirmation and item.sheet != "SUPPLIER_RANKING_INPUTS")
+        pending_ranking = [item for item in governed_result.adapter_result.mapping_reviews if item.requires_confirmation and item.sheet == "SUPPLIER_RANKING_INPUTS" and item.canonical_field]
+        required_contexts = sum(len({
+            str(record.value_origins.get(item.canonical_field) or "")
+            for record in governed_result.adapter_result.supplier_ranking_inputs
+            if record.canonical_values.get(item.canonical_field) is not None and record.value_origins.get(item.canonical_field)
+        }) for item in pending_ranking)
+        if len(selected_mappings) == pending_quotes and len(selected_ranking) == required_contexts and st.button("Apply mapping confirmations"):
             st.session_state["governed_v13_confirmed_mappings"] = selected_mappings
-            for key in ("governed_v13_selected_event", "governed_v13_selected_rfq_number", "governed_v13_selected_rfq_item", "governed_v13_acknowledged_warnings", "governed_v13_handoff_digest"):
+            st.session_state["governed_v13_ranking_confirmations"] = tuple(item.__dict__ for item in selected_ranking)
+            for key in (
+                "governed_v13_selected_event", "governed_v13_selected_rfq_number",
+                "governed_v13_selected_rfq_item", "governed_v13_acknowledged_warnings",
+                "governed_v13_handoff_digest", "governed_v13_handoff_manifest_digest",
+                "governed_v13_handoff_confirmed_at", "governed_v13_handoff_contract_version",
+            ):
                 st.session_state.pop(key, None)
             st.rerun()
         st.stop()
@@ -149,9 +171,11 @@ if is_governed_route:
             st.rerun()
         st.stop()
 
-    confirmation_digest = render_governed_review(governed_result)
-    if confirmation_digest:
-        st.session_state["governed_v13_handoff_digest"] = confirmation_digest
+    render_governed_review(governed_result)
+    if render_handoff_confirmation(governed_result):
+        st.session_state["governed_v13_handoff_digest"] = governed_result.handoff_digest
+        st.session_state["governed_v13_handoff_manifest_digest"] = governed_result.handoff_digest
+        st.session_state["governed_v13_handoff_contract_version"] = "AIPC-E2-HANDOFF-1.3.1"
         st.rerun()
     if governed_result.dataframe is None or not governed_result.analysis_handoff_allowed:
         st.stop()
@@ -176,49 +200,133 @@ for issue in currency_governance.get("blockers", []):
 if currency_governance.get("blockers"):
     st.stop()
 
-validation = validate_rfq_dataframe(suppliers_df)
-for warning in validation["warnings"]:
-    st.warning(warning)
-if not validation["is_valid"]:
-    for error in validation["errors"]:
-        st.error(error)
-    st.stop()
+if is_governed_route:
+    handoff_digest = str(suppliers_df.attrs.get("handoff_manifest_digest") or "")
 
-try:
-    scored_df = enrich_supplier_scores(suppliers_df, assumptions)
-except Exception as exc:
-    st.error(f"Supplier scoring failed. Review the uploaded data and assumptions. Technical detail: {exc}")
-    st.stop()
+    def _input_validation(_outputs):
+        result = validate_rfq_dataframe(suppliers_df)
+        if not result["is_valid"]:
+            raise ValueError("; ".join(result["errors"]))
+        return result
 
-output_validation = validate_scored_output(scored_df)
-if not output_validation["is_valid"]:
-    for error in output_validation["errors"]:
-        st.error(error)
-    st.stop()
+    def _scoring(_outputs):
+        return enrich_supplier_scores(suppliers_df, assumptions)
 
-recommended = scored_df.iloc[0]
-lowest = scored_df.sort_values("Quoted Unit Price USD").iloc[0]
-confidence = recommendation_confidence(scored_df)
-should_cost, should_cost_df = calculate_category_should_cost(assumptions)
+    def _scored_validation(outputs):
+        result = validate_scored_output(outputs["SCORING_TCO"])
+        if not result["is_valid"]:
+            raise ValueError("; ".join(result["errors"]))
+        return result
 
-decision = best_value_decision(scored_df)
-value_metrics = executive_value_breakdown(scored_df, assumptions["annual_volume"], should_cost["target_unit_cost_usd"])
-allocation_df = recommend_allocation(
-    scored_df,
-    annual_volume=assumptions["annual_volume"],
-    max_supplier_share=assumptions["max_supplier_share"],
-    min_backup_share=assumptions["min_backup_share"],
-    min_risk_score=assumptions["min_risk_score"],
-    min_esg_score=assumptions["min_esg_score"],
-)
-scenario_df = run_scenario_table(suppliers_df, assumptions)
-negotiation_result = simulate_negotiation(recommended, assumptions["annual_volume"])
-playbook_text = generate_negotiation_playbook(
-    recommended, should_cost["target_unit_cost_usd"], lowest["Supplier"],
-    lowest["Quoted Unit Price USD"], negotiation_result["annual_saving_usd"],
-)
+    def _recommendation(outputs):
+        scored = outputs["SCORING_TCO"]
+        recommended_row = scored.iloc[0]
+        lowest_row = scored.sort_values("Quoted Unit Price USD").iloc[0]
+        confidence_value = recommendation_confidence(scored)
+        should_cost_value, should_cost_table = calculate_category_should_cost(assumptions)
+        decision_value = best_value_decision(scored)
+        value = executive_value_breakdown(scored, assumptions["annual_volume"], should_cost_value["target_unit_cost_usd"])
+        return {"recommended": recommended_row, "lowest": lowest_row, "confidence": confidence_value, "should_cost": should_cost_value, "should_cost_df": should_cost_table, "decision": decision_value, "value_metrics": value}
 
-optimized_allocation = optimize_allocation(scored_df, assumptions["annual_volume"])
+    def _allocation(outputs):
+        scored = outputs["SCORING_TCO"]
+        allocation = recommend_allocation(
+            scored,
+            annual_volume=assumptions["annual_volume"],
+            max_supplier_share=assumptions["max_supplier_share"],
+            min_backup_share=assumptions["min_backup_share"],
+            min_risk_score=assumptions["min_risk_score"],
+            min_esg_score=assumptions["min_esg_score"],
+        )
+        optimized = optimize_allocation(scored, assumptions["annual_volume"])
+        return {"allocation_df": allocation, "optimized_allocation": optimized}
+
+    def _negotiation(outputs):
+        recommendation = outputs["RECOMMENDATION"]
+        recommended_row = recommendation["recommended"]
+        negotiation = simulate_negotiation(recommended_row, assumptions["annual_volume"])
+        playbook = generate_negotiation_playbook(
+            recommended_row, recommendation["should_cost"]["target_unit_cost_usd"],
+            recommendation["lowest"]["Supplier"], recommendation["lowest"]["Quoted Unit Price USD"],
+            negotiation["annual_saving_usd"],
+        )
+        return {"scenario_df": run_scenario_table(suppliers_df, assumptions), "negotiation_result": negotiation, "playbook_text": playbook}
+
+    execution = run_engine_stages(suppliers_df, handoff_digest, {
+        "INPUT_VALIDATION": _input_validation,
+        "SCORING_TCO": _scoring,
+        "SCORED_OUTPUT_VALIDATION": _scored_validation,
+        "RECOMMENDATION": _recommendation,
+        "ALLOCATION": _allocation,
+        "NEGOTIATION": _negotiation,
+    })
+    with st.expander("Governed engine-stage audit", expanded=False):
+        st.dataframe([item.__dict__ for item in execution.stages], use_container_width=True)
+    if not execution.completed:
+        failed = next(item for item in execution.stages if item.status == "BLOCKED")
+        st.error(f"Governed analytical execution stopped at {failed.stage}: {failed.message}")
+        st.stop()
+    validation = execution.outputs["INPUT_VALIDATION"]
+    scored_df = execution.outputs["SCORING_TCO"]
+    recommendation_bundle = execution.outputs["RECOMMENDATION"]
+    recommended = recommendation_bundle["recommended"]
+    lowest = recommendation_bundle["lowest"]
+    confidence = recommendation_bundle["confidence"]
+    should_cost = recommendation_bundle["should_cost"]
+    should_cost_df = recommendation_bundle["should_cost_df"]
+    decision = recommendation_bundle["decision"]
+    value_metrics = recommendation_bundle["value_metrics"]
+    allocation_bundle = execution.outputs["ALLOCATION"]
+    allocation_df = allocation_bundle["allocation_df"]
+    optimized_allocation = allocation_bundle["optimized_allocation"]
+    negotiation_bundle = execution.outputs["NEGOTIATION"]
+    scenario_df = negotiation_bundle["scenario_df"]
+    negotiation_result = negotiation_bundle["negotiation_result"]
+    playbook_text = negotiation_bundle["playbook_text"]
+else:
+    validation = validate_rfq_dataframe(suppliers_df)
+    for warning in validation["warnings"]:
+        st.warning(warning)
+    if not validation["is_valid"]:
+        for error in validation["errors"]:
+            st.error(error)
+        st.stop()
+
+    try:
+        scored_df = enrich_supplier_scores(suppliers_df, assumptions)
+    except Exception as exc:
+        st.error(f"Supplier scoring failed. Review the uploaded data and assumptions. Technical detail: {exc}")
+        st.stop()
+
+    output_validation = validate_scored_output(scored_df)
+    if not output_validation["is_valid"]:
+        for error in output_validation["errors"]:
+            st.error(error)
+        st.stop()
+
+    recommended = scored_df.iloc[0]
+    lowest = scored_df.sort_values("Quoted Unit Price USD").iloc[0]
+    confidence = recommendation_confidence(scored_df)
+    should_cost, should_cost_df = calculate_category_should_cost(assumptions)
+
+    decision = best_value_decision(scored_df)
+    value_metrics = executive_value_breakdown(scored_df, assumptions["annual_volume"], should_cost["target_unit_cost_usd"])
+    allocation_df = recommend_allocation(
+        scored_df,
+        annual_volume=assumptions["annual_volume"],
+        max_supplier_share=assumptions["max_supplier_share"],
+        min_backup_share=assumptions["min_backup_share"],
+        min_risk_score=assumptions["min_risk_score"],
+        min_esg_score=assumptions["min_esg_score"],
+    )
+    scenario_df = run_scenario_table(suppliers_df, assumptions)
+    negotiation_result = simulate_negotiation(recommended, assumptions["annual_volume"])
+    playbook_text = generate_negotiation_playbook(
+        recommended, should_cost["target_unit_cost_usd"], lowest["Supplier"],
+        lowest["Quoted Unit Price USD"], negotiation_result["annual_saving_usd"],
+    )
+    optimized_allocation = optimize_allocation(scored_df, assumptions["annual_volume"])
+
 risk_result = assess_procurement_risks(scored_df, optimized_allocation["allocation_df"])
 strategy_result = recommend_strategy(scored_df, assumptions["annual_volume"])
 intelligence_decision = generate_decision(scored_df, optimized_allocation["allocation_df"], risk_result)
