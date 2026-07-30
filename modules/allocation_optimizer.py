@@ -6,21 +6,28 @@ SUPPORTED_SPLITS = [(100, 0), (90, 10), (80, 20), (70, 30), (60, 40), (50, 50)]
 
 
 def optimize_allocation(scored_df, annual_volume):
-    """Recommend a two-supplier allocation using score gap, risk, performance, and capacity."""
-    if scored_df.empty:
-        return {"allocation_df": pd.DataFrame(), "explanation": "No suppliers available for allocation."}
+    """Recommend a two-supplier allocation using eligibility, score, risk, performance, and capacity."""
+    eligible = scored_df.copy()
+    if "technical_eligible" in eligible.columns:
+        eligible = eligible[eligible["technical_eligible"].astype(bool)]
 
-    primary = scored_df.iloc[0]
-    if len(scored_df) == 1:
+    if eligible.empty:
+        return {
+            "allocation_df": pd.DataFrame(),
+            "explanation": "No technically eligible suppliers are available for allocation.",
+        }
+
+    primary = eligible.iloc[0]
+    if len(eligible) == 1:
         allocation = pd.DataFrame([
             {"Supplier": primary["Supplier"], "Recommended Allocation %": 100.0, "Role": "Primary Supplier"}
         ])
         return {
             "allocation_df": allocation,
-            "explanation": "100/0 allocation because only one supplier is available; continuity mitigation is required.",
+            "explanation": "100/0 allocation because only one technically eligible supplier is available; continuity mitigation is required.",
         }
 
-    secondary = scored_df.iloc[1]
+    secondary = eligible.iloc[1]
     gap = float(primary["total_score"] - secondary["total_score"])
     primary_capacity = float(primary.get("Supplier Capacity", annual_volume))
     primary_capacity_share = min(primary_capacity / max(float(annual_volume), 1.0) * 100, 100)
