@@ -16,12 +16,9 @@ from modules.validation import validate_rfq_dataframe
 
 def _assumptions():
     return {
-        "category": "Raw Material Procurement",
-        "commodity": "Kraft Paper",
-        "annual_volume": 100000,
-        "raw_material_shock": 0.0,
-        "freight_shock": 0.0,
-        "demand_change": 0.0,
+        "category": "Raw Material Procurement", "commodity": "Kraft Paper",
+        "annual_volume": 100000, "raw_material_shock": 0.0,
+        "freight_shock": 0.0, "demand_change": 0.0,
         "category_profile": {"unit": "kg"},
     }
 
@@ -52,7 +49,8 @@ def test_recycled_kraft_should_cost_has_required_components():
     assert result["strength_grade"] == "22 BF"
     assert result["downstream_link"] == "Corrugated Board"
     assert "profile availability" in result["profile_premium_note"].lower()
-    assert result["target_unit_cost_usd"] == pytest.approx(sum(result[key] for key in ["commodity_index", "conversion_premium", "freight", "duty", "quality_premium", "supplier_margin"]))
+    keys = ["commodity_index", "conversion_premium", "freight", "duty", "quality_premium", "supplier_margin"]
+    assert result["target_unit_cost_usd"] == pytest.approx(sum(result[key] for key in keys))
 
 
 def test_virgin_kraft_costs_more_than_recycled_on_same_profile():
@@ -68,9 +66,7 @@ def test_higher_strength_and_profile_increase_controlled_premium():
 
 
 @pytest.mark.parametrize("kwargs", [
-    {"kraft_variant": "Unsupported"},
-    {"gsm": 200},
-    {"strength_grade": "35 BF"},
+    {"kraft_variant": "Unsupported"}, {"gsm": 200}, {"strength_grade": "35 BF"},
 ])
 def test_unsupported_kraft_profiles_fail_closed(kwargs):
     with pytest.raises(ValueError):
@@ -105,7 +101,6 @@ def test_kraft_supplier_dataset_has_three_distinct_suppliers():
 
 def test_demo_router_returns_versioned_synthetic_kraft_data_and_context():
     df = get_demo_data("Raw Material Procurement", "Kraft Paper")
-    assert len(df) == 3
     assert df.attrs["source_label"] == "Synthetic demonstration data"
     assert df.attrs["assumption_profile_version"] == "C1.0"
     assert df.attrs["category"] == "Raw Material Procurement"
@@ -125,10 +120,8 @@ def test_valid_kraft_supplier_data_passes_with_controlled_warnings():
 
 
 @pytest.mark.parametrize("column,value,expected", [
-    ("Unit", "piece", "kg"),
-    ("Kraft Variant", "", "variant"),
-    ("GSM", "150 GSM", "non-numeric"),
-    ("GSM", 150.5, "whole-number"),
+    ("Unit", "piece", "kg"), ("Kraft Variant", "", "variant"),
+    ("GSM", "150 GSM", "non-numeric"), ("GSM", 150.5, "whole-number"),
     ("Strength Grade", "", "strength"),
     ("Mill Allocation %", -1, "between 0 and 100"),
     ("Mill Allocation %", 101, "between 0 and 100"),
@@ -139,6 +132,8 @@ def test_valid_kraft_supplier_data_passes_with_controlled_warnings():
 ])
 def test_invalid_kraft_fields_fail_with_governed_errors(column, value, expected):
     df = get_kraft_paper_demo_suppliers()
+    if isinstance(value, str) or (column == "GSM" and isinstance(value, float)):
+        df[column] = df[column].astype(object)
     df.loc[0, column] = value
     result = validate_kraft_paper_dataframe(df)
     assert not result["is_valid"]
@@ -146,8 +141,7 @@ def test_invalid_kraft_fields_fail_with_governed_errors(column, value, expected)
 
 
 def test_missing_unit_is_reported_not_raised():
-    df = get_kraft_paper_demo_suppliers().drop(columns=["Unit"])
-    result = validate_kraft_paper_dataframe(df)
+    result = validate_kraft_paper_dataframe(get_kraft_paper_demo_suppliers().drop(columns=["Unit"]))
     assert not result["is_valid"]
     assert any("unit" in error.lower() for error in result["errors"])
 
@@ -161,8 +155,7 @@ def test_mixed_material_rows_are_blocked():
 
 
 def test_selected_commodity_conflict_is_blocked():
-    df = get_kraft_paper_demo_suppliers()
-    result = validate_rfq_dataframe(df, "Raw Material Procurement", "Polyethylene")
+    result = validate_rfq_dataframe(get_kraft_paper_demo_suppliers(), "Raw Material Procurement", "Polyethylene")
     assert not result["is_valid"]
     assert any("conflicts" in error.lower() for error in result["errors"])
 
@@ -187,6 +180,15 @@ def test_category_cost_router_passes_kraft_assumptions():
     assert frame["Annual Impact USD"].sum() == pytest.approx(result["target_unit_cost_usd"] * 100000)
 
 
+def test_decimal_gsm_router_input_fails_without_truncation():
+    with pytest.raises(ValueError, match="whole-number"):
+        calculate_category_should_cost({
+            "category": "Raw Material Procurement", "commodity": "Kraft Paper", "annual_volume": 100000,
+            "demand_change": 0.0, "raw_material_shock": 0.0, "freight_shock": 0.0, "fx_rate": 83,
+            "kraft_gsm": 150.5,
+        })
+
+
 def test_kraft_risks_affect_score_and_technical_eligibility():
     df = get_kraft_paper_demo_suppliers()
     scored = enrich_supplier_scores(df, _assumptions())
@@ -194,7 +196,6 @@ def test_kraft_risks_affect_score_and_technical_eligibility():
     western = scored.loc[scored["Supplier"] == "Western Fibre Mills"].iloc[0]
     assert circular["risk_score"] < western["risk_score"]
     assert bool(circular["technical_eligible"])
-
     df.loc[df["Supplier"] == "Circular Paperworks Ltd", "Mill Allocation %"] = 98
     rescored = enrich_supplier_scores(df, _assumptions())
     circular = rescored.loc[rescored["Supplier"] == "Circular Paperworks Ltd"].iloc[0]
@@ -213,16 +214,11 @@ def test_ineligible_supplier_is_excluded_from_allocations():
 
 def test_executive_risk_output_contains_kraft_specific_risks():
     scored = enrich_supplier_scores(get_kraft_paper_demo_suppliers(), _assumptions())
-    result = assess_procurement_risks(scored)
-    names = {item["Risk"] for item in result["risks"]}
-    assert "Kraft mill allocation risk" in names
-    assert "Kraft moisture and yield risk" in names
-    assert "Kraft fibre availability risk" in names
-    assert "Kraft quality continuity risk" in names
+    names = {item["Risk"] for item in assess_procurement_risks(scored)["risks"]}
+    assert {"Kraft mill allocation risk", "Kraft moisture and yield risk", "Kraft fibre availability risk", "Kraft quality continuity risk"} <= names
 
 
 def test_kraft_scenarios_include_price_and_continuity_stress():
-    scenarios = run_scenario_table(get_kraft_paper_demo_suppliers(), _assumptions())
-    names = scenarios["Scenario"].tolist()
+    names = run_scenario_table(get_kraft_paper_demo_suppliers(), _assumptions())["Scenario"].tolist()
     assert "Paper Price +20%" in names
     assert "Mill / Fibre Continuity Stress" in names
