@@ -34,7 +34,9 @@ def validate_rfq_dataframe(df):
     warnings = []
 
     if df is None or df.empty:
-        errors.append("RFQ file contains no supplier rows.")
+        errors.append(
+            "No supplier quotations are available for analysis. Add a header row and at least one supplier quotation, then upload the RFQ again."
+        )
         return {"is_valid": False, "errors": errors, "warnings": warnings, "quality_report": None}
 
     quality_report = df.attrs.get("rfq_quality_report")
@@ -43,16 +45,26 @@ def validate_rfq_dataframe(df):
 
     missing_required = [column for column in REQUIRED_RFQ_COLUMNS if column not in df.columns]
     if missing_required:
-        errors.append("Missing required columns after intelligent mapping: " + ", ".join(missing_required))
+        errors.append(
+            "Missing required columns after intelligent mapping: "
+            + ", ".join(missing_required)
+            + ". These are mandatory RFQ fields. Add the columns or rename the source headers clearly, then upload the file again."
+        )
 
     if "Supplier" in df.columns:
         supplier_values = df["Supplier"]
         if supplier_values.isna().any() or supplier_values.astype(str).str.strip().eq("").any():
-            errors.append("One or more supplier names are blank.")
+            errors.append(
+                "One or more supplier names are blank. Complete every supplier-name cell before continuing."
+            )
         duplicate_mask = supplier_values.astype(str).str.strip().str.lower().duplicated(keep=False)
         if duplicate_mask.any():
             names = sorted(supplier_values.loc[duplicate_mask].astype(str).unique().tolist())
-            warnings.append("Duplicate supplier entries require review: " + ", ".join(names))
+            warnings.append(
+                "Duplicate supplier entries require review: "
+                + ", ".join(names)
+                + ". Confirm whether these are separate bids or duplicate rows before award use."
+            )
 
     numeric_rules = {
         "Quoted Unit Price USD": "greater than zero",
@@ -63,23 +75,31 @@ def validate_rfq_dataframe(df):
         if column in df.columns:
             numeric = pd.to_numeric(df[column], errors="coerce")
             if numeric.isna().any():
-                errors.append(f"Column '{column}' contains blank or non-numeric values after normalization.")
+                errors.append(
+                    f"'{column}' contains blank or non-numeric values. Enter a valid number in every supplier row and upload the RFQ again."
+                )
             elif column == "Lead Time Days" and (numeric < 0).any():
-                errors.append(f"Column '{column}' must be {rule}.")
+                errors.append(f"'{column}' must be {rule}. Correct the affected supplier row before continuing.")
             elif column != "Lead Time Days" and (numeric <= 0).any():
-                errors.append(f"Column '{column}' must be {rule}.")
+                errors.append(f"'{column}' must be {rule}. Correct the affected supplier row before continuing.")
 
     missing_optional = [column for column in OPTIONAL_RFQ_COLUMNS if column not in df.columns]
     if missing_optional:
         warnings.append(
-            "Optional scoring columns are missing and defaults will be used: " + ", ".join(missing_optional)
+            "Optional scoring fields are missing, so governed defaults will be used: "
+            + ", ".join(missing_optional)
+            + ". Add them for stronger data confidence; the current analysis remains provisional."
         )
 
     if len(df) < 2:
-        warnings.append("At least two suppliers are recommended for comparative sourcing analysis.")
+        warnings.append(
+            "Only one supplier quotation is available. Add at least one more supplier for a meaningful comparative sourcing analysis."
+        )
 
     if quality_report and quality_report["quality_score"] < 70:
-        warnings.append("RFQ data quality is below 70/100. Review mapping, missing data, and duplicates before award use.")
+        warnings.append(
+            "RFQ data quality is below 70/100. Review column mapping, missing values and duplicate rows before relying on the analysis for an award decision."
+        )
 
     return {
         "is_valid": not errors,
@@ -105,7 +125,11 @@ def validate_scored_output(scored_df):
     if errors:
         return {
             "is_valid": False,
-            "errors": ["Missing scored output columns: " + ", ".join(errors)],
+            "errors": [
+                "The scored output is incomplete and cannot support a recommendation. Missing fields: "
+                + ", ".join(errors)
+                + ". Re-run the analysis after correcting the RFQ inputs."
+            ],
         }
 
     score_columns = ["risk_score", "performance_score", "esg_score", "total_score"]
@@ -116,9 +140,15 @@ def validate_scored_output(scored_df):
 
     messages = []
     if invalid_scores:
-        messages.append("Scores outside 0–100 range: " + ", ".join(invalid_scores))
+        messages.append(
+            "The following scored fields fall outside the permitted 0–100 range: "
+            + ", ".join(invalid_scores)
+            + ". The recommendation is blocked until the scoring output is corrected."
+        )
 
     if (scored_df["adjusted_tco_unit_usd"] <= 0).any():
-        messages.append("Adjusted TCO must be greater than zero for every supplier.")
+        messages.append(
+            "Adjusted TCO must be greater than zero for every supplier. Review price and cost inputs before continuing."
+        )
 
     return {"is_valid": not messages, "errors": messages}

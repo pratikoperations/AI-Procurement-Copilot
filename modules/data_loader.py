@@ -1,8 +1,16 @@
 """Data loading and synthetic demo data."""
 
+from __future__ import annotations
+
+from zipfile import BadZipFile
+
 import pandas as pd
 
 from modules.intelligent_rfq import normalize_rfq_dataframe
+
+
+class RFQUploadError(ValueError):
+    """Business-facing upload failure that is safe to show in the Streamlit UI."""
 
 
 def get_demo_suppliers():
@@ -33,12 +41,49 @@ def get_demo_data(category="Packaging Procurement", commodity="Corrugated Board"
     return data
 
 
+def _read_uploaded_dataframe(uploaded_file):
+    """Read one supported RFQ file and translate parser failures into actionable guidance."""
+    filename = str(getattr(uploaded_file, "name", "") or "").strip()
+    suffix = filename.lower().rsplit(".", 1)[-1] if "." in filename else ""
+    if suffix not in {"csv", "xlsx"}:
+        raise RFQUploadError(
+            "Unsupported RFQ file type. Upload a .csv or .xlsx file exported as a standard table."
+        )
+    try:
+        return pd.read_csv(uploaded_file) if suffix == "csv" else pd.read_excel(uploaded_file)
+    except pd.errors.EmptyDataError as exc:
+        raise RFQUploadError(
+            "The uploaded RFQ file is empty. Add a header row and at least one supplier quotation, then upload it again."
+        ) from exc
+    except pd.errors.ParserError as exc:
+        raise RFQUploadError(
+            "The CSV structure could not be parsed. Check delimiters, quotation marks and merged header rows, then export the file again."
+        ) from exc
+    except (BadZipFile, ImportError) as exc:
+        raise RFQUploadError(
+            "The Excel workbook could not be opened. Confirm that it is a valid .xlsx file and is not password-protected or corrupted."
+        ) from exc
+    except (OSError, ValueError) as exc:
+        raise RFQUploadError(
+            "The RFQ file could not be opened. Confirm that the file is not corrupted, password-protected or still open in another application."
+        ) from exc
+
+
 def load_uploaded_rfq(uploaded_file):
     """Load, recognize, and normalize an uploaded CSV or Excel RFQ file."""
     if uploaded_file is None:
         return None
-    raw_df = pd.read_csv(uploaded_file) if uploaded_file.name.lower().endswith(".csv") else pd.read_excel(uploaded_file)
-    normalized_df, report = normalize_rfq_dataframe(raw_df)
+    raw_df = _read_uploaded_dataframe(uploaded_file)
+    if raw_df.empty:
+        raise RFQUploadError(
+            "The uploaded RFQ contains headers but no supplier rows. Add at least one supplier quotation and upload the file again."
+        )
+    try:
+        normalized_df, report = normalize_rfq_dataframe(raw_df)
+    except (KeyError, TypeError, ValueError) as exc:
+        raise RFQUploadError(
+            "The RFQ columns could not be mapped reliably. Use one header row, remove merged cells and include clear supplier, price, MOQ, lead-time, payment-term and Incoterm columns."
+        ) from exc
     normalized_df.attrs["rfq_quality_report"] = report
     normalized_df.attrs["source_label"] = "Uploaded unverified supplier data"
     return normalized_df
