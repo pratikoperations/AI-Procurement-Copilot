@@ -3,6 +3,7 @@
 import plotly.express as px
 import streamlit as st
 
+from modules.c1_ux import technical_eligibility_label
 from modules.unit_display import format_annual_volume, quantity_basis_caption
 from modules.utils import (
     build_currency_display_frame,
@@ -49,6 +50,25 @@ def _quantity_basis(assumptions=None):
     return quantity_basis_caption(values.get("annual_volume", 0), values.get("annual_volume_unit", "unit"))
 
 
+def build_supplier_snapshot_display(scored_df, assumptions=None):
+    """Build the governed supplier decision table with visible technical eligibility."""
+    currency, fx_rate = _display_settings(assumptions)
+    display_cols = [
+        "Supplier", "Quoted Unit Price USD", "scenario_unit_price_usd",
+        "adjusted_tco_unit_usd", "annual_tco_usd", "technical_eligible",
+        "risk_score", "risk_category", "performance_score", "esg_score", "total_score",
+    ]
+    display = scored_df[display_cols].copy()
+    display["technical_eligible"] = display["technical_eligible"].map(technical_eligibility_label)
+    display = display.rename(columns={**NON_CURRENCY_LABELS, "technical_eligible": "Technical Eligibility"})
+    return build_currency_display_frame(display, {
+        "Quoted Unit Price USD": "Quoted Unit Price",
+        "scenario_unit_price_usd": "Scenario Unit Price",
+        "adjusted_tco_unit_usd": "Risk-Adjusted TCO",
+        "annual_tco_usd": "Annual TCO",
+    }, currency, fx_rate)
+
+
 def resolve_scenario_column(columns, candidates, field_name):
     """Resolve a governed scenario column while retaining backward compatibility."""
     for candidate in candidates:
@@ -89,21 +109,10 @@ def render_executive_dashboard(scored_df, assumptions, confidence=None):
 def render_supplier_snapshot(scored_df, assumptions=None):
     st.header("Supplier RFQ Decision Snapshot")
     st.caption(_quantity_basis(assumptions))
-    currency, fx_rate = _display_settings(assumptions)
-    display_cols = [
-        "Supplier", "Quoted Unit Price USD", "scenario_unit_price_usd",
-        "adjusted_tco_unit_usd", "annual_tco_usd", "risk_score",
-        "risk_category", "performance_score", "esg_score", "total_score",
-    ]
-    display = scored_df[display_cols].rename(columns=NON_CURRENCY_LABELS)
-    display = build_currency_display_frame(display, {
-        "Quoted Unit Price USD": "Quoted Unit Price",
-        "scenario_unit_price_usd": "Scenario Unit Price",
-        "adjusted_tco_unit_usd": "Risk-Adjusted TCO",
-        "annual_tco_usd": "Annual TCO",
-    }, currency, fx_rate)
+    display = build_supplier_snapshot_display(scored_df, assumptions)
     st.dataframe(display, width="stretch", hide_index=True)
 
+    currency, fx_rate = _display_settings(assumptions)
     chart_currency = _chart_currency(currency)
     multiplier = fx_rate if chart_currency == "INR" else 1
     price_chart_df = scored_df[["Supplier", "Quoted Unit Price USD", "adjusted_tco_unit_usd"]].copy()
