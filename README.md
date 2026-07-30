@@ -1,26 +1,28 @@
-# AI Procurement Copilot v1.2
+# AI Procurement Copilot
 
 **Governed, category-aware procurement decision support for RFQ comparison and sourcing evaluation.**
 
-> Portfolio demonstration · Read-only · Validation-gated · No live ERP integration
+> Portfolio demonstration · Read-only · Validation-gated · Human approval mandatory · No live ERP write-back
 
 ![AI Procurement Copilot v1.2 hero](docs/assets/hero/ai_procurement_copilot_v1_2_hero.svg)
 
-**Hosted application:** `https://ai-procurement-copilot-v1-2.streamlit.app/`
+**Hosted application:** `https://ai-procurement-copilot.streamlit.app/`
 
 **Repository:** `pratikoperations/AI-Procurement-Copilot`
 
-## Project status
+## Current repository status
 
-- Release: **AI Procurement Copilot v1.2 — Portfolio Presentation Release**
-- Current state: **completed, merged to `main` and frozen**
-- Authoritative frozen `main` SHA: **`4803b1d72fa8a6509d9d7faf0e9decc677c447be`**
+- Public application identity: **AI Procurement Copilot v1.2 — Portfolio Presentation Release**
+- Current controlled repository baseline before S1.5 completion: **`ab3648d62c4c61755b006fe5f85aa838988f3d2d`**
+- Frozen v1.2 release baseline: **`4803b1d72fa8a6509d9d7faf0e9decc677c447be`**
 - Frozen v1.1 baseline: **`b85cd37aaae709058eb15350d680b18c03da46ba`**
-- Scope: presentation, documentation, responsive navigation, tests and release governance
-- Product logic: unchanged from the frozen v1.1 baseline
+- Build Group S1: **S1.1–S1.4 complete; S1.5 accessibility and release assurance in controlled development**
+- Controlled v1.3 workbook review and analytical-handoff foundation: **merged, governed and default-off unless explicitly enabled**
+- Latest verified pre-S1.5 CI: **Quality Checks #617 — 437 passed, 0 failed; Streamlit smoke passed**
 - Tag: **not created by deliberate release decision**
 - GitHub Release: **not created by deliberate release decision**
-- Further v1.2 modification: **not authorized**
+
+The frozen v1.2 release record remains historical and unchanged. Later controlled builds add governed workbook intake, review orchestration, a default-off analytical handoff, UI hardening, responsive behavior and runtime efficiency without reclassifying the v1.2 release as incomplete.
 
 ## Business problem
 
@@ -36,10 +38,10 @@ AI Procurement Copilot turns that fragmented review into a visible, governed dec
 4. When should the system withhold award-oriented language because evidence is insufficient?
 5. Which executive and downloadable outputs can support human procurement review?
 
-## How the workflow works
+## Workflow
 
 1. Select a category, commodity and commercial assumptions.
-2. Load synthetic data or an RFQ workbook/CSV.
+2. Load synthetic data, a legacy RFQ CSV/XLSX, or the controlled governed-workbook review route when enabled.
 3. Validate structure, completeness, currency, units and business rules.
 4. Compare supplier cost, risk, performance, ESG and commercial conditions.
 5. Review scenarios, allocation options and negotiation intelligence.
@@ -52,7 +54,7 @@ See [User Workflow](docs/03_USER_WORKFLOW.md).
 
 - Packaging and raw-material procurement workflows
 - Supplier quotation validation and governed comparison
-- Original and normalized quotation data preservation
+- Original and normalized quotation-data preservation
 - USD, INR and dual-display handling
 - Category-specific should-cost, TCO, risk and scoring
 - Procurement Intelligence and Supplier Intelligence views
@@ -61,6 +63,8 @@ See [User Workflow](docs/03_USER_WORKFLOW.md).
 - Validation-gated recommendation language
 - Executive memos, supplier communication and governed downloads
 - Read-only ERP workbook structural preview with draft mappings
+- Controlled governed-workbook review and default-off analytical handoff
+- Responsive presentation and deterministic export caching
 
 ## What this project proves
 
@@ -68,81 +72,70 @@ See [User Workflow](docs/03_USER_WORKFLOW.md).
 - Ability to translate procurement requirements into a working application
 - Category-aware comparison and decision-support logic
 - Controlled validation and human-review gates
-- Automated testing and release discipline
+- Automated testing, branch discipline and staged release governance
 - Clear separation between business-facing reports and audit outputs
 - Governed ERP-export intake without overstating integration maturity
+- Accessibility and responsive-presentation hardening appropriate to a portfolio application
 
 ## What it does not prove
 
 - Production deployment readiness
 - Live SAP or Oracle integration
 - Universal ERP mappings
-- Automated supplier or item matching
 - Enterprise-scale performance
 - Realized savings from live organizational use
 - Autonomous sourcing, supplier approval or award execution
 - ERP write-back
-
-![What the project proves and does not prove](docs/assets/diagrams/proves_vs_does_not_prove.svg)
+- Formal WCAG certification
 
 ## Architecture
 
 ![Five-stage architecture](docs/assets/diagrams/architecture_flow.svg)
 
-The ERP Upload Preview remains isolated from procurement engines and performs structural, package-safety and draft-mapping checks only.
+The application keeps structural intake, governed review, analytical execution and human approval boundaries explicit. The controlled analytical-handoff route remains governed and default-off unless separately enabled.
 
 See [Architecture](docs/04_ARCHITECTURE.md) and [Data and Validation](docs/05_DATA_AND_VALIDATION.md).
 
-## Public visual package
-
-The four application-view assets use synthetic, generic content and are illustrative representations of the implemented workflow. They are not substitutes for direct hosted-device verification. Final hosted desktop, tablet and mobile verification was completed and approved during v1.2 release closure.
-
-- [Executive landing view](docs/assets/screens/01_executive_landing.svg)
-- [RFQ and sourcing comparison](docs/assets/screens/02_sourcing_comparison.svg)
-- [Validation and decision control](docs/assets/screens/03_validation_control.svg)
-- [Executive outputs and governed downloads](docs/assets/screens/04_executive_outputs.svg)
-- [Visual Design System](docs/VISUAL_DESIGN_SYSTEM.md)
-- [LinkedIn Asset Package](docs/LINKEDIN_ASSET_PACKAGE.md)
-
 ## Test and quality evidence
 
-The repository uses automated checks for compilation, procurement calculations, validation, currency and unit integrity, exports, UI contracts, ERP preview controls and Streamlit startup.
+The repository uses automated checks for compilation, procurement calculations, validation, currency and unit integrity, exports, UI contracts, governed-workbook controls and Streamlit startup.
 
-Final v1.2 evidence:
+Current pre-S1.5 evidence:
 
-- reviewed implementation head: `6838effb6f47b327419d7801c01c6284514f0cbb`;
-- Quality Checks run #492, run ID `30434354425`: **success**;
-- 226 regression tests passed with 0 failures, 0 errors and 0 skips;
+- authoritative main SHA: `ab3648d62c4c61755b006fe5f85aa838988f3d2d`;
+- Quality Checks run #617, run ID `30562810767`: **success**;
+- 437 regression tests passed with 0 failures and 0 errors;
 - canonical Streamlit smoke test passed;
-- final documentation-only release-record head `e61a26eef65ffd7e6bd015ae2168e26a5c42747f`;
-- Quality Checks run #493, run ID `30440102419`: **success**;
-- final merge commit and frozen `main`: `4803b1d72fa8a6509d9d7faf0e9decc677c447be`.
+- hosted startup and representative CSV, JSON and executive-output generation verified.
 
-See [Test Evidence](docs/06_TEST_EVIDENCE.md) and [Release Record](docs/09_RELEASE_RECORD.md).
+Final S1.5 evidence will be recorded after its draft PR, CI, hosted review and separately authorized merge.
+
+See [Test Evidence](docs/06_TEST_EVIDENCE.md), [Release Record](docs/09_RELEASE_RECORD.md) and [S1 Build Closure](docs/S1_BUILD_CLOSURE.md).
 
 ## Governance and limitations
 
 - Human procurement approval remains mandatory.
 - Failed validation can block or condition recommendation language.
 - The application does not execute transactions or mutate ERP systems.
-- Illustrative monetary outputs are not realized savings claims.
+- Illustrative monetary outputs are not realized-savings claims.
 - Synthetic or sanitized data should be used for public demonstration.
 - Production use would require identity, access, security, privacy, logging and operational controls outside this portfolio scope.
-- The hosted application is portfolio evidence, not a live organizational deployment.
+- Accessibility hardening is not a formal WCAG certification.
 
 See [Governance and Limitations](docs/07_GOVERNANCE_AND_LIMITATIONS.md).
 
 ## Documentation by audience
 
-- [Executive Overview](docs/01_EXECUTIVE_OVERVIEW.md) — recruiter-level summary
-- [Business Case Study](docs/02_BUSINESS_CASE_STUDY.md) — hiring-manager narrative
-- [User Workflow](docs/03_USER_WORKFLOW.md) — sourcing journey
-- [Architecture](docs/04_ARCHITECTURE.md) — technical structure
-- [Data and Validation](docs/05_DATA_AND_VALIDATION.md) — controls and evidence
-- [Test Evidence](docs/06_TEST_EVIDENCE.md) — quality gates
-- [Governance and Limitations](docs/07_GOVERNANCE_AND_LIMITATIONS.md) — claim boundaries
-- [Demo Guide](docs/08_DEMO_GUIDE.md) — private presentation sequence
-- [Release Record](docs/09_RELEASE_RECORD.md) — v1.2 governance record
+- [Executive Overview](docs/01_EXECUTIVE_OVERVIEW.md)
+- [Business Case Study](docs/02_BUSINESS_CASE_STUDY.md)
+- [User Workflow](docs/03_USER_WORKFLOW.md)
+- [Architecture](docs/04_ARCHITECTURE.md)
+- [Data and Validation](docs/05_DATA_AND_VALIDATION.md)
+- [Test Evidence](docs/06_TEST_EVIDENCE.md)
+- [Governance and Limitations](docs/07_GOVERNANCE_AND_LIMITATIONS.md)
+- [Demo Guide](docs/08_DEMO_GUIDE.md)
+- [Release Record](docs/09_RELEASE_RECORD.md)
+- [S1 Build Closure](docs/S1_BUILD_CLOSURE.md)
 
 ## Technical setup
 
@@ -159,15 +152,18 @@ python -m pytest
 
 Detailed setup and portability guidance remain in `SETUP_GUIDE.md`, `AI_HANDOFF_GUIDE.md` and `PROJECT_ARCHITECTURE.md`.
 
-## Version history
+## Version and build history
 
-| Version | Position |
+| Version/build | Position |
 |---|---|
 | v1.0.0 | First stable Portfolio Edition baseline |
 | v1.0.1 | Governed maintenance release |
 | v1.1 | Completed ERP structural foundation and read-only ERP Upload Preview; frozen at `b85cd37aaae709058eb15350d680b18c03da46ba` |
-| v1.2 | Completed Portfolio Presentation Release; merged through PR #14 and frozen at `4803b1d72fa8a6509d9d7faf0e9decc677c447be` |
+| v1.2 | Completed Portfolio Presentation Release; frozen at `4803b1d72fa8a6509d9d7faf0e9decc677c447be` |
+| v1.3 foundation | Versioned workbook contracts, adapter, orchestration, governed review and default-off analytical handoff |
+| S1.1–S1.4 | UI consistency, validation guidance, mobile responsiveness and runtime efficiency |
+| S1.5 | Accessibility, final UX assurance and release reconciliation — controlled development |
 
-## Release relationship
+## Historical relationship
 
-v1.2 does not describe v1.1 as incomplete and does not rewrite its history. It adds recruiter-first documentation, public presentation improvements, responsive navigation, visual evidence and release governance on top of the completed frozen v1.1 baseline. No further v1.2 changes are authorized unless a separate controlled maintenance action is approved.
+The v1.2 release remains a completed frozen historical baseline. Subsequent authorized work is additive and controlled. It does not rewrite v1.2 history or convert the portfolio application into a production, autonomous or live-ERP system.

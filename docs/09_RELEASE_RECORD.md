@@ -1,158 +1,102 @@
-# AI Procurement Copilot v1.2 — Release Record
+# AI Procurement Copilot — Release and Controlled-Evolution Record
 
-## Release identity
+## Historical v1.2 release identity
 
 - Release: **AI Procurement Copilot v1.2 — Portfolio Presentation Release**
 - Pull request: PR #14
 - Release branch: `release/v1.2-portfolio-presentation`
 - Frozen v1.1 baseline: `b85cd37aaae709058eb15350d680b18c03da46ba`
-- Reviewed implementation head: `6838effb6f47b327419d7801c01c6284514f0cbb`
-- Final documentation-only release-record head: `e61a26eef65ffd7e6bd015ae2168e26a5c42747f`
-- Final merge commit and frozen `main`: `4803b1d72fa8a6509d9d7faf0e9decc677c447be`
-- Release status: **completed, merged and frozen**
-- Authoritative hosted application: `https://ai-procurement-copilot-v1-2.streamlit.app/`
+- Reviewed v1.2 implementation head: `6838effb6f47b327419d7801c01c6284514f0cbb`
+- Final v1.2 documentation head: `e61a26eef65ffd7e6bd015ae2168e26a5c42747f`
+- Final v1.2 merge commit and frozen baseline: `4803b1d72fa8a6509d9d7faf0e9decc677c447be`
+- Historical release status: **completed, merged and frozen**
 - Tag: **not created by deliberate release decision**
 - GitHub Release: **not created by deliberate release decision**
-- Further v1.2 modification: **not authorized**
 
-## Release purpose
+The v1.2 release remains historically frozen. Later separately authorized repository work does not rewrite or invalidate that release record.
 
-Improve recruiter comprehension, hiring-manager review, technical verification and mobile presentation without expanding procurement-engine or ERP-foundation scope.
+## v1.2 purpose and delivered scope
 
-## Approved change classes
+The v1.2 release improved recruiter comprehension, hiring-manager review, technical verification and mobile presentation without expanding procurement-engine or ERP-foundation scope.
 
-- Presentation
-- Responsive navigation
-- Documentation
-- Test maintenance
-- Visual evidence
-- Release governance
-
-## Build Group A
-
-Delivered:
+Delivered scope included:
 
 - executive-first public landing view;
-- public Interview Guide removal;
 - compact native section selector;
-- seven public sourcing sections;
-- grouped download presentation;
-- v1.2 display metadata;
-- focused tests and full regression closure.
+- seven governed sourcing sections;
+- grouped business-facing and machine-readable downloads;
+- recruiter and hiring-manager documentation;
+- user workflow, architecture, validation, test and governance summaries;
+- synthetic visual package and screen-recording assets;
+- responsive hosted verification;
+- claim-safety and release-governance closure.
 
-Approved head: `8b113a195e5a742c6bf2fe2785d79390de8ce17a`
+## v1.2 quality evidence
 
-## Build Group B
+- Quality Checks run #492, run ID `30434354425`: success;
+- 226 regression tests passed with 0 failures and 0 errors;
+- canonical Streamlit smoke test passed;
+- final documentation-only run #493, run ID `30440102419`: success;
+- PR #14 merged to `4803b1d72fa8a6509d9d7faf0e9decc677c447be`.
 
-Delivered:
+## Controlled evolution after the frozen v1.2 baseline
 
-- executive-first README;
-- recruiter overview;
-- hiring-manager case study;
-- user workflow;
-- architecture summary;
-- data and validation summary;
-- test evidence;
-- governance and limitations;
-- private demo guide;
-- release record.
+After v1.2 closure, separate owner authorizations added controlled repository capabilities and quality hardening. These additions are not retroactively classified as part of the frozen v1.2 release.
 
-Approved head: `a5e4c97fb42af134bced25706b8f1dc7e12a0971`
+### Governed workbook and analytical-handoff foundation
 
-Quality Checks run 465, run ID `30247178739`, passed dependency installation, Python compilation, the complete regression suite and canonical Streamlit smoke with 0 failures.
+The repository subsequently added:
 
-## Build Group C
+- versioned v1.3 workbook contracts and synthetic templates;
+- governed workbook adapter and provenance controls;
+- orchestration, normalization and evidence aggregation;
+- review-only Streamlit integration;
+- canonical supplier-ranking inputs;
+- a controlled analytical handoff that remains governed and default-off unless explicitly enabled.
 
-Delivered:
+These builds preserve human approval and do not create live ERP integration, write-back or autonomous awards.
 
-- hero visual;
-- four-screen illustrative application-view set;
-- restrained numbered annotations;
-- five-stage architecture visual;
-- proves / does-not-prove visual;
-- visual design system;
-- LinkedIn cover;
-- six-slide LinkedIn carousel;
-- 30–40 second screen-recording storyboard;
-- LinkedIn Projects description;
-- recruiter short description;
-- GitHub Featured wording.
+### Build Group S1 quality hardening
 
-Approved head: `8387f06d376e0cb1b9ba145860ab889f3edfd36a`
+| Phase | Scope | Status before S1.5 completion |
+|---|---|---|
+| S1.1 | Presentation-system consistency | Complete |
+| S1.2 | Business-facing validation guidance | Complete |
+| S1.3 | Mobile responsiveness | Complete |
+| S1.4 | Export runtime efficiency | Complete |
+| S1.5 | Accessibility, final UX assurance and release reconciliation | Controlled development |
 
-Quality Checks run 488, run ID `30255807628`, passed dependency installation, Python compilation, the complete regression suite and canonical Streamlit smoke with 0 failures.
+Authoritative baseline before S1.5 implementation:
 
-The four application-view assets are synthetic illustrative representations based on the implemented interface. They are not presented as direct hosted screenshots.
+`ab3648d62c4c61755b006fe5f85aa838988f3d2d`
 
-## Build Group D — final verification and approval
+Latest verified pre-S1.5 evidence:
 
-Completed and owner-approved:
+- Quality Checks run #617, run ID `30562810767`: success;
+- 437 regression tests passed with 0 failures and 0 errors;
+- canonical Streamlit smoke test passed;
+- hosted startup and representative export outputs verified.
 
-- final claim-safety audit;
-- README and documentation path review;
-- final changed-file boundary review;
-- confirmation that no procurement-engine or ERP-foundation implementation file was added by Build Groups C or D;
-- authoritative hosted v1.2 application verification;
-- direct hosted layout and navigation review;
-- mobile validation at approximately 360 px, 390 px and 412 px;
-- tablet and desktop validation;
-- confirmation that the public hosted application contains no Interview Guide;
-- hosted download and output review;
-- explicit owner approval of Build Group D and the complete v1.2 Portfolio Presentation Release.
+Final S1.5 CI, hosted evidence, merge SHA and closure status must be recorded only after separate review and merge authorization.
 
-Hosted application verified by the repository owner:
+## Current governance boundary
 
-`https://ai-procurement-copilot-v1-2.streamlit.app/`
+The application remains:
 
-Reviewed implementation head `6838effb6f47b327419d7801c01c6284514f0cbb` passed Quality Checks run 492, run ID `30434354425`, with conclusion `success`. The run passed Python compilation, 226 regression tests and the canonical Streamlit smoke test, with 0 failures, 0 errors, 0 skips and 1 warning.
+- read-only;
+- validation-gated;
+- human-controlled;
+- a portfolio demonstration rather than a production deployment;
+- without live SAP or Oracle connectivity;
+- without ERP write-back;
+- without autonomous supplier approval or award execution;
+- without realized-savings claims;
+- without formal WCAG certification.
 
-The final documentation-only release-record head `e61a26eef65ffd7e6bd015ae2168e26a5c42747f` passed Quality Checks run 493, run ID `30440102419`, with conclusion `success`. Dependency installation, Python compilation, the regression suite and canonical Streamlit smoke all passed.
+## Release-history preservation rule
 
-PR #14 was marked ready for review and merged using the repository-approved merge method with an expected-head guard. The resulting merge commit was `4803b1d72fa8a6509d9d7faf0e9decc677c447be`.
-
-**Final release status: COMPLETED, MERGED AND FROZEN.**
-
-## Explicit exclusions
-
-- procurement-engine redesign;
-- normalization redesign;
-- supplier or item matching;
-- new procurement-engine integration;
-- time-aware analytics;
-- live ERP integration;
-- ERP write-back;
-- autonomous sourcing or awards;
-- new AI-agent functionality;
-- production-readiness claims;
-- realized-savings claims.
-
-## Release-gate closure
-
-- Full automated test suite green: **passed at reviewed implementation head**
-- Canonical Streamlit smoke green: **passed at reviewed implementation head**
-- Hosted v1.2 application verified: **passed by owner review**
-- Mobile layouts reviewed at 360, 390 and 412 px plus tablet and desktop: **passed by owner review**
-- Public hosted application contains no Interview Guide: **passed by owner review**
-- Hosted downloads and outputs: **passed by owner review**
-- README and docs claim-safety review: **passed**
-- Final changed-file audit confirms no excluded logic files: **passed**
-- Final documentation-only release-record head CI: **passed — run #493, run ID `30440102419`**
-- Owner authorization to merge: **approved**
-- PR #14 merge: **completed**
-- Frozen `main` SHA verification: **`4803b1d72fa8a6509d9d7faf0e9decc677c447be`**
-
-## Freeze statement
-
-> AI Procurement Copilot v1.2 is a portfolio presentation release built on the frozen v1.1 baseline. It improves executive communication, responsive navigation, documentation and public visual evidence without changing procurement-engine or ERP-foundation logic. The application remains read-only, validation-gated and human-controlled, with no claim of live ERP integration, write-back, autonomous awards, production readiness or realized savings. The release is frozen at `4803b1d72fa8a6509d9d7faf0e9decc677c447be`; no further v1.2 code, documentation, tagging or release action is authorized without a separate controlled approval.
-
-## Known limitations
-
-The system remains a governed procurement decision-support portfolio application. It has not been validated for production security, enterprise scale, live ERP connectivity, live organizational data or realized business outcomes. The hosted application is portfolio evidence, not a live organizational deployment.
+The frozen v1.1 and v1.2 baselines remain immutable historical reference points. Controlled later builds may update the current repository and hosted application only through explicit branch, CI, review and merge authorization. Documentation must distinguish the current repository baseline from frozen historical releases.
 
 ## Tag and GitHub Release decision
 
-No v1.2 tag was created. No GitHub Release was created. This was a deliberate release-governance decision, not an incomplete release gate. Either action requires separate owner authorization.
-
-## Relationship to v1.1
-
-v1.2 does not amend or reclassify v1.1. The completed v1.1 release remains permanently preserved at its frozen SHA, while v1.2 adds a controlled presentation, documentation and visual layer.
+No v1.2 tag or GitHub Release was created. No later tag or GitHub Release is implied by this record. Either action requires separate owner authorization.
