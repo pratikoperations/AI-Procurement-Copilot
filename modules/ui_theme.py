@@ -1,4 +1,4 @@
-"""Presentation-only design tokens and Streamlit UI hardening for Build S1.1/S1.3/S1.5."""
+"""Presentation-only design tokens and Streamlit UI hardening for Build S1.1/S1.3/S1.5/S1.5.1."""
 
 from __future__ import annotations
 
@@ -30,35 +30,73 @@ UI_CSS = """
     --aipc-error: #C53030;
 }
 
+/* Prevent generated Streamlit wrappers from creating viewport-level overflow. */
+html,
+body,
+[data-testid="stAppViewContainer"],
+[data-testid="stApp"],
+[data-testid="stMain"],
+[data-testid="stMainBlockContainer"] {
+    max-width: 100%;
+    min-width: 0;
+}
+
+html,
+body,
+[data-testid="stAppViewContainer"],
+[data-testid="stApp"] {
+    overflow-x: clip;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 /* Main-page rhythm and readable content width. */
 [data-testid="stMainBlockContainer"] {
-    max-width: 1440px;
+    width: min(100%, 1440px);
     padding-top: 1.75rem;
     padding-bottom: 3rem;
     overflow-x: clip;
 }
 
+[data-testid="stMainBlockContainer"] > div,
+[data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"],
+[data-testid="stMainBlockContainer"] [data-testid="stElementContainer"] {
+    max-width: 100%;
+    min-width: 0;
+}
+
 [data-testid="stMainBlockContainer"] h1 {
+    max-width: 100%;
     line-height: 1.12;
     letter-spacing: -0.025em;
     margin-bottom: var(--aipc-space-3);
+    overflow-wrap: anywhere;
 }
 
 [data-testid="stMainBlockContainer"] h2,
 [data-testid="stMainBlockContainer"] h3 {
+    max-width: 100%;
     line-height: 1.22;
     letter-spacing: -0.012em;
     margin-top: var(--aipc-space-6);
     margin-bottom: var(--aipc-space-3);
+    overflow-wrap: anywhere;
 }
 
 [data-testid="stHorizontalBlock"] {
+    width: 100%;
+    max-width: 100%;
     gap: var(--aipc-space-4);
     align-items: stretch;
     min-width: 0;
 }
 
 [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+    max-width: 100%;
     min-width: 0;
 }
 
@@ -81,35 +119,43 @@ UI_CSS = """
 
 /* Consistent card treatment for metrics and status surfaces. */
 [data-testid="stMetric"] {
+    width: 100%;
+    max-width: 100%;
     height: 100%;
     min-width: 0;
     padding: var(--aipc-space-4);
     border: 1px solid var(--aipc-border);
     border-radius: var(--aipc-radius-md);
     background: var(--aipc-surface);
-    overflow: visible;
+    overflow: hidden;
 }
 
 [data-testid="stMetricLabel"],
 [data-testid="stMetricValue"],
-[data-testid="stMetricDelta"] {
-    max-width: 100%;
-    min-width: 0;
-    white-space: normal;
-    overflow: visible;
-    text-overflow: clip;
+[data-testid="stMetricDelta"],
+[data-testid="stMetricLabel"] *,
+[data-testid="stMetricValue"] *,
+[data-testid="stMetricDelta"] * {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
 }
 
 [data-testid="stMetricLabel"] > div,
 [data-testid="stMetricValue"] > div,
 [data-testid="stMetricDelta"] > div {
-    white-space: normal;
-    overflow-wrap: anywhere;
-    word-break: break-word;
+    display: block !important;
+    width: 100% !important;
     line-height: 1.15;
 }
 
 [data-testid="stAlert"] {
+    max-width: 100%;
+    min-width: 0;
     border-radius: var(--aipc-radius-md);
     padding-top: var(--aipc-space-3);
     padding-bottom: var(--aipc-space-3);
@@ -137,14 +183,11 @@ UI_CSS = """
 
 [data-testid="stDataFrame"],
 [data-testid="stTable"] {
+    width: 100%;
     max-width: 100%;
     min-width: 0;
     border: 1px solid var(--aipc-border);
     border-radius: var(--aipc-radius-md);
-}
-
-[data-testid="stDataFrame"],
-[data-testid="stTable"] {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
 }
@@ -164,8 +207,14 @@ UI_CSS = """
 }
 
 /* Sidebar consistency and touch-safe controls. */
+[data-testid="stSidebar"] {
+    max-width: min(21rem, 88vw);
+}
+
 [data-testid="stSidebar"] [data-testid="stSidebarContent"] {
+    max-width: 100%;
     padding-top: var(--aipc-space-4);
+    overflow-x: clip;
 }
 
 [data-testid="stSidebar"] h1 {
@@ -186,6 +235,7 @@ UI_CSS = """
 
 .stButton > button,
 .stDownloadButton > button {
+    max-width: 100%;
     min-height: 2.75rem;
     border-radius: var(--aipc-radius-sm);
     font-weight: 600;
@@ -196,50 +246,66 @@ UI_CSS = """
 [data-baseweb="input"] > div,
 [data-testid="stNumberInput"] input,
 [data-testid="stTextInput"] input {
+    max-width: 100%;
     min-height: 2.75rem;
     border-radius: var(--aipc-radius-sm);
 }
 
-/* Tablet layout: dense status and metric rows wrap without page-level overflow. */
+/* Tablet layout: use two-column cards and prevent intrinsic-width overflow. */
 @media (max-width: 1024px) {
     [data-testid="stMainBlockContainer"] {
         width: 100%;
         max-width: 100%;
+        padding-left: 1rem;
+        padding-right: 1rem;
     }
 
     [data-testid="stHorizontalBlock"] {
         width: 100%;
         max-width: 100%;
-        flex-wrap: wrap;
+        min-width: 0;
+        flex-wrap: wrap !important;
     }
 
     [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-        flex: 1 1 min(20rem, 100%);
-        width: auto !important;
-        max-width: 100%;
+        flex: 1 1 calc(50% - var(--aipc-space-4)) !important;
+        width: calc(50% - var(--aipc-space-4)) !important;
+        max-width: 100% !important;
+        min-width: min(15rem, 100%) !important;
     }
 
     [data-testid="stMetric"] {
         width: 100%;
         max-width: 100%;
     }
+
+    [data-testid="stMetricValue"] > div {
+        font-size: clamp(1.4rem, 4.5vw, 2.15rem) !important;
+    }
 }
 
-/* Mobile layout: stack columns and keep validation surfaces inside the viewport. */
+/* Mobile layout: stack columns and keep all content inside the viewport. */
 @media (max-width: 768px) {
     [data-testid="stMainBlockContainer"] {
+        width: 100%;
+        max-width: 100%;
         padding: 1rem 0.85rem 2rem;
+    }
+
+    [data-testid="stMainBlockContainer"] h1 {
+        font-size: clamp(2rem, 9vw, 3rem);
     }
 
     [data-testid="stHorizontalBlock"] {
         gap: var(--aipc-space-3);
-        flex-wrap: wrap;
+        flex-wrap: wrap !important;
     }
 
     [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-        flex: 1 1 100%;
+        flex: 1 1 100% !important;
         width: 100% !important;
-        max-width: 100%;
+        max-width: 100% !important;
+        min-width: 0 !important;
     }
 
     [data-testid="stMetric"] {
@@ -247,7 +313,7 @@ UI_CSS = """
     }
 
     [data-testid="stMetricValue"] > div {
-        font-size: clamp(1.45rem, 7vw, 2.15rem);
+        font-size: clamp(1.35rem, 7vw, 2rem) !important;
     }
 
     [data-testid="stExpanderDetails"] {
