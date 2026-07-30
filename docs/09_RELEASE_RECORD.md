@@ -58,26 +58,43 @@ These builds preserve human approval and do not create live ERP integration, wri
 
 ### Build Group S1 quality hardening
 
-| Phase | Scope | Status before S1.5 completion |
+| Phase | Scope | Final status |
 |---|---|---|
 | S1.1 | Presentation-system consistency | Complete |
 | S1.2 | Business-facing validation guidance | Complete |
 | S1.3 | Mobile responsiveness | Complete |
 | S1.4 | Export runtime efficiency | Complete |
-| S1.5 | Accessibility, final UX assurance and release reconciliation | Controlled development |
+| S1.5 | Accessibility, final UX assurance and release reconciliation | Complete |
+| S1.5.1 | Hosted responsive containment correction | Complete |
 
-Authoritative baseline before S1.5 implementation:
+Authoritative S1.5.1 starting base:
 
-`ab3648d62c4c61755b006fe5f85aa838988f3d2d`
+`9fbc3bd1d278f53b195b07768a71149e56b5b355`
 
-Latest verified pre-S1.5 evidence:
+S1.5.1 corrective evidence:
 
-- Quality Checks run #617, run ID `30562810767`: success;
-- 437 regression tests passed with 0 failures and 0 errors;
+- corrective pull request: PR #29;
+- feature head: `d3056f52b0adadb9014cd6c52d6718e7bd14e4c6`;
+- final merge commit and authoritative main SHA: `e7d3d337d4bfeeb0b750372b6c1cf8537959f368`;
+- Quality Checks run #621, run ID `30572516967`: success;
+- 447 regression tests passed with 0 failures and 0 errors;
+- one existing pandas FutureWarning remained in adversarial-input testing;
 - canonical Streamlit smoke test passed;
-- hosted startup and representative export outputs verified.
+- exact corrective scope: `modules/ui_theme.py` and `tests/test_s1_5_accessibility.py`.
 
-Final S1.5 CI, hosted evidence, merge SHA and closure status must be recorded only after separate review and merge authorization.
+Code and automated verification established that:
+
+- responsive CSS is applied through `render_sidebar()` calling `apply_ui_theme()`;
+- viewport and generated Streamlit wrappers are width-bounded;
+- metric labels, values and deltas are configured to wrap without ellipsis;
+- tablet columns wrap and mobile columns stack;
+- wide dataframes and tables retain internal horizontal scrolling;
+- visible `:focus-visible` styling is present;
+- reduced-motion preferences are handled;
+- governed-route and analytical-handoff feature flags remain disabled by default;
+- no analytical, validation, scoring, threshold, workbook-contract or governance logic changed in S1.5.1.
+
+Automated checks and source inspection do not constitute formal browser-device certification or formal WCAG certification. Browser-computed layout, focus appearance and physical scrollbar behavior remain matters for manual visual review where required.
 
 ## Current governance boundary
 
