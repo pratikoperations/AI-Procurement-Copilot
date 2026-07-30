@@ -1,4 +1,4 @@
-"""Deterministic presentation-contract tests for Build Group S1.1."""
+"""Deterministic presentation-contract tests for Build Group S1.1/S1.3."""
 
 from pathlib import Path
 
@@ -34,6 +34,41 @@ def test_ui_css_covers_required_s1_1_surfaces() -> None:
 
     for contract in required_contracts:
         assert contract in css
+
+
+def test_s1_3_responsive_contracts_cover_validation_and_upload_surfaces() -> None:
+    css = ui_theme.UI_CSS
+
+    required_contracts = (
+        '@media (max-width: 1024px)',
+        '[data-testid="stHorizontalBlock"] > [data-testid="column"]',
+        'flex-wrap: wrap',
+        'flex: 1 1 100%',
+        'width: 100% !important',
+        '[data-testid="stMetricValue"] > div',
+        'overflow-wrap: anywhere',
+        'white-space: normal',
+        '[data-testid="stExpanderDetails"]',
+        'overflow-x: clip',
+        '[data-testid="stDataFrame"]',
+        '-webkit-overflow-scrolling: touch',
+        '[data-testid="stFileUploader"]',
+        '[data-testid="stFileUploaderFileName"]',
+        'text-overflow: ellipsis',
+    )
+
+    for contract in required_contracts:
+        assert contract in css
+
+
+def test_metric_and_column_containers_can_shrink_without_horizontal_overflow() -> None:
+    css = ui_theme.UI_CSS
+
+    assert '[data-testid="stHorizontalBlock"] {' in css
+    assert '[data-testid="stHorizontalBlock"] > [data-testid="column"] {' in css
+    assert '[data-testid="stMetric"] {' in css
+    assert css.count("min-width: 0") >= 6
+    assert "max-width: 100%" in css
 
 
 def test_apply_ui_theme_injects_css_without_visible_code(monkeypatch) -> None:

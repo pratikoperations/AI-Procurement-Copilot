@@ -1,4 +1,4 @@
-"""Presentation-only design tokens and Streamlit UI hardening for Build S1.1."""
+"""Presentation-only design tokens and Streamlit UI hardening for Build S1.1/S1.3."""
 
 from __future__ import annotations
 
@@ -34,6 +34,7 @@ UI_CSS = """
     max-width: 1440px;
     padding-top: 1.75rem;
     padding-bottom: 3rem;
+    overflow-x: clip;
 }
 
 [data-testid="stMainBlockContainer"] h1 {
@@ -53,33 +54,88 @@ UI_CSS = """
 [data-testid="stHorizontalBlock"] {
     gap: var(--aipc-space-4);
     align-items: stretch;
+    min-width: 0;
+}
+
+[data-testid="stHorizontalBlock"] > [data-testid="column"] {
+    min-width: 0;
 }
 
 /* Consistent card treatment for metrics and status surfaces. */
 [data-testid="stMetric"] {
     height: 100%;
+    min-width: 0;
     padding: var(--aipc-space-4);
     border: 1px solid var(--aipc-border);
     border-radius: var(--aipc-radius-md);
     background: var(--aipc-surface);
+    overflow: hidden;
+}
+
+[data-testid="stMetricLabel"],
+[data-testid="stMetricValue"],
+[data-testid="stMetricDelta"] {
+    max-width: 100%;
+    min-width: 0;
+}
+
+[data-testid="stMetricValue"] > div {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.15;
 }
 
 [data-testid="stAlert"] {
     border-radius: var(--aipc-radius-md);
     padding-top: var(--aipc-space-3);
     padding-bottom: var(--aipc-space-3);
+    overflow-wrap: anywhere;
 }
 
 [data-testid="stExpander"] {
+    max-width: 100%;
+    min-width: 0;
     border-radius: var(--aipc-radius-md);
     overflow: hidden;
+}
+
+[data-testid="stExpanderDetails"] {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
 }
 
 [data-testid="stDataFrame"],
 [data-testid="stTable"] {
+    max-width: 100%;
+    min-width: 0;
     border: 1px solid var(--aipc-border);
     border-radius: var(--aipc-radius-md);
+}
+
+[data-testid="stDataFrame"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+[data-testid="stTable"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Keep upload controls and file metadata within the available viewport. */
+[data-testid="stFileUploader"],
+[data-testid="stFileUploaderDropzone"],
+[data-testid="stFileUploaderFile"] {
+    max-width: 100%;
+    min-width: 0;
+}
+
+[data-testid="stFileUploaderFileName"] {
     overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Sidebar consistency and touch-safe controls. */
@@ -108,6 +164,7 @@ UI_CSS = """
     min-height: 2.75rem;
     border-radius: var(--aipc-radius-sm);
     font-weight: 600;
+    white-space: normal;
 }
 
 [data-baseweb="select"] > div,
@@ -117,7 +174,20 @@ UI_CSS = """
     border-radius: var(--aipc-radius-sm);
 }
 
-/* Preserve usable spacing on narrow screens without changing navigation. */
+/* Tablet layout: allow dense status and metric rows to wrap instead of overflowing. */
+@media (max-width: 1024px) {
+    [data-testid="stHorizontalBlock"] {
+        flex-wrap: wrap;
+    }
+
+    [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+        flex: 1 1 calc(50% - var(--aipc-space-4));
+        width: auto !important;
+        max-width: 100%;
+    }
+}
+
+/* Mobile layout: stack columns and keep validation surfaces inside the viewport. */
 @media (max-width: 768px) {
     [data-testid="stMainBlockContainer"] {
         padding: 1rem 0.85rem 2rem;
@@ -125,15 +195,36 @@ UI_CSS = """
 
     [data-testid="stHorizontalBlock"] {
         gap: var(--aipc-space-3);
+        flex-wrap: wrap;
+    }
+
+    [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+        flex: 1 1 100%;
+        width: 100% !important;
+        max-width: 100%;
     }
 
     [data-testid="stMetric"] {
         padding: var(--aipc-space-3);
+    }
+
+    [data-testid="stMetricValue"] > div {
+        font-size: clamp(1.6rem, 8vw, 2.35rem);
+    }
+
+    [data-testid="stExpanderDetails"] {
+        padding-left: var(--aipc-space-3);
+        padding-right: var(--aipc-space-3);
+    }
+
+    [data-testid="stFileUploaderDropzone"] {
+        padding-left: var(--aipc-space-3);
+        padding-right: var(--aipc-space-3);
     }
 }
 """
 
 
 def apply_ui_theme() -> None:
-    """Apply the S1.1 presentation layer without changing application data or logic."""
+    """Apply the presentation layer without changing application data or logic."""
     st.markdown(f"<style>{UI_CSS}</style>", unsafe_allow_html=True)
