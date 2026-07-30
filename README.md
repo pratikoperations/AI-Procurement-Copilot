@@ -13,12 +13,13 @@
 ## Current repository status
 
 - Public application identity: **AI Procurement Copilot v1.2 — Portfolio Presentation Release**
-- Current controlled repository baseline before S1.5 completion: **`ab3648d62c4c61755b006fe5f85aa838988f3d2d`**
+- Current authoritative main SHA after S1 closure correction: **`e7d3d337d4bfeeb0b750372b6c1cf8537959f368`**
 - Frozen v1.2 release baseline: **`4803b1d72fa8a6509d9d7faf0e9decc677c447be`**
 - Frozen v1.1 baseline: **`b85cd37aaae709058eb15350d680b18c03da46ba`**
-- Build Group S1: **S1.1–S1.4 complete; S1.5 accessibility and release assurance in controlled development**
+- Build Group S1: **S1.1–S1.5 complete, including S1.5.1 responsive containment correction**
 - Controlled v1.3 workbook review and analytical-handoff foundation: **merged, governed and default-off unless explicitly enabled**
-- Latest verified pre-S1.5 CI: **Quality Checks #617 — 437 passed, 0 failed; Streamlit smoke passed**
+- Final verified S1 CI: **Quality Checks #621 — 447 passed, 0 failed, 0 errors, 1 existing pandas FutureWarning; Streamlit smoke passed**
+- S1.5.1 corrective PR: **PR #29**, merged as **`e7d3d337d4bfeeb0b750372b6c1cf8537959f368`**
 - Tag: **not created by deliberate release decision**
 - GitHub Release: **not created by deliberate release decision**
 
@@ -100,15 +101,20 @@ See [Architecture](docs/04_ARCHITECTURE.md) and [Data and Validation](docs/05_DA
 
 The repository uses automated checks for compilation, procurement calculations, validation, currency and unit integrity, exports, UI contracts, governed-workbook controls and Streamlit startup.
 
-Current pre-S1.5 evidence:
+Final S1 evidence:
 
-- authoritative main SHA: `ab3648d62c4c61755b006fe5f85aa838988f3d2d`;
-- Quality Checks run #617, run ID `30562810767`: **success**;
-- 437 regression tests passed with 0 failures and 0 errors;
+- authoritative main SHA: `e7d3d337d4bfeeb0b750372b6c1cf8537959f368`;
+- PR #29 merged the S1.5.1 responsive containment correction;
+- Quality Checks run #621, run ID `30572516967`: **success**;
+- 447 regression tests passed with 0 failures and 0 errors;
+- one existing pandas FutureWarning remained in adversarial-input testing;
 - canonical Streamlit smoke test passed;
-- hosted startup and representative CSV, JSON and executive-output generation verified.
+- responsive CSS is applied through `render_sidebar()` calling `apply_ui_theme()`;
+- code and automated tests verify viewport containment, metric wrapping, tablet/mobile reflow, internal table scrolling, visible keyboard-focus rules and reduced-motion handling;
+- the governed route and analytical handoff remain default-off unless explicitly enabled;
+- no analytical, validation, scoring, threshold, workbook-contract or governance logic changed in S1.5.1.
 
-Final S1.5 evidence will be recorded after its draft PR, CI, hosted review and separately authorized merge.
+Automated and code-level verification do not constitute formal browser-device certification. Manual browser review remains the appropriate final check for computed layout, focus appearance and physical scrollbar behavior.
 
 See [Test Evidence](docs/06_TEST_EVIDENCE.md), [Release Record](docs/09_RELEASE_RECORD.md) and [S1 Build Closure](docs/S1_BUILD_CLOSURE.md).
 
@@ -162,7 +168,8 @@ Detailed setup and portability guidance remain in `SETUP_GUIDE.md`, `AI_HANDOFF_
 | v1.2 | Completed Portfolio Presentation Release; frozen at `4803b1d72fa8a6509d9d7faf0e9decc677c447be` |
 | v1.3 foundation | Versioned workbook contracts, adapter, orchestration, governed review and default-off analytical handoff |
 | S1.1–S1.4 | UI consistency, validation guidance, mobile responsiveness and runtime efficiency |
-| S1.5 | Accessibility, final UX assurance and release reconciliation — controlled development |
+| S1.5 | Accessibility and final UX assurance completed |
+| S1.5.1 | Responsive containment correction completed through PR #29 and merge `e7d3d337d4bfeeb0b750372b6c1cf8537959f368` |
 
 ## Historical relationship
 
