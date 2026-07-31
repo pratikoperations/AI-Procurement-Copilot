@@ -33,7 +33,7 @@ def test_dynamic_labels_and_quantity_captions():
     assert annual_volume_label("kg") == "Annual Volume (kg)"
     assert format_annual_volume(500000, "piece") == "500,000 pieces"
     assert format_annual_volume(500000, "kg") == "500,000 kg"
-    assert quantity_basis_caption(500000, "kg") == "Canonical quantity basis: 500,000 kg (500.000 metric tonnes)"
+    assert quantity_basis_caption(500000, "kg") == "Canonical quantity basis: 500,000 kg (500 metric tonnes)"
 
 
 def test_supplier_email_pluralizes_piece_and_preserves_kg():
