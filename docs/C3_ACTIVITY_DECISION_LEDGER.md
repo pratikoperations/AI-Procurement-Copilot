@@ -8,7 +8,10 @@
 - Feature branch: `agent/category-expansion-c3-steel`
 - Category: Governed Steel Sheets and Coils Procurement
 - Contract version: `C3.0-STEEL-v1`
-- Current phase: C3.0 contract documentation and contract tests only
+
+## Historical C3.0 record
+
+C3.0 authorized contract documentation and contract tests only. Its original statements that executable Steel features were future work are retained as historical phase evidence and do not describe the current C3.7 implementation state.
 
 ## Frozen decisions
 
@@ -35,65 +38,43 @@
 2. `GI_COIL_Z120` — Galvanized Steel Coil; 0.60 mm; 1,000–1,250 mm; 120 g/m² total zinc; no paint.
 3. `PPGI_COIL_Z120` — Pre-Painted Galvanized Steel Coil; 0.50 mm; 1,000–1,250 mm; 120 g/m² total zinc; 20 μm topcoat; 5 μm back coat.
 
-## Currency governance
+## Phase implementation ledger
 
-- Supplier quotations normalize to USD/kg before decision logic.
-- INR values derive deterministically from the shared USD/INR FX rate.
-- Both mode uses separate numeric USD and INR fields.
-- Display mode cannot alter eligibility, ranking, winner, allocation, scenario status, confidence or risk.
-- Missing, non-numeric, zero or negative FX values fail closed.
-- Unsupported quote currencies fail closed.
-- The FX value is not represented as a live rate.
+| Phase | Implemented outcome |
+|---|---|
+| C3.0 | Contract, frozen profiles, scenario and export intent, claim boundaries |
+| C3.1 | Category and supplier-data registration |
+| C3.2 | Dedicated Steel should-cost and currency path |
+| C3.3 | Fail-closed technical eligibility |
+| C3.4 | Separate Steel risk, eligible-only scoring and governed recommendation |
+| C3.5 | Exactly seven scenarios and separate standard/optimized allocation |
+| C3.6 | Dependent-state UX, display invariance and visible governance outputs |
+| C3.7 | Isolated Steel application route, nine-sheet Excel, strict JSON and closure evidence |
 
-## Intended decision architecture
+## Current executable architecture
 
-Future separately authorized phases may introduce:
+Supplier quotations normalize to USD/kg before technical eligibility, separate generic and Steel risk, eligible-only scoring, recommendation, scenarios and allocation. Display mode cannot alter decision outputs. The Steel route stops before generic downstream recommendation, allocation, scenario, negotiation, intelligence or download sections.
 
-- a dedicated Steel should-cost engine;
-- controlled synthetic Steel supplier data;
-- executable Steel validation and eligibility;
-- Steel-specific risk;
-- eligible-only recommendation;
-- standard and optimized allocation;
-- seven scenario calculations;
-- Steel-specific UI and state controls;
-- governed Excel and strict JSON production logic.
+## Export production
 
-None of those executable features is authorized in C3.0.
+The Excel package contains exactly:
 
-## Seven frozen scenarios
+1. Supplier Scores Report
+2. Supplier Comparison
+3. Should Cost
+4. Allocation
+5. Standard Allocation
+6. Optimized Allocation
+7. Scenarios
+8. Audit Supplier Scores
+9. C3 Governance
 
-1. Base Case
-2. Steel Index +20%
-3. Energy and Conversion Premium +15%
-4. Import Duty and FX Stress
-5. Demand +25%
-6. Mill Allocation and Capacity Stress
-7. Grade-Substitution Scenario
-
-## Eligibility principles
-
-The future executable gate must fail closed for unsupported or missing profile, grade family, thickness, width, coating, paint-line, surface, approval, certificate-availability, capacity, coil-weight or substitution evidence. Price cannot override technical ineligibility.
-
-## Export intent
-
-The intended Excel package includes Supplier Scores Report, Supplier Comparison, Should Cost, Allocation, Standard Allocation, Optimized Allocation, Scenarios, Audit Supplier Scores and C3 Governance.
-
-The intended JSON package includes `steel_governance`, uses `allow_nan=False`, converts non-finite values to `null`, and stores USD and INR values in separate numeric fields.
+The strict JSON package uses top-level `steel_governance`, `allow_nan=False`, converts non-finite values to `null`, preserves separate USD and INR numeric fields and records the selected profile, scenario, eligibility, separate risks, score, rank, winner/no-winner, allocations, unallocated volume and governance boundaries.
 
 ## Claim boundaries
 
-No metallurgical certification, engineering substitution approval, mill-test-certificate authentication, production-readiness claim, live commodity-index claim, live FX claim, autonomous award, ERP write-back or realized-savings claim is authorized.
+No metallurgical certification, engineering substitution approval, mill-test-certificate authentication, production-readiness assurance, live commodity or FX claim, autonomous award, ERP write-back or realised-savings evidence is provided.
 
-## C3.0 readiness condition
+## Current readiness condition
 
-C3.1 may be proposed only after:
-
-- both C3.0 documents exist on the feature branch;
-- contract tests pass;
-- full regression passes;
-- Python compilation passes;
-- Streamlit smoke passes;
-- the PR remains draft;
-- `main` remains unchanged;
-- no executable C3 production logic has been introduced.
+C3 implementation is ready for final review only after final CI, deterministic application-route verification and direct confirmation that PR #33 remains draft, unmerged and based on the frozen main SHA. Ready-for-review and merge remain separately governed actions.
