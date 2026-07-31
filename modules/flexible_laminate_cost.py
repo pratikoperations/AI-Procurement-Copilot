@@ -25,21 +25,6 @@ PRINT_PROCESSES = {"Rotogravure", "Flexographic"}
 ADHESIVE_TYPES = {"Solvent-based", "Solvent-free"}
 TOOLING_AVAILABILITY = {"Yes", "No", "Not assessed", "Not applicable"}
 
-_SELECTED_STRUCTURE = "PET / PE"
-
-
-def set_selected_laminate_structure(structure: str) -> None:
-    """Set the selected C2 structure for the current Streamlit execution context."""
-    if structure not in SUPPORTED_STRUCTURES:
-        raise ValueError(f"Unsupported Flexible Laminates structure '{structure}'.")
-    global _SELECTED_STRUCTURE
-    _SELECTED_STRUCTURE = structure
-
-
-def get_selected_laminate_structure() -> str:
-    """Return the selected C2 structure for governed demo-data filtering."""
-    return _SELECTED_STRUCTURE
-
 
 def _controlled_colour_count(value) -> int:
     """Return an exact integer colour count without silent truncation."""
@@ -87,6 +72,40 @@ def compounded_yield(printing_loss_pct: float, lamination_loss_pct: float, slitt
     return yield_factor
 
 
+def _validate_tooling_contract(
+    print_profile: str,
+    tooling_status: str,
+    existing_tooling_available: str,
+    tooling_cost_per_colour_usd: float,
+) -> None:
+    """Enforce status-to-evidence consistency for print tooling."""
+    if tooling_status not in {"New", "Existing", "Not applicable"}:
+        raise ValueError("Tooling status must be New, Existing, or Not applicable.")
+    if existing_tooling_available not in TOOLING_AVAILABILITY:
+        raise ValueError("Existing tooling availability must be Yes, No, Not assessed, or Not applicable.")
+    if tooling_cost_per_colour_usd < 0 or not math.isfinite(float(tooling_cost_per_colour_usd)):
+        raise ValueError("Tooling cost must be finite and non-negative.")
+
+    if print_profile == "Unprinted":
+        if tooling_status != "Not applicable" or existing_tooling_available != "Not applicable":
+            raise ValueError("Unprinted laminate must use Not applicable tooling status and availability.")
+        if tooling_cost_per_colour_usd != 0:
+            raise ValueError("Unprinted laminate must use zero tooling cost.")
+        return
+
+    if tooling_status == "New":
+        if existing_tooling_available != "Not applicable":
+            raise ValueError("New tooling requires Existing Tooling Available to be Not applicable.")
+        return
+
+    if tooling_status == "Existing":
+        if existing_tooling_available not in {"Yes", "No", "Not assessed"}:
+            raise ValueError("Existing tooling availability must be Yes, No, or Not assessed.")
+        return
+
+    raise ValueError("Printed laminate tooling status must be New or Existing.")
+
+
 def tooling_amortisation_per_kg(
     print_profile: str,
     print_process: str,
@@ -100,16 +119,14 @@ def tooling_amortisation_per_kg(
     count = validate_print_profile_colours(print_profile, number_of_colours)
     if print_process not in PRINT_PROCESSES:
         raise ValueError(f"Unsupported print process '{print_process}'.")
-    if existing_tooling_available not in TOOLING_AVAILABILITY:
-        raise ValueError("Existing tooling availability must be Yes, No, Not assessed, or Not applicable.")
-    if tooling_cost_per_colour_usd < 0 or not math.isfinite(float(tooling_cost_per_colour_usd)):
-        raise ValueError("Tooling cost must be finite and non-negative.")
+    _validate_tooling_contract(
+        print_profile,
+        tooling_status,
+        existing_tooling_available,
+        tooling_cost_per_colour_usd,
+    )
     if print_profile == "Unprinted":
-        if tooling_cost_per_colour_usd != 0 or tooling_status != "Not applicable":
-            raise ValueError("Unprinted laminate must use zero tooling cost and Not applicable tooling status.")
         return 0.0
-    if tooling_status not in {"New", "Existing"}:
-        raise ValueError("Printed laminate tooling status must be New or Existing.")
     if tooling_status == "Existing":
         if existing_tooling_available != "Yes":
             raise ValueError("Existing tooling requires explicit availability confirmation before zero amortisation.")
