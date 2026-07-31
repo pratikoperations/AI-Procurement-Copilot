@@ -10,7 +10,28 @@ from modules.scoring import enrich_supplier_scores
 def _flexible_laminate_scenario_table(base_df, assumptions):
     rows = []
     for result in run_all_flexible_laminate_scenarios(base_df, assumptions):
+        applicable = bool(result["metadata"]["applicable"])
         winner = result["winner"]
+
+        if not applicable:
+            rows.append({
+                "Scenario": result["scenario"],
+                "Winning Supplier": "Not applicable",
+                "Winning Score": None,
+                "Risk-Adjusted TCO per kg (USD)": None,
+                "Annual TCO (USD)": None,
+                "Risk Resilience Score": None,
+                "Failure Probability": None,
+                "Technical Eligibility": "Not applicable",
+                "Standard Allocation Status": "Not applicable",
+                "Optimized Allocation Status": "Not applicable",
+                "Scenario Applicable": False,
+                "Ineligibility / Applicability Reason": result["metadata"].get("reason", "Not applicable"),
+                "Scenario Assumption Version": result["metadata"]["scenario_assumption_version"],
+                "Confidence": "Not applicable",
+            })
+            continue
+
         if winner is None:
             rows.append({
                 "Scenario": result["scenario"],
@@ -23,11 +44,17 @@ def _flexible_laminate_scenario_table(base_df, assumptions):
                 "Technical Eligibility": "No eligible supplier",
                 "Standard Allocation Status": "No allocation",
                 "Optimized Allocation Status": "No allocation",
-                "Scenario Applicable": result["metadata"]["applicable"],
+                "Scenario Applicable": True,
+                "Ineligibility / Applicability Reason": result["ineligibility_reasons"],
+                "Scenario Assumption Version": result["metadata"]["scenario_assumption_version"],
                 "Confidence": "Low",
             })
             continue
 
+        confidence = result["decision"].get(
+            "award_confidence",
+            recommendation_confidence(result["eligible_df"]),
+        )
         rows.append({
             "Scenario": result["scenario"],
             "Winning Supplier": winner["Supplier"],
@@ -45,8 +72,13 @@ def _flexible_laminate_scenario_table(base_df, assumptions):
                 if not result["optimized_allocation"]["allocation_df"].empty
                 else "No allocation"
             ),
-            "Scenario Applicable": result["metadata"]["applicable"],
-            "Confidence": recommendation_confidence(result["scored_df"]),
+            "Scenario Applicable": True,
+            "Ineligibility / Applicability Reason": result["decision"].get(
+                "confidence_governance",
+                "",
+            ),
+            "Scenario Assumption Version": result["metadata"]["scenario_assumption_version"],
+            "Confidence": confidence,
         })
     return pd.DataFrame(rows)
 
