@@ -11,8 +11,14 @@ COMMODITIES = {
         "Flexible Laminates": {
             "family": "Flexible Packaging",
             "unit": "kg",
-            "primary_cost_drivers": ["film", "foil", "ink", "adhesive", "conversion"],
-            "risk_signals": ["migration compliance", "barrier performance", "cylinder cost", "resin volatility"],
+            "structures": ["PET / PE", "PET / MetPET / PE", "BOPP / CPP"],
+            "print_profiles": ["Unprinted", "Up to 4 colours", "5–8 colours"],
+            "print_processes": ["Rotogravure", "Flexographic"],
+            "adhesive_types": ["Solvent-based", "Solvent-free"],
+            "primary_cost_drivers": ["substrates", "ink", "adhesive", "printing", "lamination", "process loss", "tooling", "freight"],
+            "risk_signals": ["substrate availability", "print capability", "lamination capability", "tooling dependency", "process loss"],
+            "assumption_profile_version": "C2.0",
+            "source_label": "Synthetic controlled demonstration assumptions",
         },
         "PET Bottles": {
             "family": "Rigid Packaging",
