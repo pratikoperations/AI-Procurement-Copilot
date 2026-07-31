@@ -5,7 +5,6 @@ import streamlit as st
 from modules.c1_ux import apply_c1_ux_overrides
 from modules.category_engine import ensure_category_profile, get_category_profile
 from modules.config import DEFAULT_FX_RATE, EDITION, FUTURE_CATEGORIES, SUPPORTED_CATEGORIES
-from modules.flexible_laminate_cost import set_selected_laminate_structure
 from modules.rfq_integration_controller import governed_route_enabled
 from modules.ui_theme import apply_ui_theme
 from modules.unit_display import annual_volume_label, canonical_unit, quantity_basis_caption
@@ -72,7 +71,6 @@ def render_sidebar():
         with st.sidebar.expander("Flexible Laminate Assumptions", expanded=True):
             st.caption("Controlled synthetic C2 profiles; total micron is metadata only and does not infer physical mass or an approved technical specification.")
             laminate_structure = st.selectbox("Laminate Structure", ["PET / PE", "PET / MetPET / PE", "BOPP / CPP"], index=0)
-            set_selected_laminate_structure(laminate_structure)
             laminate_total_micron = st.number_input("Total Micron (metadata only)", min_value=35, max_value=140, value=70, step=1)
             laminate_print_profile = st.selectbox("Print Profile", ["Unprinted", "Up to 4 colours", "5–8 colours"], index=1)
             laminate_print_process = st.selectbox("Print Process", ["Rotogravure", "Flexographic"], index=0)
