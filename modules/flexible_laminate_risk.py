@@ -77,7 +77,6 @@ def assess_flexible_laminate_supplier(record: dict) -> dict:
     if str(record.get("Tooling Status", "")).strip() == "Existing" and tooling != "Yes":
         reasons.append("Existing tooling is not explicitly available.")
 
-    # Higher score means stronger resilience, consistent with the shared engine.
     positive_resilience = (
         values["Substrate Availability %"] * 0.16
         + (100 - values["Press Capacity Utilisation %"]) * 0.10
@@ -101,20 +100,46 @@ def assess_flexible_laminate_supplier(record: dict) -> dict:
         "risk_score": round(risk_score, 1),
         "risk_category": risk_category,
         "failure_probability": round(failure_probability, 4),
+        "laminate_failure_probability": round(failure_probability, 4),
         "effective_process_loss_pct": round(loss, 3),
         "risk_assumption_basis": "Synthetic C2 capability and continuity assumptions; human technical approval remains mandatory.",
     }
 
 
-def apply_flexible_laminate_risk_to_tco(record: dict, annual_volume: float) -> dict:
-    """Apply C2 risk premium to existing packaging TCO fields."""
+def apply_flexible_laminate_risk_to_tco(
+    record: dict,
+    annual_volume: float,
+    demand_change: float = 0.0,
+) -> dict:
+    """Add an auditable laminate technical-risk cost to the existing packaging TCO.
+
+    The generic commercial/operational risk penalty calculated by the shared TCO
+    engine is preserved separately. The laminate premium is calculated only from
+    the laminate failure probability; process loss already influences that
+    probability and is not added again as a separate premium.
+    """
     assessment = assess_flexible_laminate_supplier(record)
-    base_tco = float(record["adjusted_tco_unit_usd"])
-    premium = assessment["failure_probability"] * 0.12 + assessment["effective_process_loss_pct"] / 1000
-    adjusted = base_tco * (1 + premium)
+    base_adjusted_tco = float(record["adjusted_tco_unit_usd"])
+    generic_failure_probability = float(record.get("failure_probability", 0.0))
+    generic_risk_penalty = float(record.get("risk_penalty_usd", 0.0))
+    scenario_unit_price = float(record.get("scenario_unit_price_usd", record.get("Quoted Unit Price USD", 0.0)))
+
+    laminate_failure_probability = float(assessment["laminate_failure_probability"])
+    laminate_risk_penalty = scenario_unit_price * laminate_failure_probability * 0.12
+    combined_risk_penalty = generic_risk_penalty + laminate_risk_penalty
+    adjusted = base_adjusted_tco + laminate_risk_penalty
+    effective_volume = max(float(annual_volume) * (1 + float(demand_change or 0.0)), 1.0)
+
     assessment.update({
-        "laminate_risk_premium_pct": round(premium * 100, 3),
-        "adjusted_tco_unit_usd": adjusted,
-        "annual_tco_usd": adjusted * float(annual_volume),
+        "generic_failure_probability": round(generic_failure_probability, 4),
+        "generic_risk_penalty_usd": round(generic_risk_penalty, 4),
+        "laminate_risk_penalty_usd": round(laminate_risk_penalty, 4),
+        "combined_risk_penalty_usd": round(combined_risk_penalty, 4),
+        "laminate_risk_premium_pct": round((laminate_risk_penalty / max(scenario_unit_price, 1e-9)) * 100, 3),
+        "base_adjusted_tco_unit_usd": round(base_adjusted_tco, 4),
+        "adjusted_tco_unit_usd": round(adjusted, 4),
+        "effective_annual_volume": round(effective_volume, 4),
+        "annual_tco_usd": round(adjusted * effective_volume, 2),
+        "failure_probability": round(laminate_failure_probability, 4),
     })
     return assessment
