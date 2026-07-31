@@ -143,7 +143,7 @@ def build_c2_export_manifest(scored_df, standard_allocation_df, optimized_alloca
         "eligible_supplier_count": int(len(eligible)),
         "standard_allocation": standard_allocation_df.to_dict(orient="records"),
         "optimized_allocation": optimized_allocation_df.to_dict(orient="records"),
-        "scenarios": scenario_df.to_dict(orient="records"),
+        "scenarios": scenario_df.where(pd.notna(scenario_df), None).to_dict(orient="records"),
         "scenario_assumption_versions": sorted(set(scenario_df.get("Scenario Assumption Version", pd.Series(dtype=str)).dropna().astype(str))),
         "disclaimer": C2_EXPORT_DISCLAIMER,
     }
@@ -171,6 +171,7 @@ def build_excel_workbook(scored_df, should_cost_df, allocation_df, scenario_df, 
         if comparison is not None:
             comparison.to_excel(writer, sheet_name="Supplier Comparison", index=False)
         should_cost.to_excel(writer, sheet_name="Should Cost", index=False)
+        allocation.to_excel(writer, sheet_name="Allocation", index=False)
         allocation.to_excel(writer, sheet_name="Standard Allocation", index=False)
         optimized.to_excel(writer, sheet_name="Optimized Allocation", index=False)
         scenarios.to_excel(writer, sheet_name="Scenarios", index=False)
