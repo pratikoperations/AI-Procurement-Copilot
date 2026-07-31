@@ -18,7 +18,16 @@ def normalize_comparison_basis(df: pd.DataFrame, fx_rate: float | None, base_cur
         result["Unit"] = "piece"
 
     result["Original Currency"] = result["Currency"].fillna("").astype(str).str.upper().str.strip()
-    result["Original Unit Price"] = pd.to_numeric(result["Quoted Unit Price USD"], errors="coerce")
+    price_source = "Quoted Unit Price USD"
+    if "Quoted Unit Price" in result.columns and (
+        price_source not in result.columns or result[price_source].isna().any()
+    ):
+        raw_price = pd.to_numeric(result["Quoted Unit Price"], errors="coerce")
+        if price_source not in result.columns:
+            result[price_source] = raw_price
+        else:
+            result[price_source] = pd.to_numeric(result[price_source], errors="coerce").fillna(raw_price)
+    result["Original Unit Price"] = pd.to_numeric(result[price_source], errors="coerce")
     result["Unit of Measure"] = result["Unit"].fillna("").astype(str).str.strip()
 
     blockers = []
@@ -29,8 +38,13 @@ def normalize_comparison_basis(df: pd.DataFrame, fx_rate: float | None, base_cur
     for _, row in result.iterrows():
         currency = str(row["Original Currency"] or base_currency).upper()
         price = row["Original Unit Price"]
-        if currency == base_currency:
+        if pd.isna(price):
             normalized_prices.append(price)
+            normalized_currency_values.append(currency)
+            normalized_fx.append(None)
+            blockers.append("A supplier quotation is missing a numeric unit price.")
+        elif currency == base_currency:
+            normalized_prices.append(float(price))
             normalized_currency_values.append(base_currency)
             normalized_fx.append(1.0)
         elif currency == "INR" and base_currency == "USD" and fx_rate and float(fx_rate) > 0:
@@ -65,6 +79,6 @@ def validate_category_unit(df: pd.DataFrame, category: str, commodity: str) -> l
 
     units = set(df.get("Unit", pd.Series(dtype=str)).dropna().astype(str).str.lower())
     warnings = []
-    if category == "Raw Material Procurement" and commodity in {"PET Resin", "Kraft Paper"} and units != {"kg"}:
+    if category == "Raw Material Procurement" and commodity in {"PET Resin", "Kraft Paper", "Steel"} and units != {"kg"}:
         warnings.append(f"{commodity} quotations must use kg as the comparison unit.")
     return warnings
