@@ -127,7 +127,7 @@ def apply_flexible_laminate_risk_to_tco(
     laminate_failure_probability = float(assessment["laminate_failure_probability"])
     laminate_risk_penalty = scenario_unit_price * laminate_failure_probability * 0.12
     combined_risk_penalty = generic_risk_penalty + laminate_risk_penalty
-    adjusted = base_adjusted_tco + laminate_risk_penalty
+    adjusted = round(base_adjusted_tco + laminate_risk_penalty, 4)
     effective_volume = max(float(annual_volume) * (1 + float(demand_change or 0.0)), 1.0)
 
     assessment.update({
@@ -137,7 +137,7 @@ def apply_flexible_laminate_risk_to_tco(
         "combined_risk_penalty_usd": round(combined_risk_penalty, 4),
         "laminate_risk_premium_pct": round((laminate_risk_penalty / max(scenario_unit_price, 1e-9)) * 100, 3),
         "base_adjusted_tco_unit_usd": round(base_adjusted_tco, 4),
-        "adjusted_tco_unit_usd": round(adjusted, 4),
+        "adjusted_tco_unit_usd": adjusted,
         "effective_annual_volume": round(effective_volume, 4),
         "annual_tco_usd": round(adjusted * effective_volume, 2),
         "failure_probability": round(laminate_failure_probability, 4),
