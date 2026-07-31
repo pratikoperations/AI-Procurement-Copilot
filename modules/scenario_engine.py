@@ -30,8 +30,8 @@ FLEXIBLE_LAMINATE_SCENARIOS = (
     "Press and Lamination Capacity Stress",
     "Tooling Replacement Scenario",
 )
+SCENARIO_ASSUMPTION_VERSION = "C2.5-SCENARIO-v1"
 
-# Synthetic commercial exposure shares used only for the controlled showcase.
 POLYMER_EXPOSURE_SHARE = {
     "PET / PE": 0.72,
     "PET / MetPET / PE": 0.70,
@@ -65,7 +65,7 @@ def apply_flexible_laminate_scenario(
     assumptions: dict,
     scenario_name: str,
 ) -> tuple[pd.DataFrame, dict, dict]:
-    """Apply one controlled C2 scenario without mutating the source inputs."""
+    """Apply one controlled C2 scenario without mutating source inputs."""
     if scenario_name not in FLEXIBLE_LAMINATE_SCENARIOS:
         raise ValueError(f"Unknown Flexible Laminates scenario: {scenario_name}")
 
@@ -76,7 +76,11 @@ def apply_flexible_laminate_scenario(
         "scenario": scenario_name,
         "structure": structure,
         "applicable": True,
-        "assumption_basis": "Synthetic controlled C2 scenario assumptions; not a market forecast or audited supplier evidence.",
+        "scenario_assumption_version": SCENARIO_ASSUMPTION_VERSION,
+        "assumption_basis": (
+            "Synthetic controlled C2 scenario assumptions; not a market forecast "
+            "or audited supplier evidence."
+        ),
     }
 
     if scenario_name == "Polymer Index +20%":
@@ -86,7 +90,10 @@ def apply_flexible_laminate_scenario(
 
     elif scenario_name == "MetPET Availability Stress":
         if structure != "PET / MetPET / PE":
-            metadata.update({"applicable": False, "reason": "MetPET stress applies only to PET / MetPET / PE."})
+            metadata.update({
+                "applicable": False,
+                "reason": "MetPET stress applies only to PET / MetPET / PE.",
+            })
         else:
             result["Quoted Unit Price USD"] *= 1 + METPET_SHARE * METPET_INDEX_STRESS
             result["Substrate Availability %"] = (
@@ -101,7 +108,10 @@ def apply_flexible_laminate_scenario(
     elif scenario_name == "Adhesive and Conversion Cost +15%":
         exposure = ADHESIVE_CONVERSION_EXPOSURE_SHARE[structure]
         result["Quoted Unit Price USD"] *= 1 + 0.15 * exposure
-        metadata.update({"adhesive_conversion_change": 0.15, "adhesive_conversion_exposure_share": exposure})
+        metadata.update({
+            "adhesive_conversion_change": 0.15,
+            "adhesive_conversion_exposure_share": exposure,
+        })
 
     elif scenario_name == "Demand +25%":
         scenario_assumptions["demand_change"] = 0.25
@@ -118,16 +128,44 @@ def apply_flexible_laminate_scenario(
 
     elif scenario_name == "Tooling Replacement Scenario":
         printed = result["Print Profile"].astype(str) != "Unprinted"
-        amortisation = (
-            result.loc[printed, "Number of Colours"].astype(float)
-            * result.loc[printed, "Tooling Cost per Colour USD"].astype(float)
-            / result.loc[printed, "Tooling Lifetime Volume kg"].astype(float)
+        existing_confirmed = (
+            printed
+            & result["Tooling Status"].astype(str).eq("Existing")
+            & result["Existing Tooling Available"].astype(str).eq("Yes")
         )
-        result.loc[printed, "Quoted Unit Price USD"] += amortisation
-        result.loc[printed, "Tooling Status"] = "New"
-        result.loc[printed, "Existing Tooling Available"] = "Not applicable"
-        result.loc[printed, "Tooling Availability"] = "Not applicable"
-        metadata["tooling_amortisation_added"] = True
+        already_new = printed & result["Tooling Status"].astype(str).eq("New")
+        not_applicable = ~printed
+        existing_unconfirmed = (
+            printed
+            & result["Tooling Status"].astype(str).eq("Existing")
+            & ~result["Existing Tooling Available"].astype(str).eq("Yes")
+        )
+        if existing_unconfirmed.any():
+            raise ValueError(
+                "Tooling Replacement Scenario requires Existing Tooling Available = Yes "
+                "for every Existing printed-tooling row."
+            )
+
+        if existing_confirmed.any():
+            amortisation = (
+                result.loc[existing_confirmed, "Number of Colours"].astype(float)
+                * result.loc[existing_confirmed, "Tooling Cost per Colour USD"].astype(float)
+                / result.loc[existing_confirmed, "Tooling Lifetime Volume kg"].astype(float)
+            )
+            result.loc[existing_confirmed, "Quoted Unit Price USD"] += amortisation
+            result.loc[existing_confirmed, "Tooling Status"] = "New"
+            result.loc[existing_confirmed, "Existing Tooling Available"] = "Not applicable"
+            result.loc[existing_confirmed, "Tooling Availability"] = "Not applicable"
+
+        metadata.update({
+            "replacement_applied_count": int(existing_confirmed.sum()),
+            "already_new_tooling_count": int(already_new.sum()),
+            "not_applicable_count": int(not_applicable.sum()),
+            "tooling_replacement_basis": (
+                "Replacement economics apply only to printed rows with confirmed reusable "
+                "existing tooling. No physical damage, loss, or unavailability is asserted."
+            ),
+        })
 
     return result, scenario_assumptions, metadata
 
@@ -137,8 +175,21 @@ def _no_winner_decision(scenario_name: str) -> dict:
         "scenario": scenario_name,
         "recommended_supplier": "No technically eligible supplier",
         "recommendation": "No technically eligible supplier",
+        "award_confidence": 0.0,
+        "confidence_governance": "No award confidence because no supplier is technically eligible.",
         "governance": "No fallback award is permitted. Human technical review is mandatory.",
     }
+
+
+def _ineligibility_reasons(scored: pd.DataFrame) -> str:
+    reasons = []
+    if "technical_ineligibility_reasons" in scored.columns:
+        for value in scored.loc[~scored["technical_eligible"].astype(bool), "technical_ineligibility_reasons"]:
+            if isinstance(value, (list, tuple, set)):
+                reasons.extend(str(item) for item in value if str(item).strip())
+            elif str(value).strip() and str(value).strip().lower() != "nan":
+                reasons.extend(part.strip() for part in str(value).split(";") if part.strip())
+    return "; ".join(dict.fromkeys(reasons)) or "Technical eligibility thresholds were not met."
 
 
 def run_flexible_laminate_scenario(
@@ -146,19 +197,33 @@ def run_flexible_laminate_scenario(
     assumptions: dict,
     scenario_name: str,
 ) -> dict:
-    """Run one complete C2 scenario through scoring, recommendations, and allocation."""
+    """Run one complete C2 scenario through scoring, decision, and allocation."""
     scenario_df, scenario_assumptions, metadata = apply_flexible_laminate_scenario(
         suppliers_df,
         assumptions,
         scenario_name,
     )
     scored = enrich_supplier_scores(scenario_df, scenario_assumptions)
-    eligible = scored[scored["technical_eligible"].astype(bool)]
+    eligible = scored[scored["technical_eligible"].astype(bool)].copy()
     annual_volume = float(scenario_assumptions["annual_volume"]) * (
         1 + float(scenario_assumptions.get("demand_change", 0.0))
     )
 
-    if eligible.empty:
+    if not metadata["applicable"]:
+        standard_allocation = pd.DataFrame()
+        optimized = {
+            "allocation_df": pd.DataFrame(),
+            "explanation": "Scenario is not applicable to the selected laminate structure.",
+        }
+        decision = {
+            "scenario": scenario_name,
+            "recommended_supplier": "Not applicable",
+            "recommendation": "Not applicable",
+            "award_confidence": None,
+            "confidence_governance": metadata.get("reason", "Scenario is not applicable."),
+        }
+        winner = None
+    elif eligible.empty:
         standard_allocation = pd.DataFrame()
         optimized = {
             "allocation_df": pd.DataFrame(),
@@ -174,7 +239,16 @@ def run_flexible_laminate_scenario(
             min_esg_score=0,
         )
         optimized = optimize_allocation(scored, annual_volume)
-        decision = generate_decision(scored, optimized["allocation_df"])
+        decision = generate_decision(eligible, optimized["allocation_df"])
+        if len(eligible) == 1:
+            decision["award_confidence"] = min(float(decision.get("award_confidence", 60.0)), 60.0)
+            decision["confidence_governance"] = (
+                "Single technically eligible supplier — competition confidence constrained."
+            )
+        else:
+            decision["confidence_governance"] = (
+                "Award confidence calculated from technically eligible suppliers only."
+            )
         winner = eligible.iloc[0]
 
     return {
@@ -189,6 +263,7 @@ def run_flexible_laminate_scenario(
         "optimized_allocation": optimized,
         "decision": decision,
         "effective_annual_volume": annual_volume,
+        "ineligibility_reasons": _ineligibility_reasons(scored) if eligible.empty else "",
     }
 
 
@@ -206,13 +281,13 @@ def apply_scenario(suppliers_df, scenario_name):
     settings = SCENARIOS[scenario_name]
     result = suppliers_df.copy(deep=True)
     if "price_multiplier" in settings:
-        result["Quoted Unit Price USD"] = result["Quoted Unit Price USD"] * settings["price_multiplier"]
+        result["Quoted Unit Price USD"] *= settings["price_multiplier"]
     if "lead_time_multiplier" in settings:
-        result["Lead Time Days"] = result["Lead Time Days"] * settings["lead_time_multiplier"]
+        result["Lead Time Days"] *= settings["lead_time_multiplier"]
     if "moq_multiplier" in settings:
-        result["MOQ"] = result["MOQ"] * settings["moq_multiplier"]
+        result["MOQ"] *= settings["moq_multiplier"]
     if "capacity_multiplier" in settings and "Supplier Capacity" in result.columns:
-        result["Supplier Capacity"] = result["Supplier Capacity"] * settings["capacity_multiplier"]
+        result["Supplier Capacity"] *= settings["capacity_multiplier"]
     if "esg_penalty" in settings:
         for column in ["Recyclability", "Certification", "Carbon Score", "EPR Readiness", "PCR Content %"]:
             if column in result.columns:
@@ -230,7 +305,9 @@ def run_intelligence_scenario(suppliers_df, assumptions, scenario_name):
 
     scenario_df, settings = apply_scenario(suppliers_df, scenario_name)
     scenario_assumptions = deepcopy(assumptions)
-    scenario_assumptions["freight_shock"] = float(assumptions.get("freight_shock", 0)) + float(settings.get("freight_shock_delta", 0))
+    scenario_assumptions["freight_shock"] = float(assumptions.get("freight_shock", 0)) + float(
+        settings.get("freight_shock_delta", 0)
+    )
     scored = enrich_supplier_scores(scenario_df, scenario_assumptions)
     allocation = optimize_allocation(scored, scenario_assumptions["annual_volume"])
     decision = generate_decision(scored, allocation["allocation_df"])
