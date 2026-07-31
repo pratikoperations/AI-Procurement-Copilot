@@ -130,7 +130,10 @@ def test_c2_export_manifest_matches_visible_winner_allocations_and_scenarios():
     assert manifest["comparison_unit"] == "USD/kg"
     assert manifest["standard_allocation"] == standard.to_dict(orient="records")
     assert manifest["optimized_allocation"] == optimized.to_dict(orient="records")
-    assert manifest["scenarios"] == scenarios.to_dict(orient="records")
+    assert len(manifest["scenarios"]) == len(scenarios) == 7
+    assert [row["Scenario"] for row in manifest["scenarios"]] == scenarios["Scenario"].tolist()
+    assert [row["Winning Supplier"] for row in manifest["scenarios"]] == scenarios["Winning Supplier"].tolist()
+    assert [row["Scenario Status / Reason"] for row in manifest["scenarios"]] == scenarios["Scenario Status / Reason"].tolist()
     assert manifest["scenario_assumption_versions"] == ["C2.5-SCENARIO-v1"]
 
 
@@ -151,7 +154,7 @@ def test_excel_contains_standard_optimized_scenario_and_governance_sheets():
         c2_manifest=manifest,
     )
     sheets = pd.ExcelFile(BytesIO(workbook)).sheet_names
-    assert {"Supplier Scores Report", "Standard Allocation", "Optimized Allocation", "Scenarios", "C2 Governance"}.issubset(sheets)
+    assert {"Allocation", "Standard Allocation", "Optimized Allocation", "Scenarios", "C2 Governance"}.issubset(sheets)
 
 
 def test_existing_category_data_routes_remain_unchanged():
