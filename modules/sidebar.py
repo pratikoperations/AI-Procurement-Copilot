@@ -5,6 +5,7 @@ import streamlit as st
 from modules.c1_ux import apply_c1_ux_overrides
 from modules.category_engine import ensure_category_profile, get_category_profile
 from modules.config import DEFAULT_FX_RATE, EDITION, FUTURE_CATEGORIES, SUPPORTED_CATEGORIES
+from modules.flexible_laminate_cost import set_selected_laminate_structure
 from modules.rfq_integration_controller import governed_route_enabled
 from modules.ui_theme import apply_ui_theme
 from modules.unit_display import annual_volume_label, canonical_unit, quantity_basis_caption
@@ -64,13 +65,15 @@ def render_sidebar():
     laminate_lamination_loss_pct = 2.0
     laminate_slitting_loss_pct = 1.0
     laminate_tooling_status = "New"
+    laminate_existing_tooling_available = "Not applicable"
     laminate_tooling_cost_per_colour_usd = 250.0
     laminate_tooling_lifetime_volume_kg = 250000.0
     if category == "Packaging Procurement" and commodity == "Flexible Laminates":
         with st.sidebar.expander("Flexible Laminate Assumptions", expanded=True):
-            st.caption("Controlled synthetic C2 profiles; not approved technical specifications or live supplier data.")
+            st.caption("Controlled synthetic C2 profiles; total micron is metadata only and does not infer physical mass or an approved technical specification.")
             laminate_structure = st.selectbox("Laminate Structure", ["PET / PE", "PET / MetPET / PE", "BOPP / CPP"], index=0)
-            laminate_total_micron = st.number_input("Total Micron", min_value=35, max_value=140, value=70, step=1)
+            set_selected_laminate_structure(laminate_structure)
+            laminate_total_micron = st.number_input("Total Micron (metadata only)", min_value=35, max_value=140, value=70, step=1)
             laminate_print_profile = st.selectbox("Print Profile", ["Unprinted", "Up to 4 colours", "5–8 colours"], index=1)
             laminate_print_process = st.selectbox("Print Process", ["Rotogravure", "Flexographic"], index=0)
             laminate_number_of_colours = st.number_input("Number of Colours", min_value=0, max_value=8, value=4, step=1)
@@ -79,6 +82,7 @@ def render_sidebar():
             laminate_lamination_loss_pct = st.number_input("Lamination Loss %", min_value=0.0, max_value=6.0, value=2.0, step=0.5)
             laminate_slitting_loss_pct = st.number_input("Slitting Loss %", min_value=0.0, max_value=5.0, value=1.0, step=0.5)
             laminate_tooling_status = st.selectbox("Tooling Status", ["New", "Existing", "Not applicable"], index=0)
+            laminate_existing_tooling_available = st.selectbox("Existing Tooling Available", ["Not applicable", "Yes", "No", "Not assessed"], index=0)
             laminate_tooling_cost_per_colour_usd = st.number_input("Tooling Cost per Colour USD", min_value=0.0, value=250.0, step=25.0)
             laminate_tooling_lifetime_volume_kg = st.number_input("Tooling Lifetime Volume kg", min_value=1.0, value=250000.0, step=10000.0)
 
@@ -122,6 +126,7 @@ def render_sidebar():
         laminate_lamination_loss_pct=laminate_lamination_loss_pct,
         laminate_slitting_loss_pct=laminate_slitting_loss_pct,
         laminate_tooling_status=laminate_tooling_status,
+        laminate_existing_tooling_available=laminate_existing_tooling_available,
         laminate_tooling_cost_per_colour_usd=laminate_tooling_cost_per_colour_usd,
         laminate_tooling_lifetime_volume_kg=laminate_tooling_lifetime_volume_kg,
     )
