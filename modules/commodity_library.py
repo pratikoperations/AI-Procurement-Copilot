@@ -64,6 +64,18 @@ COMMODITIES = {
             "primary_cost_drivers": ["LME copper", "fabrication premium", "freight", "FX"],
             "risk_signals": ["mine disruption", "LME volatility", "regional premium", "substitute availability"],
         },
+        "Kraft Paper": {
+            "family": "Paper and Fibre",
+            "unit": "kg",
+            "variants": ["Recycled Kraft", "Virgin Kraft"],
+            "gsm_profiles": [120, 150, 180],
+            "strength_profiles": ["18 BF", "22 BF", "28 BF"],
+            "primary_cost_drivers": ["paper index", "mill premium", "freight", "grade premium", "supplier margin"],
+            "risk_signals": ["mill allocation", "moisture variation", "recycled fibre availability", "quality continuity"],
+            "downstream_link": "Corrugated Board",
+            "assumption_profile_version": "C1.0",
+            "source_label": "Synthetic controlled demonstration assumptions",
+        },
     },
 }
 

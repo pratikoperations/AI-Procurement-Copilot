@@ -28,11 +28,19 @@ def format_annual_volume(volume, unit):
     return f"{quantity:,.0f} {display_unit(unit, quantity)}"
 
 
+def format_metric_tonnes_from_kg(volume_kg):
+    """Format a display-only metric-tonne equivalent without ambiguous trailing zeros."""
+    tonnes = float(volume_kg) / 1000
+    if tonnes.is_integer():
+        return f"{tonnes:,.0f}"
+    return f"{tonnes:,.3f}".rstrip("0").rstrip(".")
+
+
 def quantity_basis_caption(volume, unit):
     """Return a readable quantity-basis caption; tonne equivalence is display-only."""
     base = f"Canonical quantity basis: {format_annual_volume(volume, unit)}"
     if canonical_unit(unit) == "kg":
-        return f"{base} ({float(volume) / 1000:,.3f} metric tonnes)"
+        return f"{base} ({format_metric_tonnes_from_kg(volume)} metric tonnes)"
     return base
 
 

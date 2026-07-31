@@ -1,5 +1,7 @@
 """Commodity-aware raw-material should-cost engine."""
 
+import math
+
 import pandas as pd
 
 COMMODITY_BASELINES = {
@@ -9,7 +11,18 @@ COMMODITY_BASELINES = {
     "Aluminium Foil": {"commodity_index": 2.35, "conversion_premium": 0.42, "freight": 0.08, "duty": 0.10, "quality_premium": 0.09, "supplier_margin": 0.12},
     "Steel": {"commodity_index": 0.82, "conversion_premium": 0.16, "freight": 0.06, "duty": 0.05, "quality_premium": 0.03, "supplier_margin": 0.05},
     "Copper": {"commodity_index": 8.45, "conversion_premium": 0.55, "freight": 0.10, "duty": 0.18, "quality_premium": 0.12, "supplier_margin": 0.20},
+    "Kraft Paper": {"commodity_index": 0.61, "conversion_premium": 0.09, "freight": 0.06, "duty": 0.00, "quality_premium": 0.04, "supplier_margin": 0.05},
 }
+
+REQUIRED_COMPONENTS = {
+    "commodity_index", "conversion_premium", "freight", "duty", "quality_premium", "supplier_margin"
+}
+KRAFT_VARIANT_ADJUSTMENTS = {
+    "Recycled Kraft": {"commodity_index": 0.00, "quality_premium": 0.00},
+    "Virgin Kraft": {"commodity_index": 0.11, "quality_premium": 0.03},
+}
+KRAFT_STRENGTH_PREMIUM = {"18 BF": 0.00, "22 BF": 0.025, "28 BF": 0.055}
+KRAFT_PROFILE_AVAILABILITY_PREMIUM = {120: 0.00, 150: 0.015, 180: 0.03}
 
 LABELS = {
     "commodity_index": "Commodity Index",
@@ -19,11 +32,68 @@ LABELS = {
     "quality_premium": "Grade / Quality Premium",
     "supplier_margin": "Supplier Margin",
 }
+KRAFT_LABELS = {
+    **LABELS,
+    "commodity_index": "Paper Index",
+    "conversion_premium": "Mill / Producer Premium",
+    "quality_premium": "Grade / Profile Availability Premium",
+}
 
 
-def calculate_raw_material_should_cost(commodity, commodity_shock=0.0, freight_shock=0.0, fx_shock=0.0, inputs=None):
+def _validate_components(base):
+    missing = REQUIRED_COMPONENTS - set(base)
+    if missing:
+        raise ValueError("Missing raw-material cost components: " + ", ".join(sorted(missing)))
+    for key in REQUIRED_COMPONENTS:
+        try:
+            value = float(base[key])
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"Raw-material cost component '{key}' must be numeric.") from exc
+        if not math.isfinite(value) or value < 0:
+            raise ValueError(f"Raw-material cost component '{key}' must be finite and non-negative.")
+
+
+def _kraft_inputs(inputs, kraft_variant, gsm, strength_grade):
+    base = dict(inputs or COMMODITY_BASELINES["Kraft Paper"])
+    if kraft_variant not in KRAFT_VARIANT_ADJUSTMENTS:
+        raise ValueError(f"Unsupported Kraft Paper variant '{kraft_variant}'.")
+    if gsm not in KRAFT_PROFILE_AVAILABILITY_PREMIUM:
+        raise ValueError(f"Unsupported Kraft Paper GSM '{gsm}'.")
+    if strength_grade not in KRAFT_STRENGTH_PREMIUM:
+        raise ValueError(f"Unsupported Kraft Paper strength grade '{strength_grade}'.")
+    _validate_components(base)
+    adjustment = KRAFT_VARIANT_ADJUSTMENTS[kraft_variant]
+    base["commodity_index"] += adjustment["commodity_index"]
+    base["quality_premium"] += (
+        adjustment["quality_premium"]
+        + KRAFT_PROFILE_AVAILABILITY_PREMIUM[gsm]
+        + KRAFT_STRENGTH_PREMIUM[strength_grade]
+    )
+    return base
+
+
+def calculate_raw_material_should_cost(
+    commodity,
+    commodity_shock=0.0,
+    freight_shock=0.0,
+    fx_shock=0.0,
+    inputs=None,
+    kraft_variant="Recycled Kraft",
+    gsm=150,
+    strength_grade="22 BF",
+):
     """Calculate delivered raw-material should-cost per kg using explicit components."""
-    base = dict(inputs or COMMODITY_BASELINES.get(commodity, COMMODITY_BASELINES["PET Resin"]))
+    if commodity not in COMMODITY_BASELINES:
+        supported = ", ".join(sorted(COMMODITY_BASELINES))
+        raise ValueError(f"Unsupported raw-material commodity '{commodity}'. Supported commodities: {supported}")
+
+    base = (
+        _kraft_inputs(inputs, kraft_variant, gsm, strength_grade)
+        if commodity == "Kraft Paper"
+        else dict(inputs or COMMODITY_BASELINES[commodity])
+    )
+    _validate_components(base)
+
     result = {}
     for key, value in base.items():
         adjusted = float(value)
@@ -34,15 +104,25 @@ def calculate_raw_material_should_cost(commodity, commodity_shock=0.0, freight_s
         if key in {"commodity_index", "conversion_premium", "freight", "duty"}:
             adjusted *= 1 + fx_shock
         result[key] = adjusted
+
     result["target_unit_cost_usd"] = sum(result.values())
     result["commodity"] = commodity
+    if commodity == "Kraft Paper":
+        result.update({
+            "kraft_variant": kraft_variant,
+            "gsm": gsm,
+            "strength_grade": strength_grade,
+            "downstream_link": "Corrugated Board",
+            "profile_premium_note": "GSM component represents controlled mill/profile availability, not physical per-kg consumption economics.",
+        })
     return result
 
 
 def raw_material_should_cost_dataframe(should_cost, annual_volume, fx_rate):
     total = float(should_cost.get("target_unit_cost_usd", 0.0))
     rows = []
-    for key, label in LABELS.items():
+    labels = KRAFT_LABELS if should_cost.get("commodity") == "Kraft Paper" else LABELS
+    for key, label in labels.items():
         value = float(should_cost.get(key, 0.0))
         rows.append({
             "Component": label,

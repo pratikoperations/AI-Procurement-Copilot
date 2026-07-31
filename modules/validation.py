@@ -3,6 +3,7 @@
 import pandas as pd
 
 from modules.intelligent_rfq import quality_report_messages
+from modules.kraft_paper_validation import validate_kraft_paper_dataframe
 
 REQUIRED_RFQ_COLUMNS = [
     "Supplier",
@@ -28,8 +29,8 @@ OPTIONAL_RFQ_COLUMNS = [
 ]
 
 
-def validate_rfq_dataframe(df):
-    """Return structured validation and intelligent upload diagnostics."""
+def validate_rfq_dataframe(df, category=None, commodity=None):
+    """Return structured validation and category-aware upload diagnostics."""
     errors = []
     warnings = []
 
@@ -101,9 +102,30 @@ def validate_rfq_dataframe(df):
             "RFQ data quality is below 70/100. Review column mapping, missing values and duplicate rows before relying on the analysis for an award decision."
         )
 
+    selected_category = category or df.attrs.get("category")
+    selected_commodity = commodity or df.attrs.get("commodity")
+    material_values = None
+    if "Material" in df.columns:
+        material_values = df["Material"].astype(str).str.strip()
+
+    kraft_selected = (
+        selected_category == "Raw Material Procurement"
+        and selected_commodity == "Kraft Paper"
+    )
+    kraft_present = material_values is not None and material_values.eq("Kraft Paper").any()
+
+    if kraft_selected or kraft_present:
+        if selected_commodity and selected_commodity != "Kraft Paper":
+            errors.append(
+                "Selected commodity conflicts with Kraft Paper supplier data. Correct the commodity selection or Material values before continuing."
+            )
+        kraft_result = validate_kraft_paper_dataframe(df)
+        errors.extend(kraft_result["errors"])
+        warnings.extend(kraft_result["warnings"])
+
     return {
         "is_valid": not errors,
-        "errors": errors,
+        "errors": list(dict.fromkeys(errors)),
         "warnings": list(dict.fromkeys(warnings)),
         "quality_report": quality_report,
     }
@@ -149,6 +171,11 @@ def validate_scored_output(scored_df):
     if (scored_df["adjusted_tco_unit_usd"] <= 0).any():
         messages.append(
             "Adjusted TCO must be greater than zero for every supplier. Review price and cost inputs before continuing."
+        )
+
+    if "technical_eligible" in scored_df.columns and not scored_df["technical_eligible"].astype(bool).any():
+        messages.append(
+            "No technically eligible supplier remains after category-specific risk controls. The recommendation is blocked pending technical review."
         )
 
     return {"is_valid": not messages, "errors": messages}

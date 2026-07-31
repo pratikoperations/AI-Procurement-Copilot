@@ -59,9 +59,12 @@ def normalize_comparison_basis(df: pd.DataFrame, fx_rate: float | None, base_cur
 
 
 def validate_category_unit(df: pd.DataFrame, category: str, commodity: str) -> list[str]:
-    """Return category-specific unit warnings."""
+    """Attach selected category context and return category-specific unit warnings."""
+    df.attrs["category"] = category
+    df.attrs["commodity"] = commodity
+
     units = set(df.get("Unit", pd.Series(dtype=str)).dropna().astype(str).str.lower())
     warnings = []
-    if category == "Raw Material Procurement" and commodity == "PET Resin" and units != {"kg"}:
-        warnings.append("PET Resin quotations must use kg as the comparison unit.")
+    if category == "Raw Material Procurement" and commodity in {"PET Resin", "Kraft Paper"} and units != {"kg"}:
+        warnings.append(f"{commodity} quotations must use kg as the comparison unit.")
     return warnings

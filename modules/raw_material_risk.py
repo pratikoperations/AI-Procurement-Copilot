@@ -30,6 +30,33 @@ def calculate_raw_material_risk(row):
         "commercial_risk": 12 if advance > 0 else 5 if payment_days < 30 else 0,
         "incoterm_risk": 10 if incoterm == "EXW" else 7 if incoterm == "FOB" else 3 if incoterm == "CIF" else 0,
     }
+
+    is_kraft = str(row.get("Material", "")).strip() == "Kraft Paper"
+    technical_eligible = True
+    if is_kraft:
+        mill_allocation = float(row.get("Mill Allocation %", 100))
+        moisture = float(row.get("Moisture %", 15))
+        fibre_availability = float(row.get("Fibre Availability %", 0))
+        quality_continuity = float(row.get("Quality Continuity Score", 0))
+
+        penalties.update({
+            "mill_allocation_risk": 15 if mill_allocation > 95 else 10 if mill_allocation > 85 else 4 if mill_allocation > 75 else 0,
+            "moisture_risk": 15 if moisture > 10 else 8 if moisture > 9 else 3 if moisture > 8 else 0,
+            "fibre_availability_risk": 15 if fibre_availability < 50 else 8 if fibre_availability < 65 else 3 if fibre_availability < 75 else 0,
+            "quality_continuity_risk": 15 if quality_continuity < 60 else 8 if quality_continuity < 70 else 3 if quality_continuity < 80 else 0,
+        })
+        technical_eligible = (
+            mill_allocation <= 95
+            and moisture <= 10
+            and fibre_availability >= 50
+            and quality_continuity >= 60
+        )
+
     score = round(normalize_score(100 - sum(penalties.values())), 1)
     label = "Low Risk" if score >= 75 else "Medium Risk" if score >= 50 else "High Risk"
-    return {"risk_score": score, "risk_category": label, **penalties}
+    return {
+        "risk_score": score,
+        "risk_category": label,
+        "technical_eligible": technical_eligible,
+        **penalties,
+    }

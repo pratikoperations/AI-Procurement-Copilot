@@ -79,4 +79,9 @@ def enrich_supplier_scores(df, assumptions, weights=None):
     ).round(1)
 
     scored["category_engine"] = category
-    return scored.sort_values("total_score", ascending=False).reset_index(drop=True)
+    if "technical_eligible" not in scored.columns:
+        scored["technical_eligible"] = True
+    return scored.sort_values(
+        ["technical_eligible", "total_score"],
+        ascending=[False, False],
+    ).reset_index(drop=True)
