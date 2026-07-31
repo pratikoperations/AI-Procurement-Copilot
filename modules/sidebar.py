@@ -12,6 +12,25 @@ from modules.unit_display import annual_volume_label, canonical_unit, quantity_b
 FX_RATE_MIN = 60
 FX_RATE_MAX = 150
 FX_RATE_STEP = 1
+LAMINATE_PRINT_PROFILE_RANGES = {
+    "Unprinted": (0, 0, 0),
+    "Up to 4 colours": (1, 4, 4),
+    "5–8 colours": (5, 8, 5),
+}
+LAMINATE_PRINT_PROFILE_KEY = "c2_laminate_print_profile"
+LAMINATE_COLOUR_COUNT_KEY = "c2_laminate_number_of_colours"
+
+
+def normalize_laminate_colour_count(print_profile, number_of_colours):
+    """Return a deterministic colour count compatible with the selected profile."""
+    if print_profile not in LAMINATE_PRINT_PROFILE_RANGES:
+        raise ValueError(f"Unsupported print profile '{print_profile}'.")
+    minimum, maximum, default = LAMINATE_PRINT_PROFILE_RANGES[print_profile]
+    try:
+        count = int(number_of_colours)
+    except (TypeError, ValueError):
+        return default
+    return count if minimum <= count <= maximum else default
 
 
 def build_sidebar_result(**values):
@@ -72,9 +91,27 @@ def render_sidebar():
             st.caption("Controlled synthetic C2 profiles; total micron is metadata only and does not infer physical mass or an approved technical specification.")
             laminate_structure = st.selectbox("Laminate Structure", ["PET / PE", "PET / MetPET / PE", "BOPP / CPP"], index=0)
             laminate_total_micron = st.number_input("Total Micron (metadata only)", min_value=35, max_value=140, value=70, step=1)
-            laminate_print_profile = st.selectbox("Print Profile", ["Unprinted", "Up to 4 colours", "5–8 colours"], index=1)
+            laminate_print_profile = st.selectbox(
+                "Print Profile",
+                ["Unprinted", "Up to 4 colours", "5–8 colours"],
+                index=1,
+                key=LAMINATE_PRINT_PROFILE_KEY,
+            )
             laminate_print_process = st.selectbox("Print Process", ["Rotogravure", "Flexographic"], index=0)
-            laminate_number_of_colours = st.number_input("Number of Colours", min_value=0, max_value=8, value=4, step=1)
+            minimum_colours, maximum_colours, default_colours = LAMINATE_PRINT_PROFILE_RANGES[laminate_print_profile]
+            current_colours = st.session_state.get(LAMINATE_COLOUR_COUNT_KEY, default_colours)
+            st.session_state[LAMINATE_COLOUR_COUNT_KEY] = normalize_laminate_colour_count(
+                laminate_print_profile,
+                current_colours,
+            )
+            laminate_number_of_colours = st.number_input(
+                "Number of Colours",
+                min_value=minimum_colours,
+                max_value=maximum_colours,
+                step=1,
+                key=LAMINATE_COLOUR_COUNT_KEY,
+                disabled=laminate_print_profile == "Unprinted",
+            )
             laminate_adhesive_type = st.selectbox("Adhesive Type", ["Solvent-based", "Solvent-free"], index=1)
             laminate_printing_loss_pct = st.number_input("Printing Loss %", min_value=0.0, max_value=8.0, value=3.0, step=0.5)
             laminate_lamination_loss_pct = st.number_input("Lamination Loss %", min_value=0.0, max_value=6.0, value=2.0, step=0.5)
