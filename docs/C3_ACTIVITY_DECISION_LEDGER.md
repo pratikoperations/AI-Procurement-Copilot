@@ -13,7 +13,9 @@
 
 Current phase: C3.0 contract documentation and contract tests only.
 
-That sentence is retained verbatim as historical phase evidence. C3.0 authorized contract documentation and contract tests only; it does not describe the current C3.7 implementation state.
+None of those executable features is authorized in C3.0.
+
+Both sentences are retained verbatim as historical phase evidence. They do not describe the current C3.7 implementation state.
 
 ## Frozen decisions
 
