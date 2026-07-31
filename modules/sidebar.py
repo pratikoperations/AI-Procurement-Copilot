@@ -1,5 +1,7 @@
 """Sidebar controls for the Streamlit app."""
 
+import math
+
 import streamlit as st
 
 from modules.c1_ux import apply_c1_ux_overrides
@@ -19,6 +21,16 @@ LAMINATE_PRINT_PROFILE_RANGES = {
 }
 LAMINATE_PRINT_PROFILE_KEY = "c2_laminate_print_profile"
 LAMINATE_COLOUR_COUNT_KEY = "c2_laminate_number_of_colours"
+LAMINATE_TOOLING_STATUS_KEY = "c2_laminate_tooling_status"
+LAMINATE_TOOLING_AVAILABILITY_KEY = "c2_laminate_existing_tooling_available"
+LAMINATE_TOOLING_COST_KEY = "c2_laminate_tooling_cost_per_colour_usd"
+LAMINATE_TOOLING_LIFETIME_KEY = "c2_laminate_tooling_lifetime_volume_kg"
+LAMINATE_PRINTED_TOOLING_DEFAULTS = {
+    "tooling_status": "New",
+    "existing_tooling_available": "Not applicable",
+    "tooling_cost_per_colour_usd": 250.0,
+    "tooling_lifetime_volume_kg": 250000.0,
+}
 
 
 def normalize_laminate_colour_count(print_profile, number_of_colours):
@@ -31,6 +43,43 @@ def normalize_laminate_colour_count(print_profile, number_of_colours):
     except (TypeError, ValueError):
         return default
     return count if minimum <= count <= maximum else default
+
+
+def normalize_laminate_tooling_state(
+    print_profile,
+    tooling_status,
+    existing_tooling_available,
+    tooling_cost_per_colour_usd,
+    tooling_lifetime_volume_kg,
+):
+    """Return tooling state compatible with printed or unprinted laminate governance."""
+    if print_profile not in LAMINATE_PRINT_PROFILE_RANGES:
+        raise ValueError(f"Unsupported print profile '{print_profile}'.")
+    if print_profile == "Unprinted":
+        return {
+            "tooling_status": "Not applicable",
+            "existing_tooling_available": "Not applicable",
+            "tooling_cost_per_colour_usd": 0.0,
+            "tooling_lifetime_volume_kg": 0.0,
+        }
+
+    try:
+        cost = float(tooling_cost_per_colour_usd)
+        lifetime = float(tooling_lifetime_volume_kg)
+    except (TypeError, ValueError):
+        return dict(LAMINATE_PRINTED_TOOLING_DEFAULTS)
+    finite_non_negative_cost = math.isfinite(cost) and cost >= 0
+    finite_positive_lifetime = math.isfinite(lifetime) and lifetime > 0
+    valid_new = tooling_status == "New" and existing_tooling_available == "Not applicable"
+    valid_existing = tooling_status == "Existing" and existing_tooling_available in {"Yes", "No", "Not assessed"}
+    if finite_non_negative_cost and finite_positive_lifetime and (valid_new or valid_existing):
+        return {
+            "tooling_status": tooling_status,
+            "existing_tooling_available": existing_tooling_available,
+            "tooling_cost_per_colour_usd": cost,
+            "tooling_lifetime_volume_kg": lifetime,
+        }
+    return dict(LAMINATE_PRINTED_TOOLING_DEFAULTS)
 
 
 def build_sidebar_result(**values):
@@ -116,10 +165,45 @@ def render_sidebar():
             laminate_printing_loss_pct = st.number_input("Printing Loss %", min_value=0.0, max_value=8.0, value=3.0, step=0.5)
             laminate_lamination_loss_pct = st.number_input("Lamination Loss %", min_value=0.0, max_value=6.0, value=2.0, step=0.5)
             laminate_slitting_loss_pct = st.number_input("Slitting Loss %", min_value=0.0, max_value=5.0, value=1.0, step=0.5)
-            laminate_tooling_status = st.selectbox("Tooling Status", ["New", "Existing", "Not applicable"], index=0)
-            laminate_existing_tooling_available = st.selectbox("Existing Tooling Available", ["Not applicable", "Yes", "No", "Not assessed"], index=0)
-            laminate_tooling_cost_per_colour_usd = st.number_input("Tooling Cost per Colour USD", min_value=0.0, value=250.0, step=25.0)
-            laminate_tooling_lifetime_volume_kg = st.number_input("Tooling Lifetime Volume kg", min_value=1.0, value=250000.0, step=10000.0)
+
+            current_tooling = normalize_laminate_tooling_state(
+                laminate_print_profile,
+                st.session_state.get(LAMINATE_TOOLING_STATUS_KEY, "New"),
+                st.session_state.get(LAMINATE_TOOLING_AVAILABILITY_KEY, "Not applicable"),
+                st.session_state.get(LAMINATE_TOOLING_COST_KEY, 250.0),
+                st.session_state.get(LAMINATE_TOOLING_LIFETIME_KEY, 250000.0),
+            )
+            st.session_state[LAMINATE_TOOLING_STATUS_KEY] = current_tooling["tooling_status"]
+            st.session_state[LAMINATE_TOOLING_AVAILABILITY_KEY] = current_tooling["existing_tooling_available"]
+            st.session_state[LAMINATE_TOOLING_COST_KEY] = current_tooling["tooling_cost_per_colour_usd"]
+            st.session_state[LAMINATE_TOOLING_LIFETIME_KEY] = current_tooling["tooling_lifetime_volume_kg"]
+            unprinted = laminate_print_profile == "Unprinted"
+            laminate_tooling_status = st.selectbox(
+                "Tooling Status",
+                ["New", "Existing", "Not applicable"],
+                key=LAMINATE_TOOLING_STATUS_KEY,
+                disabled=unprinted,
+            )
+            laminate_existing_tooling_available = st.selectbox(
+                "Existing Tooling Available",
+                ["Not applicable", "Yes", "No", "Not assessed"],
+                key=LAMINATE_TOOLING_AVAILABILITY_KEY,
+                disabled=unprinted,
+            )
+            laminate_tooling_cost_per_colour_usd = st.number_input(
+                "Tooling Cost per Colour USD",
+                min_value=0.0,
+                step=25.0,
+                key=LAMINATE_TOOLING_COST_KEY,
+                disabled=unprinted,
+            )
+            laminate_tooling_lifetime_volume_kg = st.number_input(
+                "Tooling Lifetime Volume kg",
+                min_value=0.0 if unprinted else 1.0,
+                step=10000.0,
+                key=LAMINATE_TOOLING_LIFETIME_KEY,
+                disabled=unprinted,
+            )
 
     with st.sidebar.expander("Future Category Engines"):
         for item in FUTURE_CATEGORIES:
