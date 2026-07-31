@@ -1,4 +1,6 @@
 from io import BytesIO
+import json
+from pathlib import Path
 
 import pandas as pd
 
@@ -13,6 +15,7 @@ from modules.data_loader import get_demo_data, get_flexible_laminate_demo_suppli
 from modules.exports import (
     C2_EXPORT_DISCLAIMER,
     build_c2_export_manifest,
+    build_decision_package_json,
     build_excel_workbook,
     build_readable_supplier_scores,
 )
@@ -155,6 +158,82 @@ def test_excel_contains_standard_optimized_scenario_and_governance_sheets():
     )
     sheets = pd.ExcelFile(BytesIO(workbook)).sheet_names
     assert {"Allocation", "Standard Allocation", "Optimized Allocation", "Scenarios", "C2 Governance"}.issubset(sheets)
+
+
+def test_live_app_passes_same_c2_manifest_and_optimized_allocation_to_exports():
+    source = Path("app.py").read_text(encoding="utf-8")
+    assert "build_c2_export_manifest" in source
+    assert "c2_manifest = (" in source
+    assert 'optimized_allocation["allocation_df"]' in source
+    assert 'optimized_allocation_df=optimized_allocation["allocation_df"]' in source
+    assert source.count("c2_manifest=c2_manifest") == 2
+
+
+def test_live_c2_excel_and_json_packages_share_governed_manifest():
+    _, _, scored, standard, optimized, scenarios = _outputs()
+    manifest = build_c2_export_manifest(scored, standard, optimized, scenarios)
+    should_cost = pd.DataFrame([{"Component": "Controlled placeholder", "Unit Cost USD": 1.0}])
+    workbook = build_excel_workbook(
+        scored,
+        should_cost,
+        standard,
+        scenarios,
+        display_currency="USD",
+        fx_rate=83,
+        annual_volume=500000,
+        annual_volume_unit="kg",
+        optimized_allocation_df=optimized,
+        c2_manifest=manifest,
+    )
+    optimized_sheet = pd.read_excel(BytesIO(workbook), sheet_name="Optimized Allocation")
+    governance_sheet = pd.read_excel(BytesIO(workbook), sheet_name="C2 Governance")
+    assert not optimized_sheet.empty
+    assert set(governance_sheet["Field"]) >= {
+        "selected_structure",
+        "commercial_basis",
+        "comparison_unit",
+        "visible_winner",
+        "eligible_supplier_count",
+        "standard_allocation",
+        "optimized_allocation",
+        "scenarios",
+        "scenario_assumption_versions",
+        "disclaimer",
+    }
+
+    eligible = scored[scored["technical_eligible"]]
+    payload = json.loads(
+        build_decision_package_json(
+            eligible.iloc[0],
+            {"estimated_ebitda_opportunity_usd": 0.0},
+            standard,
+            scenarios,
+            {"annual_saving_usd": 0.0},
+            {"status": "Human Review Required"},
+            c2_manifest=manifest,
+        ).decode("utf-8")
+    )
+    exported_manifest = payload["flexible_laminates_governance"]
+    assert exported_manifest == manifest
+    assert exported_manifest["visible_winner"] == eligible.iloc[0]["Supplier"]
+    assert exported_manifest["standard_allocation"] == standard.to_dict(orient="records")
+    assert exported_manifest["optimized_allocation"] == optimized.to_dict(orient="records")
+    assert [row["Scenario Status / Reason"] for row in exported_manifest["scenarios"]] == scenarios["Scenario Status / Reason"].tolist()
+    assert exported_manifest["scenario_assumption_versions"] == ["C2.5-SCENARIO-v1"]
+
+
+def test_non_c2_json_export_remains_without_c2_governance_block():
+    payload = json.loads(
+        build_decision_package_json(
+            {"Supplier": "Supplier A"},
+            {},
+            pd.DataFrame(),
+            pd.DataFrame(),
+            {},
+            {"status": "Human Review Required"},
+        ).decode("utf-8")
+    )
+    assert "flexible_laminates_governance" not in payload
 
 
 def test_existing_category_data_routes_remain_unchanged():
