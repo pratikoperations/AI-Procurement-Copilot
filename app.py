@@ -20,7 +20,7 @@ from modules.executive_outputs import (
     generate_executive_memo, generate_explainability_panel, generate_supplier_email,
 )
 from modules.exports import (
-    build_decision_package_json, build_excel_workbook,
+    build_c2_export_manifest, build_decision_package_json, build_excel_workbook,
     build_readable_allocation, build_readable_supplier_comparison,
     build_readable_supplier_scores, dataframe_to_csv_bytes, text_to_bytes,
 )
@@ -404,13 +404,32 @@ readable_allocation = build_readable_allocation(
     allocation_df, display_currency, fx_rate,
     annual_volume=volume, annual_volume_unit=volume_unit,
 )
+is_flexible_laminates = (
+    assumptions.get("category") == "Packaging Procurement"
+    and assumptions.get("commodity") == "Flexible Laminates"
+)
+c2_manifest = (
+    build_c2_export_manifest(
+        scored_df,
+        allocation_df,
+        optimized_allocation["allocation_df"],
+        scenario_df,
+    )
+    if is_flexible_laminates
+    else None
+)
 excel_package = build_excel_workbook(
     scored_df, should_cost_df, allocation_df, scenario_df,
     readable_scores, readable_comparison,
     display_currency=display_currency, fx_rate=fx_rate,
     annual_volume=volume, annual_volume_unit=volume_unit,
+    optimized_allocation_df=optimized_allocation["allocation_df"],
+    c2_manifest=c2_manifest,
 )
-json_package = build_decision_package_json(recommended, value_metrics, allocation_df, scenario_df, negotiation_result, eligibility)
+json_package = build_decision_package_json(
+    recommended, value_metrics, allocation_df, scenario_df,
+    negotiation_result, eligibility, c2_manifest=c2_manifest,
+)
 supplier_profiles_json = json.dumps(supplier_intelligence["profiles"], indent=2, default=str).encode("utf-8")
 
 with st.expander("Validation Assurance Gate", expanded=True):
