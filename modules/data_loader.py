@@ -22,6 +22,16 @@ def get_demo_suppliers():
     ])
 
 
+def get_flexible_laminate_demo_suppliers():
+    """Return three controlled synthetic Flexible Laminates quotations in USD/kg."""
+    common = {"Material":"Flexible Laminates","Currency":"USD","Unit":"kg","Total Micron":70,"Print Profile":"Up to 4 colours","Print Process":"Rotogravure","Number of Colours":4,"Adhesive Type":"Solvent-free","Printing Loss %":3.0,"Lamination Loss %":2.0,"Slitting Loss %":1.0,"Tooling Status":"New","Tooling Cost per Colour USD":250.0,"Tooling Lifetime Volume kg":250000,"Application Approval Status":"Approved"}
+    return pd.DataFrame([
+        {**common,"Supplier":"Precision Flexibles Ltd","Laminate Structure":"PET / PE","Layer Count":2,"Quoted Unit Price USD":2.05,"MOQ":12000,"Lead Time Days":18,"Payment Terms":"Net 45","Incoterms":"DDP","OTIF %":95,"Quality PPM":650,"Audit Score":88,"Complaint Rate %":1.0,"Capacity Buffer %":18,"Supplier Capacity":900000,"Recyclability":62,"Certification":88,"Carbon Score":74,"EPR Readiness":72,"PCR Content %":0,"Printing Capability Score":88,"Lamination Capability Score":86},
+        {**common,"Supplier":"BarrierPack Films","Laminate Structure":"PET / MetPET / PE","Layer Count":3,"Total Micron":85,"Quoted Unit Price USD":2.38,"MOQ":20000,"Lead Time Days":24,"Payment Terms":"Net 30","Incoterms":"CIF","OTIF %":93,"Quality PPM":480,"Audit Score":91,"Complaint Rate %":0.7,"Capacity Buffer %":14,"Supplier Capacity":1100000,"Recyclability":48,"Certification":92,"Carbon Score":70,"EPR Readiness":68,"PCR Content %":0,"Printing Capability Score":92,"Lamination Capability Score":94},
+        {**common,"Supplier":"Circular Laminate Solutions","Laminate Structure":"BOPP / CPP","Layer Count":2,"Total Micron":60,"Quoted Unit Price USD":1.92,"MOQ":30000,"Lead Time Days":32,"Payment Terms":"Advance 20%","Incoterms":"FOB","OTIF %":86,"Quality PPM":1350,"Audit Score":76,"Complaint Rate %":2.8,"Capacity Buffer %":8,"Supplier Capacity":700000,"Recyclability":72,"Certification":76,"Carbon Score":80,"EPR Readiness":78,"PCR Content %":0,"Printing Capability Score":74,"Lamination Capability Score":72,"Printing Loss %":5.5,"Lamination Loss %":4.0,"Slitting Loss %":2.0},
+    ])
+
+
 def get_kraft_paper_demo_suppliers():
     """Return three synthetic Kraft Paper supplier quotations in USD/kg."""
     return pd.DataFrame([
@@ -35,32 +45,27 @@ def get_raw_material_demo_suppliers(commodity="PET Resin"):
     """Return coherent synthetic raw-material RFQ data in USD per category unit."""
     if commodity == "Kraft Paper":
         return get_kraft_paper_demo_suppliers()
-
-    base_prices = {
-        "PET Resin": 1.27,
-        "Polyethylene": 1.34,
-        "Polypropylene": 1.30,
-        "Aluminium Foil": 3.18,
-        "Steel": 1.04,
-        "Copper": 9.65,
-    }
+    base_prices = {"PET Resin":1.27,"Polyethylene":1.34,"Polypropylene":1.30,"Aluminium Foil":3.18,"Steel":1.04,"Copper":9.65}
     if commodity not in base_prices:
         raise ValueError(f"Unsupported synthetic raw-material commodity '{commodity}'.")
-
     base = base_prices[commodity]
-    unit = "kg"
     return pd.DataFrame([
-        {"Supplier":"Indus Materials Ltd","Material":commodity,"Quoted Unit Price USD":round(base,3),"Currency":"USD","Unit":unit,"MOQ":20000,"Lead Time Days":21,"Payment Terms":"Net 45","Incoterms":"CIF","OTIF %":95,"Quality PPM":650,"Audit Score":86,"Complaint Rate %":1.0,"Capacity Buffer %":20,"Supplier Capacity":800000,"Commodity Volatility %":14,"Import Dependency %":45,"Supplier Concentration %":40,"Substitute Available":"Yes","Duty %":5,"Recyclability":75,"Certification":85,"Carbon Score":72,"EPR Readiness":70,"PCR Content %":15},
-        {"Supplier":"Global Commodity Corp","Material":commodity,"Quoted Unit Price USD":round(base*0.96,3),"Currency":"USD","Unit":unit,"MOQ":50000,"Lead Time Days":45,"Payment Terms":"Advance 20%","Incoterms":"FOB","OTIF %":88,"Quality PPM":1200,"Audit Score":76,"Complaint Rate %":2.8,"Capacity Buffer %":8,"Supplier Capacity":1200000,"Commodity Volatility %":28,"Import Dependency %":85,"Supplier Concentration %":70,"Substitute Available":"No","Duty %":8,"Recyclability":70,"Certification":75,"Carbon Score":65,"EPR Readiness":62,"PCR Content %":10},
-        {"Supplier":"Bharat Advanced Polymers","Material":commodity,"Quoted Unit Price USD":round(base*1.04,3),"Currency":"USD","Unit":unit,"MOQ":10000,"Lead Time Days":12,"Payment Terms":"Net 60","Incoterms":"DDP","OTIF %":97,"Quality PPM":450,"Audit Score":91,"Complaint Rate %":0.6,"Capacity Buffer %":25,"Supplier Capacity":650000,"Commodity Volatility %":12,"Import Dependency %":20,"Supplier Concentration %":30,"Substitute Available":"Yes","Duty %":0,"Recyclability":80,"Certification":90,"Carbon Score":78,"EPR Readiness":76,"PCR Content %":18},
+        {"Supplier":"Indus Materials Ltd","Material":commodity,"Quoted Unit Price USD":round(base,3),"Currency":"USD","Unit":"kg","MOQ":20000,"Lead Time Days":21,"Payment Terms":"Net 45","Incoterms":"CIF","OTIF %":95,"Quality PPM":650,"Audit Score":86,"Complaint Rate %":1.0,"Capacity Buffer %":20,"Supplier Capacity":800000,"Commodity Volatility %":14,"Import Dependency %":45,"Supplier Concentration %":40,"Substitute Available":"Yes","Duty %":5,"Recyclability":75,"Certification":85,"Carbon Score":72,"EPR Readiness":70,"PCR Content %":15},
+        {"Supplier":"Global Commodity Corp","Material":commodity,"Quoted Unit Price USD":round(base*0.96,3),"Currency":"USD","Unit":"kg","MOQ":50000,"Lead Time Days":45,"Payment Terms":"Advance 20%","Incoterms":"FOB","OTIF %":88,"Quality PPM":1200,"Audit Score":76,"Complaint Rate %":2.8,"Capacity Buffer %":8,"Supplier Capacity":1200000,"Commodity Volatility %":28,"Import Dependency %":85,"Supplier Concentration %":70,"Substitute Available":"No","Duty %":8,"Recyclability":70,"Certification":75,"Carbon Score":65,"EPR Readiness":62,"PCR Content %":10},
+        {"Supplier":"Bharat Advanced Polymers","Material":commodity,"Quoted Unit Price USD":round(base*1.04,3),"Currency":"USD","Unit":"kg","MOQ":10000,"Lead Time Days":12,"Payment Terms":"Net 60","Incoterms":"DDP","OTIF %":97,"Quality PPM":450,"Audit Score":91,"Complaint Rate %":0.6,"Capacity Buffer %":25,"Supplier Capacity":650000,"Commodity Volatility %":12,"Import Dependency %":20,"Supplier Concentration %":30,"Substitute Available":"Yes","Duty %":0,"Recyclability":80,"Certification":90,"Carbon Score":78,"EPR Readiness":76,"PCR Content %":18},
     ])
 
 
 def get_demo_data(category="Packaging Procurement", commodity="Corrugated Board"):
     """Return category-appropriate synthetic data with explicit currency and unit."""
-    data = get_raw_material_demo_suppliers(commodity) if category == "Raw Material Procurement" else get_demo_suppliers()
+    if category == "Raw Material Procurement":
+        data = get_raw_material_demo_suppliers(commodity)
+    elif category == "Packaging Procurement" and commodity == "Flexible Laminates":
+        data = get_flexible_laminate_demo_suppliers()
+    else:
+        data = get_demo_suppliers()
     data.attrs["source_label"] = "Synthetic demonstration data"
-    data.attrs["assumption_profile_version"] = "C1.0" if commodity == "Kraft Paper" else "S1"
+    data.attrs["assumption_profile_version"] = "C2.0" if commodity == "Flexible Laminates" else ("C1.0" if commodity == "Kraft Paper" else "S1")
     data.attrs["category"] = category
     data.attrs["commodity"] = commodity
     return data
@@ -71,27 +76,17 @@ def _read_uploaded_dataframe(uploaded_file):
     filename = str(getattr(uploaded_file, "name", "") or "").strip()
     suffix = filename.lower().rsplit(".", 1)[-1] if "." in filename else ""
     if suffix not in {"csv", "xlsx"}:
-        raise RFQUploadError(
-            "Unsupported RFQ file type. Upload a .csv or .xlsx file exported as a standard table."
-        )
+        raise RFQUploadError("Unsupported RFQ file type. Upload a .csv or .xlsx file exported as a standard table.")
     try:
         return pd.read_csv(uploaded_file) if suffix == "csv" else pd.read_excel(uploaded_file)
     except pd.errors.EmptyDataError as exc:
-        raise RFQUploadError(
-            "The uploaded RFQ file is empty. Add a header row and at least one supplier quotation, then upload it again."
-        ) from exc
+        raise RFQUploadError("The uploaded RFQ file is empty. Add a header row and at least one supplier quotation, then upload it again.") from exc
     except pd.errors.ParserError as exc:
-        raise RFQUploadError(
-            "The CSV structure could not be parsed. Check delimiters, quotation marks and merged header rows, then export the file again."
-        ) from exc
+        raise RFQUploadError("The CSV structure could not be parsed. Check delimiters, quotation marks and merged header rows, then export the file again.") from exc
     except (BadZipFile, ImportError) as exc:
-        raise RFQUploadError(
-            "The Excel workbook could not be opened. Confirm that it is a valid .xlsx file and is not password-protected or corrupted."
-        ) from exc
+        raise RFQUploadError("The Excel workbook could not be opened. Confirm that it is a valid .xlsx file and is not password-protected or corrupted.") from exc
     except (OSError, ValueError) as exc:
-        raise RFQUploadError(
-            "The RFQ file could not be opened. Confirm that the file is not corrupted, password-protected or still open in another application."
-        ) from exc
+        raise RFQUploadError("The RFQ file could not be opened. Confirm that the file is not corrupted, password-protected or still open in another application.") from exc
 
 
 def load_uploaded_rfq(uploaded_file):
@@ -100,15 +95,11 @@ def load_uploaded_rfq(uploaded_file):
         return None
     raw_df = _read_uploaded_dataframe(uploaded_file)
     if raw_df.empty:
-        raise RFQUploadError(
-            "The uploaded RFQ contains headers but no supplier rows. Add at least one supplier quotation and upload the file again."
-        )
+        raise RFQUploadError("The uploaded RFQ contains headers but no supplier rows. Add at least one supplier quotation and upload the file again.")
     try:
         normalized_df, report = normalize_rfq_dataframe(raw_df)
     except (KeyError, TypeError, ValueError) as exc:
-        raise RFQUploadError(
-            "The RFQ columns could not be mapped reliably. Use one header row, remove merged cells and include clear supplier, price, MOQ, lead-time, payment-term and Incoterm columns."
-        ) from exc
+        raise RFQUploadError("The RFQ columns could not be mapped reliably. Use one header row, remove merged cells and include clear supplier, price, MOQ, lead-time, payment-term and Incoterm columns.") from exc
     normalized_df.attrs["rfq_quality_report"] = report
     normalized_df.attrs["source_label"] = "Uploaded unverified supplier data"
     return normalized_df
