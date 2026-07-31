@@ -10,7 +10,7 @@ REQUIRED_RFQ_COLUMNS = ["Supplier", "Quoted Unit Price USD", "MOQ", "Lead Time D
 OPTIONAL_RFQ_COLUMNS = ["OTIF %", "Quality PPM", "Audit Score", "Complaint Rate %", "Capacity Buffer %", "Recyclability", "Certification", "Carbon Score", "EPR Readiness", "PCR Content %", "Supplier Capacity"]
 
 
-def validate_rfq_dataframe(df, category=None, commodity=None):
+def validate_rfq_dataframe(df, category=None, commodity=None, selected_structure=None):
     """Return structured validation and category-aware upload diagnostics."""
     errors, warnings = [], []
     if df is None or df.empty:
@@ -63,7 +63,8 @@ def validate_rfq_dataframe(df, category=None, commodity=None):
         if selected_commodity and selected_commodity != "Kraft Paper":
             errors.append("Selected commodity conflicts with Kraft Paper supplier data. Correct the commodity selection or Material values before continuing.")
         result = validate_kraft_paper_dataframe(df)
-        errors.extend(result["errors"]); warnings.extend(result["warnings"])
+        errors.extend(result["errors"])
+        warnings.extend(result["warnings"])
 
     laminate_selected = selected_category == "Packaging Procurement" and selected_commodity == "Flexible Laminates"
     laminate_present = material_values is not None and material_values.eq("Flexible Laminates").any()
@@ -72,10 +73,16 @@ def validate_rfq_dataframe(df, category=None, commodity=None):
             errors.append("Flexible Laminates supplier data must be routed through Packaging Procurement.")
         if selected_commodity and selected_commodity != "Flexible Laminates":
             errors.append("Selected commodity conflicts with Flexible Laminates supplier data.")
-        result = validate_flexible_laminate_dataframe(df)
-        errors.extend(result["errors"]); warnings.extend(result["warnings"])
+        result = validate_flexible_laminate_dataframe(df, selected_structure)
+        errors.extend(result["errors"])
+        warnings.extend(result["warnings"])
 
-    return {"is_valid": not errors, "errors": list(dict.fromkeys(errors)), "warnings": list(dict.fromkeys(warnings)), "quality_report": quality_report}
+    return {
+        "is_valid": not errors,
+        "errors": list(dict.fromkeys(errors)),
+        "warnings": list(dict.fromkeys(warnings)),
+        "quality_report": quality_report,
+    }
 
 
 def validate_scored_output(scored_df):
