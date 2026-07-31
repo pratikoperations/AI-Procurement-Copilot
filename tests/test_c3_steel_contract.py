@@ -155,10 +155,10 @@ def test_c1_and_c2_governance_records_remain_present():
     assert (ROOT / "docs" / "C2_FLEXIBLE_LAMINATES_CLOSURE.md").is_file()
 
 
-def test_c3_phase_boundaries_allow_cost_and_validation_but_not_risk():
+def test_c3_phase_boundaries_allow_cost_validation_and_risk():
     assert (ROOT / "modules" / "steel_cost.py").is_file()
     assert (ROOT / "modules" / "steel_validation.py").is_file()
-    assert not (ROOT / "modules" / "steel_risk.py").exists()
+    assert (ROOT / "modules" / "steel_risk.py").is_file()
 
 
 def test_ledger_preserves_c3_0_historical_record():
