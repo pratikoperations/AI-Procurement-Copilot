@@ -3,11 +3,62 @@
 import pandas as pd
 
 from modules.recommendation import recommendation_confidence
+from modules.scenario_engine import run_all_flexible_laminate_scenarios
 from modules.scoring import enrich_supplier_scores
 
 
+def _flexible_laminate_scenario_table(base_df, assumptions):
+    rows = []
+    for result in run_all_flexible_laminate_scenarios(base_df, assumptions):
+        winner = result["winner"]
+        if winner is None:
+            rows.append({
+                "Scenario": result["scenario"],
+                "Winning Supplier": "No technically eligible supplier",
+                "Winning Score": None,
+                "Risk-Adjusted TCO per kg (USD)": None,
+                "Annual TCO (USD)": None,
+                "Risk Resilience Score": None,
+                "Failure Probability": None,
+                "Technical Eligibility": "No eligible supplier",
+                "Standard Allocation Status": "No allocation",
+                "Optimized Allocation Status": "No allocation",
+                "Scenario Applicable": result["metadata"]["applicable"],
+                "Confidence": "Low",
+            })
+            continue
+
+        rows.append({
+            "Scenario": result["scenario"],
+            "Winning Supplier": winner["Supplier"],
+            "Winning Score": winner["total_score"],
+            "Risk-Adjusted TCO per kg (USD)": winner["adjusted_tco_unit_usd"],
+            "Annual TCO (USD)": winner["annual_tco_usd"],
+            "Risk Resilience Score": winner["risk_score"],
+            "Failure Probability": winner["failure_probability"],
+            "Technical Eligibility": "Eligible",
+            "Standard Allocation Status": (
+                "Allocated" if not result["standard_allocation_df"].empty else "No allocation"
+            ),
+            "Optimized Allocation Status": (
+                "Allocated"
+                if not result["optimized_allocation"]["allocation_df"].empty
+                else "No allocation"
+            ),
+            "Scenario Applicable": result["metadata"]["applicable"],
+            "Confidence": recommendation_confidence(result["scored_df"]),
+        })
+    return pd.DataFrame(rows)
+
+
 def run_scenario_table(base_df, assumptions):
-    """Run standard procurement stress scenarios and return winning supplier by scenario."""
+    """Run category-aware procurement stress scenarios and return governed winners."""
+    if (
+        assumptions.get("category") == "Packaging Procurement"
+        and assumptions.get("commodity") == "Flexible Laminates"
+    ):
+        return _flexible_laminate_scenario_table(base_df, assumptions)
+
     is_kraft = (
         assumptions.get("category") == "Raw Material Procurement"
         and assumptions.get("commodity") == "Kraft Paper"
