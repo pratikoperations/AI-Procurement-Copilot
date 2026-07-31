@@ -11,7 +11,9 @@
 
 ## Historical C3.0 record
 
-C3.0 authorized contract documentation and contract tests only. Its original statements that executable Steel features were future work are retained as historical phase evidence and do not describe the current C3.7 implementation state.
+Current phase: C3.0 contract documentation and contract tests only.
+
+That sentence is retained verbatim as historical phase evidence. C3.0 authorized contract documentation and contract tests only; it does not describe the current C3.7 implementation state.
 
 ## Frozen decisions
 
