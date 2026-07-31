@@ -58,15 +58,17 @@ def normalize_strict_steel_json(value):
 
 def _should_cost_frame(should_cost: Mapping) -> pd.DataFrame:
     components = should_cost.get("components", {})
+    fx = float(should_cost["usd_inr_fx_rate"])
+    volume = float(should_cost["annual_volume_kg"])
     rows = []
     for component, unit_usd in components.items():
         unit_value = float(unit_usd)
         rows.append({
             "Component": component,
             "Unit Cost USD/kg": unit_value,
-            "Unit Cost INR/kg": unit_value * float(should_cost["usd_inr_fx"]),
-            "Annual Value USD": unit_value * float(should_cost["annual_volume_kg"]),
-            "Annual Value INR": unit_value * float(should_cost["annual_volume_kg"]) * float(should_cost["usd_inr_fx"]),
+            "Unit Cost INR/kg": unit_value * fx,
+            "Annual Value USD": unit_value * volume,
+            "Annual Value INR": unit_value * volume * fx,
         })
     return pd.DataFrame(rows)
 
