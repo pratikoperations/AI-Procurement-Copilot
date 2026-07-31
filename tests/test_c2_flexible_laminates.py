@@ -1,4 +1,4 @@
-import inspect
+from pathlib import Path
 
 import pytest
 
@@ -236,7 +236,7 @@ def test_synthetic_and_uploaded_paths_share_explicit_validation_contract():
 
 
 def test_app_passes_explicit_structure_to_loading_and_validation():
-    source = inspect.getsource(__import__("app"))
+    source = Path("app.py").read_text(encoding="utf-8")
     assert "selected_structure=selected_laminate_structure" in source
     assert source.count("selected_structure=selected_laminate_structure") >= 3
 
