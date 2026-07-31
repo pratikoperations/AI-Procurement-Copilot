@@ -46,13 +46,18 @@ def test_c1_closure_records_scope_and_claim_boundaries():
         "Mill / Fibre Continuity Stress",
         "Technical Eligibility",
         "500,000 kg (500 metric tonnes)",
-        "no production deployment",
-        "no live ERP integration or write-back",
-        "no autonomous sourcing, supplier approval or award",
-        "no realized savings",
         "Human procurement and technical approval remain mandatory",
     ):
         assert value in content
+
+    lowered = content.lower()
+    for value in (
+        "no production deployment",
+        "no live erp integration or write-back",
+        "no autonomous sourcing, supplier approval or award",
+        "no realized savings",
+    ):
+        assert value in lowered
 
 
 def test_c1_activity_ledger_preserves_historical_records_and_future_gates():
