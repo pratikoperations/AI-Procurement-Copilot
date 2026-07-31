@@ -1,7 +1,5 @@
 """Focused governed tests for C3.3 Steel technical eligibility."""
 
-import copy
-
 import pandas as pd
 import pytest
 
@@ -280,4 +278,4 @@ def test_non_steel_routes_remain_available():
     assert not get_demo_data("Raw Material Procurement", "PET Resin").empty
     assert not get_demo_data("Raw Material Procurement", "Kraft Paper").empty
     assert not get_demo_data("Packaging Procurement", "Corrugated Board").empty
-    assert not get_demo_data("Packaging Procurement", "Flexible Laminates").empty
+    assert not get_demo_data("Packaging Procurement", "Flexible Laminates", selected_structure="PET / PE").empty
