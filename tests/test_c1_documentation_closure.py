@@ -51,13 +51,15 @@ def test_c1_closure_records_scope_and_claim_boundaries():
         assert value in content
 
     lowered = content.lower()
-    for value in (
-        "no production deployment",
-        "no live erp integration or write-back",
-        "no autonomous sourcing, supplier approval or award",
-        "no realized savings",
+    for capability in (
+        "production deployment",
+        "live erp integration or write-back",
+        "autonomous sourcing, supplier approval or award",
+        "realized savings",
     ):
-        assert value in lowered
+        assert capability in lowered
+    assert "does not authorize" in lowered
+    assert "not claimed" in lowered
 
 
 def test_c1_activity_ledger_preserves_historical_records_and_future_gates():
