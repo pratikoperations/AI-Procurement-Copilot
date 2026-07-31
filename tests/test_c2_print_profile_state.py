@@ -6,7 +6,12 @@ from modules.flexible_laminate_cost import calculate_flexible_laminate_should_co
 from modules.sidebar import (
     LAMINATE_COLOUR_COUNT_KEY,
     LAMINATE_PRINT_PROFILE_KEY,
+    LAMINATE_TOOLING_AVAILABILITY_KEY,
+    LAMINATE_TOOLING_COST_KEY,
+    LAMINATE_TOOLING_LIFETIME_KEY,
+    LAMINATE_TOOLING_STATUS_KEY,
     normalize_laminate_colour_count,
+    normalize_laminate_tooling_state,
 )
 
 
@@ -40,11 +45,58 @@ def test_switching_to_unprinted_normalizes_colour_count_to_zero():
     assert normalize_laminate_colour_count("Unprinted", 4) == 0
 
 
+def test_switching_to_unprinted_normalizes_all_tooling_state():
+    state = normalize_laminate_tooling_state(
+        "Unprinted",
+        "New",
+        "Not applicable",
+        250.0,
+        250000.0,
+    )
+    assert state == {
+        "tooling_status": "Not applicable",
+        "existing_tooling_available": "Not applicable",
+        "tooling_cost_per_colour_usd": 0.0,
+        "tooling_lifetime_volume_kg": 0.0,
+    }
+
+
+@pytest.mark.parametrize("profile", ["Up to 4 colours", "5–8 colours"])
+def test_switching_from_unprinted_restores_governed_printed_tooling_defaults(profile):
+    state = normalize_laminate_tooling_state(
+        profile,
+        "Not applicable",
+        "Not applicable",
+        0.0,
+        0.0,
+    )
+    assert state == {
+        "tooling_status": "New",
+        "existing_tooling_available": "Not applicable",
+        "tooling_cost_per_colour_usd": 250.0,
+        "tooling_lifetime_volume_kg": 250000.0,
+    }
+
+
+def test_valid_unprinted_direct_engine_call_returns_zero_tooling_amortisation():
+    result = calculate_flexible_laminate_should_cost(
+        print_profile="Unprinted",
+        number_of_colours=0,
+        tooling_status="Not applicable",
+        existing_tooling_available="Not applicable",
+        tooling_cost_per_colour_usd=0.0,
+        tooling_lifetime_volume_kg=0.0,
+    )
+    assert result["components"]["Print Tooling Amortisation"] == 0.0
+    assert result["components"]["Printing Ink Process Allowance"] == 0.0
+    assert result["components"]["Printing Conversion"] == 0.0
+
+
 @pytest.mark.parametrize(
     "profile,colours",
     [("Unprinted", 1), ("Up to 4 colours", 5), ("5–8 colours", 4)],
 )
-def test_direct_invalid_engine_combinations_remain_fail_closed(profile, colours):
+def test_direct_invalid_engine_colour_combinations_remain_fail_closed(profile, colours):
     with pytest.raises(ValueError, match="inconsistent"):
         calculate_flexible_laminate_should_cost(
             print_profile=profile,
@@ -52,9 +104,43 @@ def test_direct_invalid_engine_combinations_remain_fail_closed(profile, colours)
         )
 
 
+@pytest.mark.parametrize(
+    "tooling_status,availability,cost,error",
+    [
+        ("New", "Not applicable", 0.0, "Not applicable tooling status"),
+        ("Not applicable", "Yes", 0.0, "Not applicable tooling status and availability"),
+        ("Not applicable", "Not applicable", 250.0, "zero tooling cost"),
+    ],
+)
+def test_invalid_unprinted_tooling_contracts_remain_fail_closed(
+    tooling_status,
+    availability,
+    cost,
+    error,
+):
+    with pytest.raises(ValueError, match=error):
+        calculate_flexible_laminate_should_cost(
+            print_profile="Unprinted",
+            number_of_colours=0,
+            tooling_status=tooling_status,
+            existing_tooling_available=availability,
+            tooling_cost_per_colour_usd=cost,
+            tooling_lifetime_volume_kg=0.0,
+        )
+
+
 def test_sidebar_uses_explicit_stable_widget_keys_and_normalization():
     source = Path("modules/sidebar.py").read_text(encoding="utf-8")
-    assert LAMINATE_PRINT_PROFILE_KEY in source
-    assert LAMINATE_COLOUR_COUNT_KEY in source
+    for key in (
+        LAMINATE_PRINT_PROFILE_KEY,
+        LAMINATE_COLOUR_COUNT_KEY,
+        LAMINATE_TOOLING_STATUS_KEY,
+        LAMINATE_TOOLING_AVAILABILITY_KEY,
+        LAMINATE_TOOLING_COST_KEY,
+        LAMINATE_TOOLING_LIFETIME_KEY,
+    ):
+        assert key in source
     assert "normalize_laminate_colour_count" in source
+    assert "normalize_laminate_tooling_state" in source
     assert "disabled=laminate_print_profile == \"Unprinted\"" in source
+    assert "disabled=unprinted" in source
