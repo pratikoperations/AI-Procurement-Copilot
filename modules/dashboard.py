@@ -4,6 +4,7 @@ import plotly.express as px
 import streamlit as st
 
 from modules.c1_ux import technical_eligibility_label
+from modules.steel_ux import render_steel_governed_dashboard
 from modules.unit_display import format_annual_volume, quantity_basis_caption
 from modules.utils import (
     build_currency_display_frame,
@@ -47,6 +48,11 @@ def is_flexible_laminate_context(assumptions=None):
     return values.get("category") == "Packaging Procurement" and values.get("commodity") == "Flexible Laminates"
 
 
+def is_steel_context(assumptions=None):
+    values = assumptions or {}
+    return values.get("category") == "Raw Material Procurement" and values.get("commodity") == "Steel"
+
+
 def build_flexible_laminate_context(assumptions):
     """Return stable C2 context shown in the UI and reused by export tests."""
     return {
@@ -73,8 +79,15 @@ def build_supplier_snapshot_display(scored_df, assumptions=None):
             "laminate_failure_probability", "generic_risk_penalty_usd",
             "laminate_risk_penalty_usd", "combined_risk_penalty_usd",
         ]
+    if is_steel_context(assumptions):
+        base_cols += [
+            "normalized_usd_per_kg", "equivalent_inr_per_kg", "generic_risk_score",
+            "steel_risk_score", "governed_total_score", "governed_rank",
+            "eligibility_failure_reasons",
+        ]
     display = scored_df[[column for column in base_cols if column in scored_df.columns]].copy()
-    display["technical_eligible"] = display["technical_eligible"].map(technical_eligibility_label)
+    if "technical_eligible" in display.columns:
+        display["technical_eligible"] = display["technical_eligible"].map(technical_eligibility_label)
     display = display.rename(columns={
         **NON_CURRENCY_LABELS,
         "technical_eligible": "Technical Eligibility",
@@ -84,6 +97,11 @@ def build_supplier_snapshot_display(scored_df, assumptions=None):
         "generic_risk_penalty_usd": "Generic Risk Penalty USD/kg",
         "laminate_risk_penalty_usd": "Laminate Risk Penalty USD/kg",
         "combined_risk_penalty_usd": "Combined Risk Penalty USD/kg",
+        "generic_risk_score": "Generic Supplier Risk",
+        "steel_risk_score": "Steel-Specific Risk",
+        "governed_total_score": "Governed Steel Score",
+        "governed_rank": "Governed Rank",
+        "eligibility_failure_reasons": "Eligibility Failure Reasons",
     })
     currency_mapping = {
         "Quoted Unit Price USD": "Quoted Unit Price",
@@ -103,6 +121,9 @@ def resolve_scenario_column(columns, candidates, field_name):
 
 def render_executive_dashboard(scored_df, assumptions, confidence=None):
     st.subheader("Executive Dashboard")
+    if is_steel_context(assumptions):
+        render_steel_governed_dashboard(scored_df, assumptions)
+        return
     recommended = scored_df.iloc[0]
     lowest = scored_df.sort_values("Quoted Unit Price USD").iloc[0]
     c1, c2, c3, c4 = st.columns(4)
