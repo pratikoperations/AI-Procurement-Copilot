@@ -2,6 +2,7 @@
 
 from io import BytesIO
 import json
+import math
 
 import pandas as pd
 import streamlit as st
@@ -63,6 +64,35 @@ def _add_c2_governance(report):
     result["Confidence Governance"] = "Controlled governance indicator; not predictive accuracy."
     result["Synthetic / Non-Certification Disclaimer"] = C2_EXPORT_DISCLAIMER
     return result
+
+
+def _normalize_strict_json(value):
+    """Recursively convert pandas/NumPy missing and non-finite values to JSON null."""
+    if value is None:
+        return None
+    if isinstance(value, pd.DataFrame):
+        return _normalize_strict_json(value.to_dict(orient="records"))
+    if isinstance(value, pd.Series):
+        return _normalize_strict_json(value.to_list())
+    if isinstance(value, dict):
+        return {str(key): _normalize_strict_json(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_normalize_strict_json(item) for item in value]
+    if isinstance(value, (str, bool, int)):
+        return value
+    if hasattr(value, "item"):
+        try:
+            value = value.item()
+        except (TypeError, ValueError):
+            pass
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    try:
+        if pd.isna(value):
+            return None
+    except (TypeError, ValueError):
+        pass
+    return value
 
 
 @st.cache_data(show_spinner=False, max_entries=EXPORT_CACHE_MAX_ENTRIES)
@@ -132,10 +162,10 @@ def build_readable_scenarios(scenario_df, display_currency="USD", fx_rate=83, an
 
 
 def build_c2_export_manifest(scored_df, standard_allocation_df, optimized_allocation_df, scenario_df):
-    """Build a deterministic audit manifest from the same governed visible dataframes."""
+    """Build a deterministic, strict-JSON-safe manifest from governed visible dataframes."""
     eligible = scored_df[scored_df.get("technical_eligible", False).astype(bool)] if "technical_eligible" in scored_df.columns else scored_df.iloc[0:0]
     winner = eligible.iloc[0]["Supplier"] if not eligible.empty else "No technically eligible supplier"
-    return {
+    manifest = {
         "selected_structure": str(scored_df.iloc[0].get("Laminate Structure", "Not assessed")) if not scored_df.empty else "Not assessed",
         "commercial_basis": "kg",
         "comparison_unit": "USD/kg",
@@ -143,18 +173,27 @@ def build_c2_export_manifest(scored_df, standard_allocation_df, optimized_alloca
         "eligible_supplier_count": int(len(eligible)),
         "standard_allocation": standard_allocation_df.to_dict(orient="records"),
         "optimized_allocation": optimized_allocation_df.to_dict(orient="records"),
-        "scenarios": scenario_df.where(pd.notna(scenario_df), None).to_dict(orient="records"),
+        "scenarios": scenario_df.to_dict(orient="records"),
         "scenario_assumption_versions": sorted(set(scenario_df.get("Scenario Assumption Version", pd.Series(dtype=str)).dropna().astype(str))),
         "disclaimer": C2_EXPORT_DISCLAIMER,
     }
+    return _normalize_strict_json(manifest)
 
 
 @st.cache_data(show_spinner=False, max_entries=EXPORT_CACHE_MAX_ENTRIES)
 def build_decision_package_json(recommended_supplier, value_metrics, allocation_df, scenario_df, negotiation_result, eligibility=None, c2_manifest=None):
-    payload = {"recommended_supplier": recommended_supplier.to_dict() if hasattr(recommended_supplier, "to_dict") else dict(recommended_supplier), "value_metrics": dict(value_metrics), "allocation": allocation_df.to_dict(orient="records"), "scenarios": scenario_df.to_dict(orient="records"), "negotiation": dict(negotiation_result), "eligibility": dict(eligibility or {})}
+    payload = {
+        "recommended_supplier": recommended_supplier.to_dict() if hasattr(recommended_supplier, "to_dict") else dict(recommended_supplier),
+        "value_metrics": dict(value_metrics),
+        "allocation": allocation_df.to_dict(orient="records"),
+        "scenarios": scenario_df.to_dict(orient="records"),
+        "negotiation": dict(negotiation_result),
+        "eligibility": dict(eligibility or {}),
+    }
     if c2_manifest is not None:
         payload["flexible_laminates_governance"] = dict(c2_manifest)
-    return json.dumps(payload, indent=2, default=str).encode("utf-8")
+    normalized_payload = _normalize_strict_json(payload)
+    return json.dumps(normalized_payload, indent=2, default=str, allow_nan=False).encode("utf-8")
 
 
 @st.cache_data(show_spinner=False, max_entries=EXPORT_CACHE_MAX_ENTRIES)
@@ -177,6 +216,12 @@ def build_excel_workbook(scored_df, should_cost_df, allocation_df, scenario_df, 
         scenarios.to_excel(writer, sheet_name="Scenarios", index=False)
         scored_df.to_excel(writer, sheet_name="Audit Supplier Scores", index=False)
         if c2_manifest is not None:
-            pd.DataFrame([{"Field": key, "Value": json.dumps(value, default=str) if isinstance(value, (list, dict)) else value} for key, value in c2_manifest.items()]).to_excel(writer, sheet_name="C2 Governance", index=False)
+            pd.DataFrame([
+                {
+                    "Field": key,
+                    "Value": json.dumps(value, default=str, allow_nan=False) if isinstance(value, (list, dict)) else value,
+                }
+                for key, value in _normalize_strict_json(c2_manifest).items()
+            ]).to_excel(writer, sheet_name="C2 Governance", index=False)
     buffer.seek(0)
     return buffer.getvalue()
