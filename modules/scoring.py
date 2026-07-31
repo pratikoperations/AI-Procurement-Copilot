@@ -6,6 +6,7 @@ from modules.esg import calculate_esg_score
 from modules.flexible_laminate_risk import apply_flexible_laminate_risk_to_tco
 from modules.performance import calculate_performance_score
 from modules.raw_material_tco import calculate_raw_material_tco
+from modules.steel_risk import score_and_recommend_steel_suppliers
 from modules.tco import calculate_supplier_tco
 from modules.utils import safe_positive
 
@@ -29,10 +30,40 @@ RAW_MATERIAL_WEIGHTS = {
 }
 
 
+def _enrich_steel_scores(df, assumptions):
+    """Adapt governed C3 Steel scores to the stable application score contract."""
+    profile = assumptions.get("steel_profile", "CR_COIL_COMMERCIAL")
+    display = assumptions.get("display_currency", "Both")
+    scored, recommendation = score_and_recommend_steel_suppliers(
+        df,
+        profile,
+        assumptions["annual_volume"],
+        assumptions["fx_rate"],
+        display,
+        substitution_status=assumptions.get("steel_substitution_status", "Not applicable"),
+        substitution_requested=assumptions.get("steel_substitution_status", "Not applicable") != "Not applicable",
+    )
+    scored["Quoted Unit Price USD"] = scored["normalized_usd_per_kg"]
+    scored["scenario_unit_price_usd"] = scored["normalized_usd_per_kg"]
+    scored["adjusted_tco_unit_usd"] = scored["normalized_usd_per_kg"]
+    scored["annual_tco_usd"] = scored["normalized_usd_per_kg"] * float(assumptions["annual_volume"])
+    scored["risk_score"] = 100.0 - scored["steel_risk_score"]
+    scored["risk_category"] = scored["steel_risk_band"]
+    scored["total_score"] = scored["governed_total_score"]
+    scored["esg_score"] = scored.apply(lambda row: calculate_esg_score(row.to_dict()), axis=1)
+    scored["category_engine"] = "Raw Material Procurement"
+    scored.attrs["steel_recommendation"] = recommendation
+    scored.attrs["steel_governed_path"] = True
+    return scored
+
+
 def enrich_supplier_scores(df, assumptions, weights=None):
     """Add category-specific TCO, risk, ESG, performance, and weighted scores."""
     category = assumptions.get("category", "Packaging Procurement")
     commodity = assumptions.get("commodity", "Corrugated Board")
+    if category == "Raw Material Procurement" and commodity == "Steel":
+        return _enrich_steel_scores(df, assumptions)
+
     weights = weights or (
         RAW_MATERIAL_WEIGHTS if category == "Raw Material Procurement" else DEFAULT_WEIGHTS
     )
