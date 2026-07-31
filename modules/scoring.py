@@ -3,6 +3,7 @@
 import pandas as pd
 
 from modules.esg import calculate_esg_score
+from modules.flexible_laminate_risk import apply_flexible_laminate_risk_to_tco
 from modules.performance import calculate_performance_score
 from modules.raw_material_tco import calculate_raw_material_tco
 from modules.tco import calculate_supplier_tco
@@ -17,7 +18,6 @@ DEFAULT_WEIGHTS = {
     "performance": 0.10,
     "esg": 0.05,
 }
-
 RAW_MATERIAL_WEIGHTS = {
     "tco": 0.38,
     "risk": 0.27,
@@ -32,7 +32,10 @@ RAW_MATERIAL_WEIGHTS = {
 def enrich_supplier_scores(df, assumptions, weights=None):
     """Add category-specific TCO, risk, ESG, performance, and weighted scores."""
     category = assumptions.get("category", "Packaging Procurement")
-    weights = weights or (RAW_MATERIAL_WEIGHTS if category == "Raw Material Procurement" else DEFAULT_WEIGHTS)
+    commodity = assumptions.get("commodity", "Corrugated Board")
+    weights = weights or (
+        RAW_MATERIAL_WEIGHTS if category == "Raw Material Procurement" else DEFAULT_WEIGHTS
+    )
     rows = []
 
     for _, row in df.iterrows():
@@ -54,6 +57,14 @@ def enrich_supplier_scores(df, assumptions, weights=None):
                 demand_change=assumptions["demand_change"],
             )
         record.update(tco)
+        if category == "Packaging Procurement" and commodity == "Flexible Laminates":
+            record.update(
+                apply_flexible_laminate_risk_to_tco(
+                    record,
+                    assumptions["annual_volume"],
+                    demand_change=assumptions.get("demand_change", 0.0),
+                )
+            )
         record["esg_score"] = calculate_esg_score(record)
         record["performance_score"] = calculate_performance_score(record)
         rows.append(record)
@@ -62,12 +73,23 @@ def enrich_supplier_scores(df, assumptions, weights=None):
     min_tco = safe_positive(scored["adjusted_tco_unit_usd"].min())
     min_moq = safe_positive(scored["MOQ"].min())
     min_lead = safe_positive(scored["Lead Time Days"].min())
-
-    scored["tco_score"] = (min_tco / scored["adjusted_tco_unit_usd"].apply(safe_positive)) * 100
+    scored["tco_score"] = (
+        min_tco / scored["adjusted_tco_unit_usd"].apply(safe_positive)
+    ) * 100
     scored["moq_score"] = (min_moq / scored["MOQ"].apply(safe_positive)) * 100
-    scored["lead_time_score"] = (min_lead / scored["Lead Time Days"].apply(safe_positive)) * 100
-    scored["payment_score"] = scored["Payment Terms"].astype(str).str.extract(r"(\d+)").fillna(30).astype(float)[0].clip(upper=90) / 90 * 100
-
+    scored["lead_time_score"] = (
+        min_lead / scored["Lead Time Days"].apply(safe_positive)
+    ) * 100
+    scored["payment_score"] = (
+        scored["Payment Terms"]
+        .astype(str)
+        .str.extract(r"(\d+)")
+        .fillna(30)
+        .astype(float)[0]
+        .clip(upper=90)
+        / 90
+        * 100
+    )
     scored["total_score"] = (
         scored["tco_score"] * weights["tco"]
         + scored["risk_score"] * weights["risk"]
@@ -77,7 +99,6 @@ def enrich_supplier_scores(df, assumptions, weights=None):
         + scored["performance_score"] * weights["performance"]
         + scored["esg_score"] * weights["esg"]
     ).round(1)
-
     scored["category_engine"] = category
     if "technical_eligible" not in scored.columns:
         scored["technical_eligible"] = True

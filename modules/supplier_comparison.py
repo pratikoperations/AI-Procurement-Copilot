@@ -4,7 +4,10 @@ import pandas as pd
 
 from modules.c1_ux import technical_eligibility_label
 from modules.supplier360_engine import build_supplier360_profiles
-from modules.supplier_recommendation_engine import generate_executive_supplier_narrative, generate_supplier_recommendations
+from modules.supplier_recommendation_engine import (
+    generate_executive_supplier_narrative,
+    generate_supplier_recommendations,
+)
 
 
 def build_supplier_intelligence(scored_df, category, commodity):
@@ -14,22 +17,33 @@ def build_supplier_intelligence(scored_df, category, commodity):
 
     for profile in profiles:
         row = source_rows[profile["supplier_name"]]
-        profile["quoted_price"] = float(row.get("Quoted Unit Price USD", 0))
-        profile["adjusted_tco"] = float(row.get("adjusted_tco_unit_usd", 0))
-        profile["risk_score"] = float(row.get("risk_score", 60))
-        profile["technical_eligibility"] = technical_eligibility_label(row.get("technical_eligible"))
-        profile["lead_time"] = float(row.get("Lead Time Days", 0))
-        profile["moq"] = float(row.get("MOQ", 0))
-        profile["payment_terms"] = str(row.get("Payment Terms", "Not provided"))
-        profile["capacity"] = float(row.get("Supplier Capacity", profile["annual_capacity"]))
-        profile["original_currency"] = str(row.get("Original Currency", row.get("Currency", "USD")))
-        profile["original_unit_price"] = float(row.get("Original Unit Price", row.get("Quoted Unit Price USD", 0)))
-        profile["normalized_currency"] = str(row.get("Normalized Currency", "USD"))
-        profile["normalized_unit_price"] = float(row.get("Normalized Unit Price", row.get("Quoted Unit Price USD", 0)))
-        profile["fx_rate_used"] = row.get("FX Rate Used", 1.0)
-        profile["unit_of_measure"] = str(row.get("Unit of Measure", row.get("Unit", "Not provided")))
-        profile["comparison_basis"] = str(row.get("Comparison Basis", f"{profile['normalized_currency']} per {profile['unit_of_measure']}"))
-
+        technical_eligible = bool(row.get("technical_eligible", True))
+        profile.update({
+            "quoted_price": float(row.get("Quoted Unit Price USD", 0)),
+            "adjusted_tco": float(row.get("adjusted_tco_unit_usd", 0)),
+            "risk_score": float(row.get("risk_score", 60)),
+            "risk_category": str(row.get("risk_category", row.get("Risk Category", "Not assessed"))),
+            "failure_probability": float(row.get("failure_probability", 0)),
+            "technical_eligible": technical_eligible,
+            "technical_eligibility": technical_eligibility_label(technical_eligible),
+            "technical_ineligibility_reasons": "; ".join(row.get("technical_ineligibility_reasons", []) or []),
+            "lead_time": float(row.get("Lead Time Days", 0)),
+            "moq": float(row.get("MOQ", 0)),
+            "payment_terms": str(row.get("Payment Terms", "Not provided")),
+            "capacity": float(row.get("Supplier Capacity", profile["annual_capacity"])),
+            "original_currency": str(row.get("Original Currency", row.get("Currency", "USD"))),
+            "original_unit_price": float(row.get("Original Unit Price", row.get("Quoted Unit Price USD", 0))),
+            "normalized_currency": str(row.get("Normalized Currency", "USD")),
+            "normalized_unit_price": float(row.get("Normalized Unit Price", row.get("Quoted Unit Price USD", 0))),
+            "fx_rate_used": row.get("FX Rate Used", 1.0),
+            "unit_of_measure": str(row.get("Unit of Measure", row.get("Unit", "Not provided"))),
+        })
+        profile["comparison_basis"] = str(
+            row.get(
+                "Comparison Basis",
+                f"{profile['normalized_currency']} per {profile['unit_of_measure']}",
+            )
+        )
         governed_score_map[profile["supplier_name"]] = {
             "supplier360_performance_score": profile["performance"].get("overall_supplier_performance_score", 0),
             "governed_financial_indicator": profile["financial"].get("displayed_financial_score", profile["financial"].get("financial_stability_score", 0)),
@@ -38,8 +52,6 @@ def build_supplier_intelligence(scored_df, category, commodity):
             "supplier360_score": profile.get("overall_supplier360_score", 0),
         }
 
-    # Make governed Supplier Intelligence scores available to downstream readable exports.
-    # Raw RFQ engine scores remain unchanged for auditability.
     for column in [
         "supplier360_performance_score",
         "governed_financial_indicator",
@@ -47,7 +59,9 @@ def build_supplier_intelligence(scored_df, category, commodity):
         "governed_innovation_maturity_score",
         "supplier360_score",
     ]:
-        scored_df[column] = scored_df["Supplier"].map(lambda supplier: governed_score_map.get(supplier, {}).get(column, 0))
+        scored_df[column] = scored_df["Supplier"].map(
+            lambda supplier: governed_score_map.get(supplier, {}).get(column, 0)
+        )
 
     recommendations = generate_supplier_recommendations(profiles)
     status_map = {}
@@ -63,7 +77,9 @@ def build_supplier_intelligence(scored_df, category, commodity):
         innovation = profile["innovation"]
         rows.append({
             "Supplier": profile["supplier_name"],
+            "_eligibility_rank": 2 if profile["technical_eligible"] else 0,
             "Technical Eligibility": profile["technical_eligibility"],
+            "Technical Ineligibility Reasons": profile["technical_ineligibility_reasons"] or "None",
             "Original Currency": profile["original_currency"],
             "Original Unit Price": profile["original_unit_price"],
             "Normalized Currency": profile["normalized_currency"],
@@ -73,6 +89,8 @@ def build_supplier_intelligence(scored_df, category, commodity):
             "Comparison Basis": profile["comparison_basis"],
             "Risk-Adjusted TCO (USD)": profile["adjusted_tco"],
             "Risk Resilience Score": profile["risk_score"],
+            "Risk Category": profile["risk_category"],
+            "Failure Probability": profile["failure_probability"],
             "Performance Score": profile["performance"]["overall_supplier_performance_score"],
             "Financial Assessment": financial.get("assessment_status", "Not assessed"),
             "Financial Indicator": financial.get("displayed_financial_score", financial.get("financial_stability_score", 0)),
@@ -90,6 +108,17 @@ def build_supplier_intelligence(scored_df, category, commodity):
             "Supplier 360 Score": profile["overall_supplier360_score"],
             "Recommendation Status": "; ".join(status_map.get(profile["supplier_name"], ["Qualified for comparison"])),
         })
-    comparison = pd.DataFrame(rows).sort_values("Supplier 360 Score", ascending=False).reset_index(drop=True)
+
+    comparison = (
+        pd.DataFrame(rows)
+        .sort_values(["_eligibility_rank", "Supplier 360 Score"], ascending=[False, False])
+        .drop(columns=["_eligibility_rank"])
+        .reset_index(drop=True)
+    )
     narrative = generate_executive_supplier_narrative(profiles, recommendations)
-    return {"profiles": profiles, "comparison_df": comparison, "recommendations": recommendations, "executive_narrative": narrative}
+    return {
+        "profiles": profiles,
+        "comparison_df": comparison,
+        "recommendations": recommendations,
+        "executive_narrative": narrative,
+    }

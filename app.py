@@ -20,7 +20,7 @@ from modules.executive_outputs import (
     generate_executive_memo, generate_explainability_panel, generate_supplier_email,
 )
 from modules.exports import (
-    build_decision_package_json, build_excel_workbook,
+    build_c2_export_manifest, build_decision_package_json, build_excel_workbook,
     build_readable_allocation, build_readable_supplier_comparison,
     build_readable_supplier_scores, dataframe_to_csv_bytes, text_to_bytes,
 )
@@ -54,6 +54,12 @@ assumptions = render_sidebar()
 profile = ensure_category_profile(assumptions.get("category_profile"))
 assumptions["category_profile"] = profile
 assumptions.setdefault("annual_volume_unit", profile.get("unit", "unit"))
+selected_laminate_structure = (
+    assumptions.get("laminate_structure")
+    if assumptions.get("category") == "Packaging Procurement"
+    and assumptions.get("commodity") == "Flexible Laminates"
+    else None
+)
 
 st.title(f"{APP_NAME} v1.2")
 st.subheader("Governed, category-aware procurement decision support for RFQ comparison and sourcing evaluation.")
@@ -183,7 +189,9 @@ if is_governed_route:
 else:
     try:
         suppliers_df = load_uploaded_rfq(uploaded_file) if uploaded_file is not None else get_demo_data(
-            assumptions["category"], assumptions["commodity"]
+            assumptions["category"],
+            assumptions["commodity"],
+            selected_structure=selected_laminate_structure,
         )
         suppliers_df = normalize_comparison_basis(suppliers_df, assumptions.get("fx_rate"), "USD")
     except Exception as exc:
@@ -204,7 +212,12 @@ if is_governed_route:
     handoff_digest = str(suppliers_df.attrs.get("handoff_manifest_digest") or "")
 
     def _input_validation(_outputs):
-        result = validate_rfq_dataframe(suppliers_df)
+        result = validate_rfq_dataframe(
+            suppliers_df,
+            category=assumptions["category"],
+            commodity=assumptions["commodity"],
+            selected_structure=selected_laminate_structure,
+        )
         if not result["is_valid"]:
             raise ValueError("; ".join(result["errors"]))
         return result
@@ -284,7 +297,12 @@ if is_governed_route:
     negotiation_result = negotiation_bundle["negotiation_result"]
     playbook_text = negotiation_bundle["playbook_text"]
 else:
-    validation = validate_rfq_dataframe(suppliers_df)
+    validation = validate_rfq_dataframe(
+        suppliers_df,
+        category=assumptions["category"],
+        commodity=assumptions["commodity"],
+        selected_structure=selected_laminate_structure,
+    )
     for warning in validation["warnings"]:
         st.warning(warning)
     if not validation["is_valid"]:
@@ -386,13 +404,32 @@ readable_allocation = build_readable_allocation(
     allocation_df, display_currency, fx_rate,
     annual_volume=volume, annual_volume_unit=volume_unit,
 )
+is_flexible_laminates = (
+    assumptions.get("category") == "Packaging Procurement"
+    and assumptions.get("commodity") == "Flexible Laminates"
+)
+c2_manifest = (
+    build_c2_export_manifest(
+        scored_df,
+        allocation_df,
+        optimized_allocation["allocation_df"],
+        scenario_df,
+    )
+    if is_flexible_laminates
+    else None
+)
 excel_package = build_excel_workbook(
     scored_df, should_cost_df, allocation_df, scenario_df,
     readable_scores, readable_comparison,
     display_currency=display_currency, fx_rate=fx_rate,
     annual_volume=volume, annual_volume_unit=volume_unit,
+    optimized_allocation_df=optimized_allocation["allocation_df"],
+    c2_manifest=c2_manifest,
 )
-json_package = build_decision_package_json(recommended, value_metrics, allocation_df, scenario_df, negotiation_result, eligibility)
+json_package = build_decision_package_json(
+    recommended, value_metrics, allocation_df, scenario_df,
+    negotiation_result, eligibility, c2_manifest=c2_manifest,
+)
 supplier_profiles_json = json.dumps(supplier_intelligence["profiles"], indent=2, default=str).encode("utf-8")
 
 with st.expander("Validation Assurance Gate", expanded=True):
