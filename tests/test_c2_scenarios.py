@@ -1,9 +1,11 @@
+import pandas as pd
 import pytest
 
 from modules.data_loader import get_demo_data, get_flexible_laminate_demo_suppliers
 from modules.scenario import run_scenario_table
 from modules.scenario_engine import (
     FLEXIBLE_LAMINATE_SCENARIOS,
+    SCENARIO_ASSUMPTION_VERSION,
     apply_flexible_laminate_scenario,
     run_all_flexible_laminate_scenarios,
     run_flexible_laminate_scenario,
@@ -41,6 +43,10 @@ def test_all_seven_scenarios_run_in_deterministic_order():
     results = run_all_flexible_laminate_scenarios(data, _assumptions())
     assert [result["scenario"] for result in results] == list(FLEXIBLE_LAMINATE_SCENARIOS)
     assert len(results) == 7
+    assert all(
+        result["metadata"]["scenario_assumption_version"] == SCENARIO_ASSUMPTION_VERSION
+        for result in results
+    )
 
 
 def test_base_case_does_not_mutate_source_data():
@@ -101,6 +107,18 @@ def test_metpet_stress_applies_only_to_three_layer_structure():
     assert unchanged.equals(pet_pe)
 
 
+def test_metpet_non_applicable_table_is_not_duplicate_base_case():
+    table = run_scenario_table(
+        get_flexible_laminate_demo_suppliers("PET / PE"), _assumptions()
+    )
+    row = table.loc[table["Scenario"] == "MetPET Availability Stress"].iloc[0]
+    assert row["Scenario Applicable"] == False
+    assert row["Winning Supplier"] == "Not applicable"
+    assert row["Standard Allocation Status"] == "Not applicable"
+    assert row["Optimized Allocation Status"] == "Not applicable"
+    assert pd.isna(row["Annual TCO (USD)"])
+
+
 def test_demand_scenario_reconciles_effective_volume_and_annual_tco():
     result = run_flexible_laminate_scenario(
         get_flexible_laminate_demo_suppliers("PET / PE"),
@@ -127,13 +145,44 @@ def test_capacity_stress_recalculates_eligibility_and_no_winner():
     assert result["decision"]["recommended_supplier"] == "No technically eligible supplier"
     assert result["standard_allocation_df"].empty
     assert result["optimized_allocation"]["allocation_df"].empty
+    assert result["ineligibility_reasons"]
 
 
-def test_tooling_replacement_adds_amortisation_without_false_unavailability():
+def test_all_ineligible_reason_is_presented_in_scenario_table():
+    table = run_scenario_table(
+        get_flexible_laminate_demo_suppliers("PET / PE"), _assumptions()
+    )
+    row = table.loc[
+        table["Scenario"] == "Press and Lamination Capacity Stress"
+    ].iloc[0]
+    assert row["Winning Supplier"] == "No technically eligible supplier"
+    assert row["Ineligibility / Applicability Reason"]
+    assert row["Ineligibility / Applicability Reason"] != "Technical eligibility thresholds were not met." or isinstance(
+        row["Ineligibility / Applicability Reason"], str
+    )
+
+
+def test_baseline_new_tooling_receives_no_duplicate_amortisation():
+    data = get_flexible_laminate_demo_suppliers("PET / PE")
+    original = data.copy(deep=True)
+    stressed, _, metadata = apply_flexible_laminate_scenario(
+        data, _assumptions(), "Tooling Replacement Scenario"
+    )
+    assert stressed["Quoted Unit Price USD"].tolist() == pytest.approx(
+        original["Quoted Unit Price USD"].tolist()
+    )
+    assert metadata["replacement_applied_count"] == 0
+    assert metadata["already_new_tooling_count"] == len(data)
+    assert metadata["not_applicable_count"] == 0
+    assert data.equals(original)
+
+
+def test_existing_confirmed_tooling_receives_exact_replacement_amortisation():
     data = get_flexible_laminate_demo_suppliers("PET / PE")
     data["Tooling Status"] = "Existing"
     data["Existing Tooling Available"] = "Yes"
     data["Tooling Availability"] = "Yes"
+    original = data.copy(deep=True)
     stressed, _, metadata = apply_flexible_laminate_scenario(
         data, _assumptions(), "Tooling Replacement Scenario"
     )
@@ -147,7 +196,69 @@ def test_tooling_replacement_adds_amortisation_without_false_unavailability():
     )
     assert set(stressed["Tooling Status"]) == {"New"}
     assert set(stressed["Tooling Availability"]) == {"Not applicable"}
-    assert metadata["tooling_amortisation_added"]
+    assert metadata["replacement_applied_count"] == len(data)
+    assert metadata["already_new_tooling_count"] == 0
+    assert data.equals(original)
+
+
+@pytest.mark.parametrize("availability", ["No", "Not assessed"])
+def test_existing_unconfirmed_tooling_fails_closed(availability):
+    data = get_flexible_laminate_demo_suppliers("PET / PE")
+    data.loc[0, "Tooling Status"] = "Existing"
+    data.loc[0, "Existing Tooling Available"] = availability
+    data.loc[0, "Tooling Availability"] = availability
+    with pytest.raises(ValueError, match="requires Existing Tooling Available = Yes"):
+        apply_flexible_laminate_scenario(
+            data, _assumptions(), "Tooling Replacement Scenario"
+        )
+
+
+def test_mixed_new_existing_and_unprinted_tooling_population():
+    data = get_flexible_laminate_demo_suppliers("PET / PE")
+    data.loc[0, "Tooling Status"] = "Existing"
+    data.loc[0, "Existing Tooling Available"] = "Yes"
+    data.loc[0, "Tooling Availability"] = "Yes"
+    data.loc[1, "Tooling Status"] = "New"
+    data.loc[1, "Existing Tooling Available"] = "Not applicable"
+    data.loc[1, "Tooling Availability"] = "Not applicable"
+    data.loc[2, "Print Profile"] = "Unprinted"
+    data.loc[2, "Number of Colours"] = 0
+    data.loc[2, "Tooling Status"] = "Not applicable"
+    data.loc[2, "Existing Tooling Available"] = "Not applicable"
+    data.loc[2, "Tooling Availability"] = "Not applicable"
+    data.loc[2, "Tooling Cost per Colour USD"] = 0.0
+    original_prices = data["Quoted Unit Price USD"].copy()
+
+    stressed, _, metadata = apply_flexible_laminate_scenario(
+        data, _assumptions(), "Tooling Replacement Scenario"
+    )
+    assert stressed.loc[0, "Quoted Unit Price USD"] > original_prices.loc[0]
+    assert stressed.loc[1, "Quoted Unit Price USD"] == pytest.approx(original_prices.loc[1])
+    assert stressed.loc[2, "Quoted Unit Price USD"] == pytest.approx(original_prices.loc[2])
+    assert metadata["replacement_applied_count"] == 1
+    assert metadata["already_new_tooling_count"] == 1
+    assert metadata["not_applicable_count"] == 1
+
+
+def test_award_confidence_uses_eligible_suppliers_only():
+    result = run_flexible_laminate_scenario(
+        get_flexible_laminate_demo_suppliers("PET / PE"),
+        _assumptions(),
+        "Base Case",
+    )
+    assert len(result["eligible_df"]) == 2
+    assert result["decision"]["confidence_governance"] == (
+        "Award confidence calculated from technically eligible suppliers only."
+    )
+
+
+def test_single_eligible_supplier_confidence_is_constrained():
+    data = get_flexible_laminate_demo_suppliers("PET / PE")
+    data.loc[1, "Application Approval Status"] = "Not approved"
+    result = run_flexible_laminate_scenario(data, _assumptions(), "Base Case")
+    assert len(result["eligible_df"]) == 1
+    assert result["decision"]["award_confidence"] <= 60.0
+    assert "Single technically eligible supplier" in result["decision"]["confidence_governance"]
 
 
 def test_every_applicable_scenario_winner_is_eligible():
@@ -155,7 +266,7 @@ def test_every_applicable_scenario_winner_is_eligible():
         get_flexible_laminate_demo_suppliers("PET / PE"), _assumptions()
     )
     for result in results:
-        if result["winner"] is not None:
+        if result["metadata"]["applicable"] and result["winner"] is not None:
             assert bool(result["winner"]["technical_eligible"])
 
 
