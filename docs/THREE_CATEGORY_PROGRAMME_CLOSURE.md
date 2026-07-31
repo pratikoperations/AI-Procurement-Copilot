@@ -3,14 +3,17 @@
 ## Governed repository state
 
 - Repository: `pratikoperations/AI-Procurement-Copilot`
-- Current merged main SHA: `d3ad5d05dd874e4916ba4f9190ce98809e0ac10e`
+- Authoritative main SHA after PR #34 merge: `d143b9f108655732ac1db8988959d51e3c39ae6c`
 - Pre-C3 merge main SHA: `0b310b4e97e0c92112089929fca150d7f183ecc8`
 - C3 merged PR: `#33`
+- Post-C3 closure PR: `#34`, merged at `d143b9f108655732ac1db8988959d51e3c39ae6c`
 - C3 retained feature branch: `agent/category-expansion-c3-steel`
 - C3 retained feature head: `def95119c2145f4391b61b5d4c6acaca2179248b`
+- Retained closure branch: `post-c3/programme-closure`
 - Final C3 PR CI: Quality Checks run 749, run ID `30665231192`, job ID `91270565010`
+- Final closure CI: Quality Checks run 751, run ID `30666074104`, job ID `91273299881`, merge-test SHA `76d7b0803972dc2b963b9448920e954412b03e54`
 - Final verified result: 849 tests passed; Python compilation passed; Streamlit smoke passed; one pre-existing pandas FutureWarning
-- Deployment status: unchanged by C3 merge and this closure phase
+- Deployment status: unchanged by C3 merge, closure and verification documentation
 
 ## Programme status
 
@@ -64,28 +67,35 @@ The programme is decision support for portfolio and interview demonstration. It 
 
 ## Known programme-level limitations
 
-1. No complete hosted browser and mobile walkthrough has been recorded for all three categories after the C3 merge.
-2. No full browser-driven AppTest suite covers every interactive transition.
-3. Some generic application computations occur before category-specific route termination.
-4. Category assumptions and supplier records remain controlled synthetic demonstration inputs.
-5. Evidence, calculation assumptions and traceability are distributed across category screens, exports and documentation rather than consolidated in one governed workspace.
-6. SourceMate and the Calculation & Assumption Explorer are not yet implemented.
-7. External market intelligence and Packaging Value Engineering integration remain explicitly outside the current programme.
+1. A complete hosted desktop, narrow/mobile and Android walkthrough has not yet been directly observed and recorded.
+2. The available verification environment could confirm repository state, hosted identity, CI, source contracts and automated tests but could not establish an interactive browser or Android session.
+3. No full browser-driven AppTest suite covers every interactive transition.
+4. Some generic application computations occur before category-specific route termination.
+5. Category assumptions and supplier records remain controlled synthetic demonstration inputs.
+6. Evidence, calculation assumptions and traceability are distributed across category screens, exports and documentation rather than consolidated in one governed workspace.
+7. SourceMate and the Calculation & Assumption Explorer are not yet implemented.
+8. External market intelligence and Packaging Value Engineering integration remain explicitly outside the current programme.
+
+## Hosted verification record
+
+The authoritative README identifies the hosted application as `https://ai-procurement-copilot.streamlit.app/`.
+
+Engineering and automated verification pass, but desktop, mobile and Android interaction remain unverified because the available execution environment could not establish a hosted interactive browser session. See `docs/HOSTED_BROWSER_MOBILE_VERIFICATION.md`.
 
 ## Retained branch decision
 
-Retain `agent/category-expansion-c3-steel` temporarily for rollback reference and audit comparison. Do not delete it until post-merge documentation closure is merged and a separate branch-cleanup authorization is issued.
+Retain `agent/category-expansion-c3-steel`, `post-c3/programme-closure` and the verification branch temporarily for rollback reference and audit comparison. Do not delete them until a real hosted browser/mobile walkthrough is completed and a separate branch-cleanup authorization is issued.
 
 ## Next-layer decision
 
-The recommended immediate next phase is **end-to-end browser/mobile verification and hosted deployment verification**, followed by the **Calculation & Assumption Explorer**.
-
-Reason: the application now has substantial governed functionality, but the highest-risk gap is proof that the merged system behaves correctly in the hosted user journey. Verification should precede adding another visible feature. Once verified, the Calculation & Assumption Explorer provides the strongest combination of interview value, transparency and future SourceMate grounding.
+The immediate next action remains a real hosted desktop and mobile walkthrough performed in a browser or device environment capable of interacting with the Streamlit application. The Calculation & Assumption Explorer should begin only after that evidence is captured or any confirmed defect is corrected.
 
 ## Programme completion
 
 - Three-category engineering: 100%
 - Three-category merge completion: 100%
-- Post-merge documentation closure: pending merge of this documentation-only branch
-- Hosted and browser/mobile verification: pending
+- Post-merge documentation closure: 100%
+- Automated verification: 100%
+- Hosted interactive desktop verification: pending
+- Hosted mobile and Android verification: pending
 - Next product layer: not started
