@@ -6,7 +6,7 @@ from zipfile import BadZipFile
 
 import pandas as pd
 
-from modules.flexible_laminate_cost import SUPPORTED_STRUCTURES, get_selected_laminate_structure
+from modules.flexible_laminate_cost import SUPPORTED_STRUCTURES
 from modules.intelligent_rfq import normalize_rfq_dataframe
 
 
@@ -23,27 +23,28 @@ def get_demo_suppliers():
     ])
 
 
-def get_flexible_laminate_demo_suppliers(structure=None):
-    """Return three comparable synthetic quotations for one selected structure."""
-    selected = structure or get_selected_laminate_structure()
-    if selected not in SUPPORTED_STRUCTURES:
-        raise ValueError(f"Unsupported Flexible Laminates structure '{selected}'.")
-    profile = SUPPORTED_STRUCTURES[selected]
-    micron = {"PET / PE": 70, "PET / MetPET / PE": 85, "BOPP / CPP": 60}[selected]
-    base_price = {"PET / PE": 2.05, "PET / MetPET / PE": 2.38, "BOPP / CPP": 1.92}[selected]
+def get_flexible_laminate_demo_suppliers(structure: str):
+    """Return three comparable synthetic quotations for one explicit structure."""
+    if structure not in SUPPORTED_STRUCTURES:
+        raise ValueError(f"Unsupported Flexible Laminates structure '{structure}'.")
+    profile = SUPPORTED_STRUCTURES[structure]
+    micron = {"PET / PE": 70, "PET / MetPET / PE": 85, "BOPP / CPP": 60}[structure]
+    base_price = {"PET / PE": 2.05, "PET / MetPET / PE": 2.38, "BOPP / CPP": 1.92}[structure]
     common = {
-        "Material":"Flexible Laminates","Laminate Structure":selected,"Layer Count":profile["layer_count"],
+        "Material":"Flexible Laminates","Laminate Structure":structure,"Layer Count":profile["layer_count"],
         "Currency":"USD","Unit":"kg","Total Micron":micron,"Print Profile":"Up to 4 colours",
         "Print Process":"Rotogravure","Number of Colours":4,"Adhesive Type":"Solvent-free",
         "Printing Loss %":3.0,"Lamination Loss %":2.0,"Slitting Loss %":1.0,"Tooling Status":"New",
         "Existing Tooling Available":"Not applicable","Tooling Cost per Colour USD":250.0,
         "Tooling Lifetime Volume kg":250000,"Application Approval Status":"Approved",
     }
-    return pd.DataFrame([
+    data = pd.DataFrame([
         {**common,"Supplier":"Precision Flexibles Ltd","Quoted Unit Price USD":round(base_price,3),"MOQ":12000,"Lead Time Days":18,"Payment Terms":"Net 45","Incoterms":"DDP","OTIF %":95,"Quality PPM":650,"Audit Score":88,"Complaint Rate %":1.0,"Capacity Buffer %":18,"Supplier Capacity":900000,"Recyclability":62,"Certification":88,"Carbon Score":74,"EPR Readiness":72,"PCR Content %":0,"Printing Capability Score":88,"Lamination Capability Score":86},
         {**common,"Supplier":"BarrierPack Films","Quoted Unit Price USD":round(base_price*1.06,3),"MOQ":20000,"Lead Time Days":24,"Payment Terms":"Net 30","Incoterms":"CIF","OTIF %":93,"Quality PPM":480,"Audit Score":91,"Complaint Rate %":0.7,"Capacity Buffer %":14,"Supplier Capacity":1100000,"Recyclability":48,"Certification":92,"Carbon Score":70,"EPR Readiness":68,"PCR Content %":0,"Printing Capability Score":92,"Lamination Capability Score":94},
         {**common,"Supplier":"Circular Laminate Solutions","Quoted Unit Price USD":round(base_price*0.94,3),"MOQ":30000,"Lead Time Days":32,"Payment Terms":"Advance 20%","Incoterms":"FOB","OTIF %":86,"Quality PPM":1350,"Audit Score":76,"Complaint Rate %":2.8,"Capacity Buffer %":8,"Supplier Capacity":700000,"Recyclability":72,"Certification":76,"Carbon Score":80,"EPR Readiness":78,"PCR Content %":0,"Printing Capability Score":74,"Lamination Capability Score":72,"Printing Loss %":5.5,"Lamination Loss %":4.0,"Slitting Loss %":2.0},
     ])
+    data.attrs["selected_laminate_structure"] = structure
+    return data
 
 
 def get_kraft_paper_demo_suppliers():
@@ -70,13 +71,18 @@ def get_raw_material_demo_suppliers(commodity="PET Resin"):
     ])
 
 
-def get_demo_data(category="Packaging Procurement", commodity="Corrugated Board"):
-    """Return category-appropriate synthetic data with explicit currency and unit."""
+def get_demo_data(
+    category="Packaging Procurement",
+    commodity="Corrugated Board",
+    selected_structure: str | None = None,
+):
+    """Return category-appropriate synthetic data with explicit comparison context."""
     if category == "Raw Material Procurement":
         data = get_raw_material_demo_suppliers(commodity)
     elif category == "Packaging Procurement" and commodity == "Flexible Laminates":
-        data = get_flexible_laminate_demo_suppliers()
-        data.attrs["selected_laminate_structure"] = get_selected_laminate_structure()
+        if selected_structure is None:
+            raise ValueError("Flexible Laminates demo data requires an explicit selected_structure.")
+        data = get_flexible_laminate_demo_suppliers(selected_structure)
     else:
         data = get_demo_suppliers()
     data.attrs["source_label"] = "Synthetic demonstration data"
