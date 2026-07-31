@@ -11,7 +11,6 @@ def _tooling_status(result):
     metadata = result["metadata"]
     applied = int(metadata.get("replacement_applied_count", 0))
     already_new = int(metadata.get("already_new_tooling_count", 0))
-    not_applicable = int(metadata.get("not_applicable_count", 0))
     if result["scenario"] != "Tooling Replacement Scenario":
         return "Applied" if metadata.get("applicable", True) else metadata.get("reason", "Not applicable")
     if applied == 0 and already_new > 0:
@@ -23,10 +22,12 @@ def _tooling_status(result):
 
 def _base_row(result):
     metadata = result["metadata"]
+    status = _tooling_status(result)
     return {
         "Scenario": result["scenario"],
         "Scenario Applicable": bool(metadata["applicable"]),
-        "Scenario Status / Reason": _tooling_status(result),
+        "Scenario Status / Reason": status,
+        "Ineligibility / Applicability Reason": status,
         "Confidence Governance": result["decision"].get("confidence_governance", ""),
         "Scenario Assumption Version": metadata["scenario_assumption_version"],
         "Tooling Replacement Applied": int(metadata.get("replacement_applied_count", 0)),
@@ -45,7 +46,8 @@ def _flexible_laminate_scenario_table(base_df, assumptions):
             rows.append({**base, "Winning Supplier": "Not applicable", "Winning Score": None, "Risk-Adjusted TCO per kg (USD)": None, "Annual TCO (USD)": None, "Risk Resilience Score": None, "Failure Probability": None, "Technical Eligibility": "Not applicable", "Standard Allocation Status": "Not applicable", "Optimized Allocation Status": "Not applicable", "Confidence": "Not applicable"})
             continue
         if winner is None:
-            rows.append({**base, "Scenario Status / Reason": result["ineligibility_reasons"], "Winning Supplier": "No technically eligible supplier", "Winning Score": None, "Risk-Adjusted TCO per kg (USD)": None, "Annual TCO (USD)": None, "Risk Resilience Score": None, "Failure Probability": None, "Technical Eligibility": "No eligible supplier", "Standard Allocation Status": "No allocation", "Optimized Allocation Status": "No allocation", "Confidence": 0.0})
+            reason = result["ineligibility_reasons"]
+            rows.append({**base, "Scenario Status / Reason": reason, "Ineligibility / Applicability Reason": reason, "Winning Supplier": "No technically eligible supplier", "Winning Score": None, "Risk-Adjusted TCO per kg (USD)": None, "Annual TCO (USD)": None, "Risk Resilience Score": None, "Failure Probability": None, "Technical Eligibility": "No eligible supplier", "Standard Allocation Status": "No allocation", "Optimized Allocation Status": "No allocation", "Confidence": 0.0})
             continue
         confidence = result["decision"].get("award_confidence", recommendation_confidence(result["eligible_df"]))
         rows.append({**base, "Winning Supplier": winner["Supplier"], "Winning Score": winner["total_score"], "Risk-Adjusted TCO per kg (USD)": winner["adjusted_tco_unit_usd"], "Annual TCO (USD)": winner["annual_tco_usd"], "Risk Resilience Score": winner["risk_score"], "Failure Probability": winner["failure_probability"], "Technical Eligibility": "Eligible", "Standard Allocation Status": "Allocated" if not result["standard_allocation_df"].empty else "No allocation", "Optimized Allocation Status": "Allocated" if not result["optimized_allocation"]["allocation_df"].empty else "No allocation", "Confidence": confidence})
