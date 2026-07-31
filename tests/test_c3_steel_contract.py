@@ -1,4 +1,4 @@
-"""Contract-only tests for the frozen C3 Steel planning phase."""
+"""Contract tests for the frozen C3 Steel programme and current phase boundaries."""
 
 from pathlib import Path
 
@@ -7,12 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "docs" / "C3_STEEL_CONTRACT.md"
 LEDGER = ROOT / "docs" / "C3_ACTIVITY_DECISION_LEDGER.md"
 
-PROFILES = (
-    "CR_COIL_COMMERCIAL",
-    "GI_COIL_Z120",
-    "PPGI_COIL_Z120",
-)
-
+PROFILES = ("CR_COIL_COMMERCIAL", "GI_COIL_Z120", "PPGI_COIL_Z120")
 SCENARIOS = (
     "Base Case",
     "Steel Index +20%",
@@ -22,7 +17,6 @@ SCENARIOS = (
     "Mill Allocation and Capacity Stress",
     "Grade-Substitution Scenario",
 )
-
 EXCEL_SHEETS = (
     "Supplier Scores Report",
     "Supplier Comparison",
@@ -37,7 +31,7 @@ EXCEL_SHEETS = (
 
 
 def _text(path: Path) -> str:
-    assert path.exists(), f"Missing governed C3.0 document: {path}"
+    assert path.exists(), f"Missing governed C3 document: {path}"
     return path.read_text(encoding="utf-8")
 
 
@@ -50,18 +44,13 @@ def test_exact_three_controlled_profiles_and_attributes_are_frozen():
     contract = _text(CONTRACT)
     for profile in PROFILES:
         assert contract.count(f"`{profile}`") == 1
-
-    assert "0.80 mm" in contract
-    assert "0.60 mm" in contract
-    assert "0.50 mm" in contract
-    assert "1,000–1,250 mm" in contract
-    assert "120 g/m² total" in contract
-    assert "Topcoat 20 μm; back coat 5 μm" in contract
+    for phrase in ("0.80 mm", "0.60 mm", "0.50 mm", "1,000–1,250 mm", "120 g/m² total", "Topcoat 20 μm; back coat 5 μm"):
+        assert phrase in contract
 
 
 def test_commercial_and_currency_contract_is_explicit():
     contract = _text(CONTRACT)
-    required = (
+    for phrase in (
         "Annual-volume input: kg",
         "Optional reporting conversion: metric tonnes",
         "Internal governed calculation currency: USD",
@@ -71,8 +60,7 @@ def test_commercial_and_currency_contract_is_explicit():
         "single USD calculation path",
         "separate numeric USD and INR columns",
         "not live market data",
-    )
-    for phrase in required:
+    ):
         assert phrase in contract
 
 
@@ -132,8 +120,7 @@ def test_fail_closed_eligibility_definitions_are_complete():
 def test_exact_seven_scenarios_are_frozen():
     contract = _text(CONTRACT)
     scenario_section = contract.split("## Governed scenarios", 1)[1].split("## Intended export contract", 1)[0]
-    numbered_lines = [line for line in scenario_section.splitlines() if line[:1].isdigit()]
-    assert len(numbered_lines) == 7
+    assert len([line for line in scenario_section.splitlines() if line[:1].isdigit()]) == 7
     for scenario in SCENARIOS:
         assert scenario_section.count(scenario) == 1
 
@@ -168,13 +155,13 @@ def test_c1_and_c2_governance_records_remain_present():
     assert (ROOT / "docs" / "C2_FLEXIBLE_LAMINATES_CLOSURE.md").is_file()
 
 
-def test_c3_phase_does_not_include_executable_steel_modules():
-    assert not (ROOT / "modules" / "steel_cost.py").exists()
+def test_c3_phase_boundaries_allow_cost_but_not_future_modules():
+    assert (ROOT / "modules" / "steel_cost.py").is_file()
     assert not (ROOT / "modules" / "steel_validation.py").exists()
     assert not (ROOT / "modules" / "steel_risk.py").exists()
 
 
-def test_ledger_records_documentation_only_scope():
+def test_ledger_preserves_c3_0_historical_record():
     ledger = _text(LEDGER)
     assert "C3.0 contract documentation and contract tests only" in ledger
     assert "None of those executable features is authorized in C3.0" in ledger
