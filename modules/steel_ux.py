@@ -194,10 +194,20 @@ def render_steel_governed_dashboard(suppliers: pd.DataFrame, assumptions: Mappin
         "eligibility_failure_reasons",
     ]
     decision = scored[[column for column in decision_columns if column in scored.columns]].copy()
+    decision = decision.rename(columns={
+        "technical_eligible": "Technical Eligibility",
+        "normalized_usd_per_kg": "Normalized USD/kg",
+        "equivalent_inr_per_kg": "Equivalent INR/kg",
+        "generic_risk_score": "Generic Supplier Risk",
+        "steel_risk_score": "Steel-Specific Risk",
+        "governed_total_score": "Governed Steel Score",
+        "governed_rank": "Governed Rank",
+        "eligibility_failure_reasons": "Eligibility Failure Reasons",
+    })
     if display_mode == "USD":
-        decision = decision.drop(columns=["equivalent_inr_per_kg"], errors="ignore")
+        decision = decision.drop(columns=["Equivalent INR/kg"], errors="ignore")
     elif display_mode == "INR":
-        decision = decision.drop(columns=["normalized_usd_per_kg"], errors="ignore")
+        decision = decision.drop(columns=["Normalized USD/kg"], errors="ignore")
     st.subheader("Supplier Comparison")
     st.dataframe(decision, width="stretch", hide_index=True)
 
