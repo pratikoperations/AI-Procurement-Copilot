@@ -214,7 +214,11 @@ def test_live_c2_excel_and_json_packages_share_governed_manifest():
         ).decode("utf-8")
     )
     exported_manifest = payload["flexible_laminates_governance"]
-    assert exported_manifest == manifest
+    assert json.dumps(exported_manifest, sort_keys=True, allow_nan=True) == json.dumps(
+        manifest,
+        sort_keys=True,
+        allow_nan=True,
+    )
     assert exported_manifest["visible_winner"] == eligible.iloc[0]["Supplier"]
     assert exported_manifest["standard_allocation"] == standard.to_dict(orient="records")
     assert exported_manifest["optimized_allocation"] == optimized.to_dict(orient="records")
