@@ -10,7 +10,6 @@ from modules.flexible_laminate_cost import (
     PRINT_PROFILES,
     SUPPORTED_STRUCTURES,
     TOOLING_AVAILABILITY,
-    get_selected_laminate_structure,
 )
 
 REQUIRED_COLUMNS = [
@@ -29,8 +28,8 @@ def _numeric(series: pd.Series, column: str, errors: list[str]) -> pd.Series:
     return values
 
 
-def validate_flexible_laminate_dataframe(df: pd.DataFrame, selected_structure: str | None = None) -> dict:
-    """Return structured Flexible Laminates validation results."""
+def validate_flexible_laminate_dataframe(df: pd.DataFrame, selected_structure: str | None) -> dict:
+    """Return structured validation against one explicit laminate structure."""
     errors: list[str] = []
     warnings: list[str] = []
     missing = [column for column in REQUIRED_COLUMNS if column not in df.columns]
@@ -38,9 +37,10 @@ def validate_flexible_laminate_dataframe(df: pd.DataFrame, selected_structure: s
         errors.append("Missing required Flexible Laminates fields: " + ", ".join(missing) + ".")
         return {"is_valid": False, "errors": errors, "warnings": warnings}
 
-    selected = selected_structure or df.attrs.get("selected_laminate_structure") or get_selected_laminate_structure()
-    if selected not in SUPPORTED_STRUCTURES:
-        errors.append(f"Selected Flexible Laminates structure '{selected}' is unsupported.")
+    if selected_structure is None:
+        errors.append("Flexible Laminates validation requires an explicit selected structure.")
+    elif selected_structure not in SUPPORTED_STRUCTURES:
+        errors.append(f"Selected Flexible Laminates structure '{selected_structure}' is unsupported.")
 
     material = df["Material"].astype(str).str.strip()
     if material.eq("").any() or material.ne("Flexible Laminates").any():
@@ -50,8 +50,11 @@ def validate_flexible_laminate_dataframe(df: pd.DataFrame, selected_structure: s
     invalid_structures = sorted(set(structure) - set(SUPPORTED_STRUCTURES))
     if invalid_structures:
         errors.append("Unsupported Flexible Laminates structure(s): " + ", ".join(invalid_structures) + ".")
-    if selected in SUPPORTED_STRUCTURES and structure.ne(selected).any():
-        errors.append(f"Every supplier quotation must match the selected laminate structure '{selected}'; mixed or mismatched structures are blocked.")
+    if selected_structure in SUPPORTED_STRUCTURES and structure.ne(selected_structure).any():
+        errors.append(
+            f"Every supplier quotation must match the selected laminate structure '{selected_structure}'; "
+            "mixed or mismatched structures are blocked."
+        )
 
     units = df["Unit"].astype(str).str.strip().str.lower()
     if units.ne("kg").any() or units.nunique() != 1:
@@ -87,11 +90,13 @@ def validate_flexible_laminate_dataframe(df: pd.DataFrame, selected_structure: s
             expected = SUPPORTED_STRUCTURES[row_structure]["layer_count"]
             if int(layer_count.loc[index]) != expected:
                 errors.append(f"{row.get('Supplier', 'Supplier')} has a layer-count mismatch for {row_structure}; expected {expected}.")
+
         print_profile = str(row["Print Profile"]).strip()
         print_process = str(row["Print Process"]).strip()
         adhesive_type = str(row["Adhesive Type"]).strip()
         tooling_status = str(row["Tooling Status"]).strip()
         tooling_available = str(row["Existing Tooling Available"]).strip()
+
         if print_profile not in PRINT_PROFILES:
             errors.append(f"Unsupported Print Profile '{print_profile}'.")
         if print_process not in PRINT_PROCESSES:
@@ -102,6 +107,7 @@ def validate_flexible_laminate_dataframe(df: pd.DataFrame, selected_structure: s
             errors.append(f"Unsupported Tooling Status '{tooling_status}'.")
         if tooling_available not in TOOLING_AVAILABILITY:
             errors.append(f"Unsupported Existing Tooling Available value '{tooling_available}'.")
+
         if not pd.isna(colours.loc[index]) and float(colours.loc[index]).is_integer():
             count = int(colours.loc[index])
             valid_profile = (
@@ -111,12 +117,24 @@ def validate_flexible_laminate_dataframe(df: pd.DataFrame, selected_structure: s
             )
             if print_profile in PRINT_PROFILES and not valid_profile:
                 errors.append(f"Print Profile '{print_profile}' is inconsistent with {count} colours.")
-            if print_profile == "Unprinted" and (float(tooling_cost.loc[index]) != 0 or tooling_status != "Not applicable"):
-                errors.append("Unprinted Flexible Laminates rows must use zero tooling cost and Not applicable tooling status.")
-            if print_profile != "Unprinted" and tooling_status == "New" and float(tooling_volume.loc[index]) <= 0:
-                errors.append("New print tooling requires a positive Tooling Lifetime Volume kg.")
-            if print_profile != "Unprinted" and tooling_status == "Existing" and tooling_available != "Yes":
-                errors.append("Existing tooling requires explicit Yes availability evidence before zero amortisation.")
+
+            if print_profile == "Unprinted":
+                if float(tooling_cost.loc[index]) != 0:
+                    errors.append("Unprinted Flexible Laminates rows must use zero tooling cost.")
+                if tooling_status != "Not applicable" or tooling_available != "Not applicable":
+                    errors.append("Unprinted Flexible Laminates rows must use Not applicable tooling status and availability.")
+            elif tooling_status == "New":
+                if tooling_available != "Not applicable":
+                    errors.append("New tooling requires Existing Tooling Available to be Not applicable.")
+                if float(tooling_volume.loc[index]) <= 0:
+                    errors.append("New print tooling requires a positive Tooling Lifetime Volume kg.")
+            elif tooling_status == "Existing":
+                if tooling_available not in {"Yes", "No", "Not assessed"}:
+                    errors.append("Existing tooling availability must be Yes, No, or Not assessed.")
+                elif tooling_available != "Yes":
+                    errors.append("Existing tooling requires explicit Yes availability evidence before zero amortisation.")
+            elif tooling_status == "Not applicable":
+                errors.append("Printed Flexible Laminates rows must use New or Existing tooling status.")
 
     controlled = {"Application Approval Status": {"Approved", "Conditional", "Not approved"}}
     for column, values in controlled.items():
@@ -135,4 +153,8 @@ def validate_flexible_laminate_dataframe(df: pd.DataFrame, selected_structure: s
     if not effective_loss.isna().any() and (effective_loss > 0.10).any():
         warnings.append("One or more Flexible Laminates quotations have effective process loss above 10%; review yield assumptions.")
 
-    return {"is_valid": not errors, "errors": list(dict.fromkeys(errors)), "warnings": list(dict.fromkeys(warnings))}
+    return {
+        "is_valid": not errors,
+        "errors": list(dict.fromkeys(errors)),
+        "warnings": list(dict.fromkeys(warnings)),
+    }
