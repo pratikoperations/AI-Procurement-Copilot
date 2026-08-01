@@ -140,7 +140,7 @@ body,
 }
 
 [data-baseweb="select"] [role="combobox"]:focus-visible {
-    outline: none !important;
+    outline: 3px solid transparent !important;
     outline-offset: 0 !important;
     box-shadow: none !important;
 }
