@@ -78,7 +78,12 @@ def _render_trace(presentation: Mapping[str, Any]) -> None:
     with st.expander("Intermediate steps and unavailable parameters", expanded=False):
         st.json({"intermediate_steps": trace.get("intermediate_steps") or (), "unresolved_or_rejected_parameters": trace.get("unresolved_or_rejected_parameters") or ()})
     with st.expander("Governed decision impact", expanded=False):
-        st.json({"blocking_rule_record": trace.get("blocking_rule_record"), "recommendation_impact": trace.get("recommendation_impact"), "configuration_versions": trace.get("configuration_versions") or {}})
+        st.json({"blocking_rule_record": trace.get("blocking_rule_record"), "recommendation_impact": trace.get("recommendation_impact")})
+        if trace.get("configuration_versions_status") == "satisfied":
+            st.write("**Configuration versions**")
+            st.json(trace.get("configuration_versions"))
+        else:
+            st.warning(trace.get("configuration_versions_note") or "Configuration-version evidence is unavailable.")
 
 
 def _render_reconciliation(presentation: Mapping[str, Any]) -> None:
