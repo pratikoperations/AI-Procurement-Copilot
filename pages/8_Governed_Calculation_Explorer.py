@@ -156,6 +156,6 @@ render_governed_calculation_explorer(presentation)
 
 st.markdown("---")
 st.caption(
-    "Read-only portfolio demonstration. No formula execution, assumption editing, autonomous award, "
-    "production allocation, approval persistence, external evidence retrieval, or realized-savings claim."
+    "Read-only portfolio demonstration. No formula execution, no assumption editing, no autonomous award, "
+    "no production allocation, no approval persistence, no external evidence retrieval, and no realized-savings claim."
 )
