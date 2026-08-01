@@ -44,6 +44,25 @@ RECONCILIATION_COVERAGE = (
     ReconciliationCoverage("REC-JSON", "export", "All", "EXP-JSON", "F-EXPORT-JSON", "modules/exports.py; modules/steel_exports.py", "build_decision_package_json; build_steel_governance_manifest; build_steel_json_export", "json_evidence"),
 )
 
+# Gate 2 currently exposes governed adapters only for these route families.
+ADAPTER_BACKED_COVERAGE_IDS = frozenset({
+    "REC-PET", "REC-KRF", "REC-COR", "REC-LAM", "REC-STL",
+    "REC-SCORE-GEN", "REC-ELG",
+})
+EXPORT_ASSURED_COVERAGE_IDS = frozenset({"REC-EXCEL", "REC-JSON"})
+
+
+def adapter_coverage_classification(coverage_id: str) -> str:
+    """Return an honest Gate 3 adapter-assurance classification for a registered route."""
+    registered = {item.coverage_id for item in RECONCILIATION_COVERAGE}
+    if coverage_id not in registered:
+        raise ValueError(f"Unknown reconciliation coverage ID '{coverage_id}'")
+    if coverage_id in ADAPTER_BACKED_COVERAGE_IDS:
+        return "adapter_backed"
+    if coverage_id in EXPORT_ASSURED_COVERAGE_IDS:
+        return "export_assured"
+    return "unsupported_deferred_coverage"
+
 
 def _split_contract(value: str) -> tuple[str, ...]:
     return tuple(part.strip() for part in value.split(";") if part.strip())
