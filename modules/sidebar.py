@@ -8,6 +8,7 @@ from modules.c1_ux import apply_c1_ux_overrides
 from modules.category_engine import ensure_category_profile, get_category_profile
 from modules.config import DEFAULT_FX_RATE, EDITION, FUTURE_CATEGORIES, SUPPORTED_CATEGORIES
 from modules.rfq_integration_controller import governed_route_enabled
+from modules.scenario_engine import SCENARIOS
 from modules.steel_ux import render_steel_sidebar_controls
 from modules.ui_theme import apply_ui_theme
 from modules.unit_display import annual_volume_label, canonical_unit, quantity_basis_caption
@@ -36,6 +37,7 @@ GENERIC_SCENARIO_DEFAULTS = {
     "raw_material_shock": 0.0,
     "freight_shock": 0.0,
     "demand_change": 0.0,
+    "procurement_intelligence_scenario": "Base Case",
 }
 GENERIC_ALLOCATION_DEFAULTS = {
     "max_supplier_share": 75,
@@ -277,6 +279,11 @@ def _render_generic_scenario_inputs(commodity, enabled):
     values = dict(GENERIC_SCENARIO_DEFAULTS)
     if enabled:
         with st.sidebar.expander("Scenario Inputs", expanded=False):
+            values["procurement_intelligence_scenario"] = st.selectbox(
+                "Procurement Intelligence Scenario",
+                list(SCENARIOS.keys()),
+                index=0,
+            )
             shock_label = "Paper / Raw Material Shock %" if commodity == "Kraft Paper" else "Raw Material Shock %"
             values["raw_material_shock"] = st.slider(shock_label, -20, 40, 0) / 100
             values["freight_shock"] = st.slider("Freight Shock %", -20, 80, 0) / 100
