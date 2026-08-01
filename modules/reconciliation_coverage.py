@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import importlib
 
 
 @dataclass(frozen=True)
@@ -42,3 +43,31 @@ RECONCILIATION_COVERAGE = (
     ReconciliationCoverage("REC-EXCEL", "export", "All", "EXP-EXCEL", "F-EXPORT-EXCEL", "modules/exports.py; modules/steel_exports.py", "build_excel_workbook; build_steel_excel_workbook", "excel_evidence"),
     ReconciliationCoverage("REC-JSON", "export", "All", "EXP-JSON", "F-EXPORT-JSON", "modules/exports.py; modules/steel_exports.py", "build_decision_package_json; build_steel_governance_manifest; build_steel_json_export", "json_evidence"),
 )
+
+
+def _split_contract(value: str) -> tuple[str, ...]:
+    return tuple(part.strip() for part in value.split(";") if part.strip())
+
+
+def _module_name(path: str) -> str:
+    if not path.startswith("modules/") or not path.endswith(".py"):
+        raise ValueError(f"Invalid authoritative module path '{path}'")
+    return path[:-3].replace("/", ".")
+
+
+def validate_coverage_source(coverage: ReconciliationCoverage) -> tuple[str, ...]:
+    """Verify declared modules/functions exist without executing business services."""
+    modules = tuple(importlib.import_module(_module_name(path)) for path in _split_contract(coverage.source_module))
+    functions = _split_contract(coverage.source_function)
+    missing = tuple(name for name in functions if not any(callable(getattr(module, name, None)) for module in modules))
+    if missing:
+        raise ValueError(f"Missing authoritative function(s) for {coverage.coverage_id}: {', '.join(missing)}")
+    return functions
+
+
+def validate_all_coverage_sources() -> tuple[str, ...]:
+    validated = []
+    for coverage in RECONCILIATION_COVERAGE:
+        validate_coverage_source(coverage)
+        validated.append(coverage.coverage_id)
+    return tuple(validated)
