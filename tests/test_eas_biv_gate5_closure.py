@@ -10,7 +10,7 @@ TEST_EVIDENCE = ROOT / "docs" / "06_TEST_EVIDENCE.md"
 GOVERNANCE = ROOT / "docs" / "07_GOVERNANCE_AND_LIMITATIONS.md"
 DEMO_GUIDE = ROOT / "docs" / "08_DEMO_GUIDE.md"
 
-AUTHORITATIVE_SHA = "834b34db145cc0156196579f7419e7db7b438106"
+GATE5_STARTING_BASELINE_SHA = "834b34db145cc0156196579f7419e7db7b438106"
 ADAPTER_IDS = {
     "REC-PET",
     "REC-KRF",
@@ -31,16 +31,30 @@ def test_gate5_closure_documents_exist():
         assert path.is_file(), path
 
 
-def test_authoritative_sha_and_ci_evidence_are_consistent():
+def test_starting_baseline_and_ci_evidence_are_consistent():
     for path in (README, CLOSURE, INTERVIEW_PACK, TEST_EVIDENCE, GOVERNANCE):
         content = _text(path)
-        assert AUTHORITATIVE_SHA in content, path
+        assert GATE5_STARTING_BASELINE_SHA in content, path
         assert "816" in content, path
         assert "1011" in content, path
     combined = "\n".join(_text(path) for path in (README, CLOSURE, INTERVIEW_PACK, TEST_EVIDENCE))
     assert "30706340753" in combined
     assert "91386012618" in combined
     assert "Python 3.11.15" in combined or "Python: `3.11.15`" in combined
+
+
+def test_gate5_freeze_wording_is_temporally_stable():
+    readme = _text(README).lower()
+    closure = _text(CLOSURE).lower()
+    combined = f"{readme}\n{closure}"
+
+    assert "gate 5 starting baseline / gate 4 merged baseline" in combined
+    assert "gate 5 closure in progress" not in combined
+    assert "current authoritative main sha after gate 4 merge" not in combined
+    assert "final frozen gate 5 main sha" not in readme
+    assert "pre-gate 5 baseline, not the final frozen gate 5 main sha" in closure
+    assert "governed post-merge verification and final-freeze declaration" in closure
+    assert "this repository document intentionally records the pre-merge gate 5 baseline" in closure
 
 
 def test_contract_versions_are_recorded():
