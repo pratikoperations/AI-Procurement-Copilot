@@ -64,13 +64,30 @@ def _canonical_number(value: int | float | Decimal) -> dict[str, str]:
     return {"__number__": format(normalized, "f")}
 
 
+def _normalize_mapping(value: Mapping) -> dict[str, Any]:
+    non_string_keys = [key for key in value if not isinstance(key, str)]
+    if non_string_keys:
+        key_types = ", ".join(
+            sorted({type(key).__name__ for key in non_string_keys})
+        )
+        raise TypeError(
+            "Trace mappings require string keys; unsupported key type(s): "
+            + key_types
+        )
+
+    normalized: dict[str, Any] = {}
+    for key in sorted(value):
+        if key in _VOLATILE_KEYS:
+            continue
+        if key in normalized:
+            raise ValueError(f"Duplicate normalized trace mapping key: {key}")
+        normalized[key] = _normalize(value[key])
+    return normalized
+
+
 def _normalize(value: Any) -> Any:
     if isinstance(value, Mapping):
-        return {
-            str(key): _normalize(item)
-            for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))
-            if str(key) not in _VOLATILE_KEYS
-        }
+        return _normalize_mapping(value)
     if isinstance(value, (list, tuple)):
         return [_normalize(item) for item in value]
     if isinstance(value, set):
@@ -100,7 +117,7 @@ def _normalize(value: Any) -> Any:
         governed = to_dict()
         if not isinstance(governed, Mapping):
             raise TypeError("Governed to_dict() output must be a mapping")
-        return _normalize(governed)
+        return _normalize_mapping(governed)
     raise TypeError(f"Unsupported non-deterministic trace value type: {type(value).__name__}")
 
 
