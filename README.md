@@ -122,8 +122,6 @@ See [Architecture](docs/04_ARCHITECTURE.md), [Data and Validation](docs/05_DATA_
 
 ## Test and quality evidence
 
-The repository uses automated checks for compilation, procurement calculations, validation, currency and unit integrity, exports, UI contracts, governed trace/reconciliation contracts and Streamlit startup.
-
 Accepted EAS-BIV Gate 4 evidence:
 
 - authoritative main SHA: `834b34db145cc0156196579f7419e7db7b438106`;
@@ -191,7 +189,7 @@ Detailed setup and portability guidance remain in `SETUP_GUIDE.md`, `AI_HANDOFF_
 |---|---|
 | v1.0.0 | First stable Portfolio Edition baseline |
 | v1.0.1 | Governed maintenance release |
-| v1.1 | Completed ERP structural foundation and read-only ERP Upload Preview; frozen at `b85cd37aaae709058eb0b750372b6c1cf8537959f368` |
+| v1.1 | Completed ERP structural foundation and read-only ERP Upload Preview; frozen at `b85cd37aaae709058eb15350d680b18c03da46ba` |
 | v1.2 | Completed Portfolio Presentation Release; frozen at `4803b1d72fa8a6509d9d7faf0e9decc677c447be` |
 | v1.3 foundation | Versioned workbook contracts, adapter, orchestration, governed review and default-off analytical handoff |
 | S1.1–S1.4 | UI consistency, validation guidance, mobile responsiveness and runtime efficiency |
