@@ -12,8 +12,8 @@
 
 ## Current repository status
 
-- Current authoritative main SHA after Gate 4 merge: **`834b34db145cc0156196579f7419e7db7b438106`**
-- Explainability, Assumption Provenance and SourceMate — Basic Interview Version: **Gates 1A–4 implemented and merged; Gate 5 closure in progress**
+- Gate 5 starting baseline / Gate 4 merged baseline: **`834b34db145cc0156196579f7419e7db7b438106`**
+- Explainability, Assumption Provenance and SourceMate — Basic Interview Version: **Gate 5 provides documentation, evidence and final-closure assurance without changing production functionality**
 - Governed Calculation Explorer contract: **`AIPC-GOVERNED-EXPLORER-1.0`**
 - SourceMate Basic contract: **`AIPC-SOURCEMATE-BASIC-1.0`**
 - Calculation trace contract: **`AIPC-CALC-TRACE-1.0`**
@@ -124,7 +124,7 @@ See [Architecture](docs/04_ARCHITECTURE.md), [Data and Validation](docs/05_DATA_
 
 Accepted EAS-BIV Gate 4 evidence:
 
-- authoritative main SHA: `834b34db145cc0156196579f7419e7db7b438106`;
+- Gate 4 merged baseline SHA: `834b34db145cc0156196579f7419e7db7b438106`;
 - PR #42 merged the Governed Calculation Explorer and SourceMate Basic Evidence View;
 - Quality Checks run 816, run ID `30706340753`, job ID `91386012618`;
 - Python 3.11.15;
