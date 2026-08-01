@@ -41,23 +41,21 @@ def _render_assumptions(presentation: Mapping[str, Any]) -> None:
     columns = st.columns(4)
     for column, status in zip(columns, ("supplied", "defaulted", "inferred", "derived")):
         column.metric(status.title(), counts.get(status, 0))
-    rows = []
-    for item in presentation.get("assumptions") or ():
-        rows.append({
-            "Assumption": item.get("business_name") or item.get("key"),
-            "Value": item.get("value"),
-            "Unit": item.get("unit"),
-            "Provenance": item.get("status"),
-            "Source level": item.get("source_level"),
-            "Evidence": item.get("evidence_classification"),
-            "Source reference": item.get("source_reference"),
-            "Effective date": item.get("effective_date"),
-            "Review expiry": item.get("review_expiry_date"),
-            "Confidence": item.get("confidence"),
-            "Override": item.get("override_status"),
-            "Approver": item.get("approver"),
-            "Governance caveat": item.get("governance_caveat"),
-        })
+    rows = [{
+        "Assumption": item.get("business_name") or item.get("key"),
+        "Value": item.get("value"),
+        "Unit": item.get("unit"),
+        "Provenance": item.get("status"),
+        "Source level": item.get("source_level"),
+        "Evidence": item.get("evidence_classification"),
+        "Source reference": item.get("source_reference"),
+        "Effective date": item.get("effective_date"),
+        "Review expiry": item.get("review_expiry_date"),
+        "Confidence": item.get("confidence"),
+        "Override": item.get("override_status"),
+        "Approver": item.get("approver"),
+        "Governance caveat": item.get("governance_caveat"),
+    } for item in presentation.get("assumptions") or ()]
     st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
     st.caption("This register is read-only. Uncatalogued and unavailable evidence remains visible rather than being inferred.")
 
@@ -78,16 +76,9 @@ def _render_trace(presentation: Mapping[str, Any]) -> None:
     with st.expander("Authoritative raw output", expanded=False):
         st.json(trace.get("raw_output"))
     with st.expander("Intermediate steps and unavailable parameters", expanded=False):
-        st.json({
-            "intermediate_steps": trace.get("intermediate_steps") or (),
-            "unresolved_or_rejected_parameters": trace.get("unresolved_or_rejected_parameters") or (),
-        })
+        st.json({"intermediate_steps": trace.get("intermediate_steps") or (), "unresolved_or_rejected_parameters": trace.get("unresolved_or_rejected_parameters") or ()})
     with st.expander("Governed decision impact", expanded=False):
-        st.json({
-            "blocking_rule_record": trace.get("blocking_rule_record"),
-            "recommendation_impact": trace.get("recommendation_impact"),
-            "configuration_versions": trace.get("configuration_versions") or {},
-        })
+        st.json({"blocking_rule_record": trace.get("blocking_rule_record"), "recommendation_impact": trace.get("recommendation_impact"), "configuration_versions": trace.get("configuration_versions") or {}})
 
 
 def _render_reconciliation(presentation: Mapping[str, Any]) -> None:
@@ -104,13 +95,7 @@ def _render_reconciliation(presentation: Mapping[str, Any]) -> None:
     st.write(f"**Reconciliation ID:** `{item.get('reconciliation_id')}`")
     st.write(f"**Authoritative service:** `{item.get('authoritative_service')}`")
     with st.expander("Reconciliation evidence", expanded=False):
-        st.json({
-            "exact_matches": item.get("exact_matches") or (),
-            "tolerated_differences": item.get("tolerated_differences") or (),
-            "mismatches": item.get("mismatches") or (),
-            "unavailable_evidence": item.get("unavailable_evidence") or (),
-            "tolerance_rules": item.get("tolerance_rules") or (),
-        })
+        st.json({"exact_matches": item.get("exact_matches") or (), "tolerated_differences": item.get("tolerated_differences") or (), "mismatches": item.get("mismatches") or (), "unavailable_evidence": item.get("unavailable_evidence") or (), "tolerance_rules": item.get("tolerance_rules") or ()})
 
 
 def _render_sourcemate(presentation: Mapping[str, Any]) -> None:
@@ -128,7 +113,7 @@ def _render_sourcemate(presentation: Mapping[str, Any]) -> None:
     with st.expander("Assumption evidence references", expanded=False):
         st.dataframe(pd.DataFrame(item.get("assumption_sources") or []), use_container_width=True, hide_index=True)
     for limitation in item.get("limitations") or ():
-        st.caption(limititation if False else limitation)
+        st.caption(limitation)
 
 
 def _render_human_review(presentation: Mapping[str, Any]) -> None:
@@ -149,12 +134,5 @@ def render_governed_calculation_explorer(presentation: Mapping[str, Any]) -> Non
     status[2].info("Evidence disclosed")
     status[3].info("Human approval mandatory")
     section = st.radio("Explorer section", SECTIONS, horizontal=True, label_visibility="collapsed")
-    renderers = {
-        "Overview": _render_overview,
-        "Assumptions": _render_assumptions,
-        "Calculation Trace": _render_trace,
-        "Reconciliation": _render_reconciliation,
-        "SourceMate": _render_sourcemate,
-        "Human Review": _render_human_review,
-    }
+    renderers = {"Overview": _render_overview, "Assumptions": _render_assumptions, "Calculation Trace": _render_trace, "Reconciliation": _render_reconciliation, "SourceMate": _render_sourcemate, "Human Review": _render_human_review}
     renderers[section](presentation)
