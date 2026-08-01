@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timezone
 from decimal import Decimal, InvalidOperation
 import hashlib
@@ -47,6 +47,7 @@ class CalculationTrace:
     human_review_status: str
     timestamp: str
     trace_id: str
+    configuration_versions: dict = field(default_factory=dict)
 
 
 def _canonical_number(value: int | float | Decimal) -> dict[str, str]:
@@ -168,6 +169,7 @@ def build_trace(
         asdict(result) for result in ordered_resolutions if not result.resolved
     )
     steps = tuple(asdict(step) for step in intermediate_steps)
+    governed_configuration_versions = dict(configuration_versions or {})
     identity = {
         "contract": TRACE_CONTRACT_VERSION,
         "calculation_id": calculation_id,
@@ -184,7 +186,7 @@ def build_trace(
         "threshold_record": threshold_record,
         "blocking_rule_record": blocking_rule_record,
         "recommendation_impact": recommendation_impact,
-        "configuration_versions": configuration_versions or {},
+        "configuration_versions": governed_configuration_versions,
     }
     trace_id = deterministic_trace_id(identity)
     return CalculationTrace(
@@ -208,4 +210,5 @@ def build_trace(
         human_review_status,
         timestamp or datetime.now(timezone.utc).isoformat(),
         trace_id,
+        governed_configuration_versions,
     )
