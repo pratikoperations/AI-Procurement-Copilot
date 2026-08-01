@@ -8,7 +8,7 @@ import hashlib
 import json
 from typing import Any, Mapping
 
-from modules.calculation_trace import CalculationTrace, deterministic_trace_id
+from modules.calculation_trace import CalculationTrace
 
 RECONCILIATION_CONTRACT_VERSION = "AIPC-RECON-1.0"
 CLASSIFICATIONS = {
@@ -31,6 +31,12 @@ class ToleranceRule:
     field_path: str
     absolute_tolerance: Decimal = Decimal("0")
     classification: str = "rounding_only_difference"
+
+    def __post_init__(self) -> None:
+        if self.classification not in {"rounding_only_difference", "unit_display_difference"}:
+            raise ValueError("Tolerance rules may classify only rounding or unit-display differences")
+        if self.absolute_tolerance < 0:
+            raise ValueError("Tolerance must be non-negative")
 
 
 @dataclass(frozen=True)
@@ -112,26 +118,22 @@ def reconcile_trace(
     unavailable_evidence: tuple[str, ...] = (),
     expected_blocking_rule: Any = None,
     expected_recommendation_impact: Any = None,
+    repeated_trace_id: str | None = None,
 ) -> ReconciliationResult:
     """Compare a trace with existing authoritative results without recalculation."""
-    metadata_errors = []
-    if trace.calculation_id != calculation_id:
-        metadata_errors.append("calculation_id")
-    if trace.formula_id != formula_id:
-        metadata_errors.append("formula_id")
-    if trace.formula_version != formula_version:
-        metadata_errors.append("formula_version")
-
     exact: list[str] = []
     tolerated: list[dict] = []
     mismatches: list[dict] = []
     rules = {rule.field_path: rule for rule in tolerance_rules}
 
-    if metadata_errors:
-        mismatches.extend(
-            asdict(FieldDifference(field, "expected", "trace", "metadata_defect"))
-            for field in metadata_errors
-        )
+    metadata_pairs = (
+        ("calculation_id", calculation_id, trace.calculation_id),
+        ("formula_id", formula_id, trace.formula_id),
+        ("formula_version", formula_version, trace.formula_version),
+    )
+    for field, expected, actual in metadata_pairs:
+        if expected != actual:
+            mismatches.append(asdict(FieldDifference(field, expected, actual, "metadata_defect")))
 
     for field_path in compared_fields:
         try:
@@ -154,27 +156,8 @@ def reconcile_trace(
         mismatches.append(asdict(FieldDifference("blocking_rule_record", expected_blocking_rule, trace.blocking_rule_record, "adapter_defect")))
     if expected_recommendation_impact is not None and trace.recommendation_impact != expected_recommendation_impact:
         mismatches.append(asdict(FieldDifference("recommendation_impact", expected_recommendation_impact, trace.recommendation_impact, "adapter_defect")))
-
-    reproduced = deterministic_trace_id({
-        "contract": trace.trace_contract_version,
-        "calculation_id": trace.calculation_id,
-        "formula_id": trace.formula_id,
-        "formula_version": trace.formula_version,
-        "category": trace.category,
-        "supplier": trace.supplier,
-        "rfq_scenario": trace.rfq_scenario,
-        "input_snapshot": trace.input_snapshot,
-        "resolved_parameters": trace.resolved_parameters,
-        "unresolved_parameters": trace.unresolved_or_rejected_parameters,
-        "raw_output": trace.raw_output,
-        "weighted_contribution": trace.weighted_contribution,
-        "threshold_record": trace.threshold_record,
-        "blocking_rule_record": trace.blocking_rule_record,
-        "recommendation_impact": trace.recommendation_impact,
-        "configuration_versions": {},
-    })
-    if reproduced != trace.trace_id:
-        mismatches.append(asdict(FieldDifference("trace_id", trace.trace_id, reproduced, "adapter_defect")))
+    if repeated_trace_id is not None and repeated_trace_id != trace.trace_id:
+        mismatches.append(asdict(FieldDifference("trace_id", trace.trace_id, repeated_trace_id, "adapter_defect")))
 
     if mismatches:
         classification = mismatches[0]["classification"]
