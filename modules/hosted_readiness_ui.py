@@ -8,18 +8,20 @@ import streamlit as st
 HOSTED_READINESS_CSS = """
 /*
  * Streamlit 1.59.1 / BaseWeb select governance.
- * Target both the select wrapper and the actual combobox element because the
- * generated DOM can place focus, border and aria-expanded state on different
- * nested nodes across desktop and mobile browsers.
+ * The hosted DOM applies the primary border to nested select wrappers while the
+ * application-wide focus rule can outline an inner input/tabindex node. Reset
+ * those nested visual states and render one ring on the select container.
  */
 [data-baseweb="select"],
 [data-baseweb="select"] > div,
+[data-baseweb="select"] > div > div,
 [data-baseweb="select"] [role="combobox"] {
     max-width: 100% !important;
     min-width: 0 !important;
 }
 
 [data-baseweb="select"] > div,
+[data-baseweb="select"] > div > div,
 [data-baseweb="select"] [role="combobox"] {
     border-color: var(--aipc-border) !important;
     outline: 3px solid transparent !important;
@@ -27,20 +29,33 @@ HOSTED_READINESS_CSS = """
     box-shadow: none !important;
 }
 
-[data-baseweb="select"]:hover > div,
-[data-baseweb="select"] [role="combobox"]:hover {
+/* Neutralize the clipped inner yellow focus marker without removing focus. */
+[data-baseweb="select"] :is(
+    input,
+    [role="combobox"],
+    [tabindex]:not([tabindex="-1"])
+):focus,
+[data-baseweb="select"] :is(
+    input,
+    [role="combobox"],
+    [tabindex]:not([tabindex="-1"])
+):focus-visible {
+    outline: 3px solid transparent !important;
+    outline-offset: 0 !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+[data-baseweb="select"]:hover > div {
     border-color: rgba(148, 163, 184, 0.65) !important;
 }
 
 [data-baseweb="select"]:focus-within > div,
-[data-baseweb="select"]:focus-within [role="combobox"],
-[data-baseweb="select"] [role="combobox"]:focus,
-[data-baseweb="select"] [role="combobox"]:focus-visible,
-[data-baseweb="select"] [role="combobox"][aria-expanded="true"] {
+[data-baseweb="select"]:has([role="combobox"][aria-expanded="true"]) > div {
     border-color: var(--aipc-select-focus) !important;
     outline: 3px solid transparent !important;
     outline-offset: 0 !important;
-    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.42) !important;
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.46) !important;
 }
 
 [data-baseweb="select"]:has([aria-invalid="true"]) > div,
@@ -61,12 +76,32 @@ HOSTED_READINESS_CSS = """
     overflow-wrap: anywhere !important;
 }
 
+/* Shared containment contract. */
+html,
+body,
+[data-testid="stApp"],
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"],
+[data-testid="stMainBlockContainer"] {
+    max-width: 100% !important;
+    min-width: 0 !important;
+}
+
+[data-testid="stDataFrame"],
+[data-testid="stTable"] {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+}
+
 /*
- * Mobile cards: Streamlit may retain inline column widths. Force a vertical
- * flow at narrow browser widths, including .stColumn wrappers used by recent
- * Streamlit releases.
+ * Foldable/tablet touch layout. Physical Android screenshots can expose a CSS
+ * viewport wider than a conventional phone even though the available content
+ * width is narrow after the sidebar opens. Use pointer capability plus a broad
+ * width ceiling to force critical Streamlit columns into a readable two-column
+ * grid. Conventional desktop pointers keep the desktop multi-column layout.
  */
-@media (max-width: 900px) {
+@media (hover: none) and (pointer: coarse) and (max-width: 1400px) {
     html,
     body,
     [data-testid="stApp"],
@@ -74,15 +109,12 @@ HOSTED_READINESS_CSS = """
     [data-testid="stMain"],
     [data-testid="stMainBlockContainer"] {
         width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
         overflow-x: clip !important;
     }
 
     [data-testid="stHorizontalBlock"] {
-        display: flex !important;
-        flex-direction: column !important;
-        flex-wrap: nowrap !important;
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         width: 100% !important;
         max-width: 100% !important;
         min-width: 0 !important;
@@ -93,7 +125,7 @@ HOSTED_READINESS_CSS = """
     [data-testid="stHorizontalBlock"] > .stColumn,
     div[data-testid="column"],
     .stColumn {
-        flex: 1 1 100% !important;
+        flex: none !important;
         width: 100% !important;
         max-width: 100% !important;
         min-width: 0 !important;
@@ -117,13 +149,6 @@ HOSTED_READINESS_CSS = """
         white-space: normal !important;
     }
 
-    [data-testid="stDataFrame"],
-    [data-testid="stTable"] {
-        max-width: 100% !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch;
-    }
-
     [data-testid="stSidebar"] {
         max-width: min(22rem, 92vw) !important;
     }
@@ -131,6 +156,29 @@ HOSTED_READINESS_CSS = """
     [data-testid="stSidebarContent"] {
         max-width: 100% !important;
         overflow-x: clip !important;
+    }
+}
+
+/* Narrow touch screens use one column. */
+@media (hover: none) and (pointer: coarse) and (max-width: 760px),
+       (max-width: 600px) {
+    [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    [data-testid="stHorizontalBlock"] > [data-testid="column"],
+    [data-testid="stHorizontalBlock"] > .stColumn,
+    div[data-testid="column"],
+    .stColumn {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
     }
 }
 """
