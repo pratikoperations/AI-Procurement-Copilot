@@ -1,8 +1,10 @@
 """Normalized, deterministic calculation-trace contracts."""
 from __future__ import annotations
+
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from decimal import Decimal
+from datetime import date, datetime, timezone
+from decimal import Decimal, InvalidOperation
 import hashlib
 import json
 from typing import Any
@@ -47,30 +49,77 @@ class CalculationTrace:
     trace_id: str
 
 
+def _canonical_number(value: int | float | Decimal) -> dict[str, str]:
+    if isinstance(value, bool):
+        raise TypeError("Boolean values must not be normalized as numbers")
+    try:
+        decimal_value = Decimal(str(value))
+    except (InvalidOperation, ValueError) as exc:
+        raise ValueError(f"Invalid numeric trace value: {value}") from exc
+    if not decimal_value.is_finite():
+        raise ValueError("Non-finite values are not traceable")
+    if decimal_value == 0:
+        decimal_value = Decimal(0)
+    normalized = decimal_value.normalize()
+    return {"__number__": format(normalized, "f")}
+
+
 def _normalize(value: Any) -> Any:
-    if isinstance(value, dict):
-        return {str(k): _normalize(v) for k, v in sorted(value.items(), key=lambda item: str(item[0])) if str(k) not in _VOLATILE_KEYS}
+    if isinstance(value, Mapping):
+        return {
+            str(key): _normalize(item)
+            for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))
+            if str(key) not in _VOLATILE_KEYS
+        }
     if isinstance(value, (list, tuple)):
-        return [_normalize(v) for v in value]
+        return [_normalize(item) for item in value]
     if isinstance(value, set):
-        return sorted(_normalize(v) for v in value)
-    if isinstance(value, float):
-        if value != value or value in (float("inf"), float("-inf")):
-            raise ValueError("Non-finite values are not traceable")
-        return format(Decimal(str(value)).normalize(), "f")
-    if isinstance(value, Decimal):
-        return format(value.normalize(), "f")
-    if isinstance(value, (str, int, bool)) or value is None:
+        normalized_items = [_normalize(item) for item in value]
+        return sorted(
+            normalized_items,
+            key=lambda item: json.dumps(
+                item, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+            ),
+        )
+    if isinstance(value, bool):
         return value
-    if hasattr(value, "to_dict"):
-        return _normalize(value.to_dict())
-    return repr(value)
+    if isinstance(value, (int, float, Decimal)):
+        return _canonical_number(value)
+    if isinstance(value, datetime):
+        normalized = value
+        if normalized.tzinfo is None:
+            normalized = normalized.replace(tzinfo=timezone.utc)
+        normalized = normalized.astimezone(timezone.utc)
+        return {"__datetime__": normalized.isoformat()}
+    if isinstance(value, date):
+        return {"__date__": value.isoformat()}
+    if isinstance(value, str) or value is None:
+        return value
+    to_dict = getattr(value, "to_dict", None)
+    if callable(to_dict):
+        governed = to_dict()
+        if not isinstance(governed, Mapping):
+            raise TypeError("Governed to_dict() output must be a mapping")
+        return _normalize(governed)
+    raise TypeError(f"Unsupported non-deterministic trace value type: {type(value).__name__}")
 
 
 def deterministic_trace_id(identity_payload: dict) -> str:
     normalized = _normalize(identity_payload)
-    raw = json.dumps(normalized, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    raw = json.dumps(
+        normalized, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    )
     return "trace_" + hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _resolution_sort_key(result: ParameterResolutionResult) -> tuple:
+    return (
+        result.assumption_id,
+        result.selected_source_level or "",
+        result.selected_source_record_id or "",
+        result.version or "",
+        "0" if result.resolved else "1",
+    )
 
 
 def build_trace(
@@ -93,9 +142,15 @@ def build_trace(
     configuration_versions: dict | None = None,
     timestamp: str | None = None,
 ) -> CalculationTrace:
-    resolved = tuple(asdict(r) for r in resolutions if r.resolved)
-    unresolved = tuple(asdict(r) for r in resolutions if not r.resolved)
-    steps = tuple(asdict(s) for s in intermediate_steps)
+    if human_review_status != "required":
+        raise ValueError("Basic Interview Version traces require human review")
+
+    ordered_resolutions = tuple(sorted(resolutions, key=_resolution_sort_key))
+    resolved = tuple(asdict(result) for result in ordered_resolutions if result.resolved)
+    unresolved = tuple(
+        asdict(result) for result in ordered_resolutions if not result.resolved
+    )
+    steps = tuple(asdict(step) for step in intermediate_steps)
     identity = {
         "contract": TRACE_CONTRACT_VERSION,
         "calculation_id": calculation_id,
@@ -116,9 +171,24 @@ def build_trace(
     }
     trace_id = deterministic_trace_id(identity)
     return CalculationTrace(
-        TRACE_CONTRACT_VERSION, calculation_id, formula_id, formula_version, category,
-        supplier, rfq_scenario, dict(input_snapshot), tuple(r.assumption_id for r in resolutions),
-        resolved, unresolved, steps, raw_output, weighted_contribution, threshold_record,
-        blocking_rule_record, recommendation_impact, human_review_status,
-        timestamp or datetime.now(timezone.utc).isoformat(), trace_id,
+        TRACE_CONTRACT_VERSION,
+        calculation_id,
+        formula_id,
+        formula_version,
+        category,
+        supplier,
+        rfq_scenario,
+        dict(input_snapshot),
+        tuple(sorted(result.assumption_id for result in ordered_resolutions)),
+        resolved,
+        unresolved,
+        steps,
+        raw_output,
+        weighted_contribution,
+        threshold_record,
+        blocking_rule_record,
+        recommendation_impact,
+        human_review_status,
+        timestamp or datetime.now(timezone.utc).isoformat(),
+        trace_id,
     )
