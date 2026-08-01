@@ -1,6 +1,7 @@
 """Category-aware supplier scoring engine."""
 
 import pandas as pd
+from streamlit.runtime.scriptrunner import get_script_run_ctx
 
 from modules.esg import calculate_esg_score
 from modules.flexible_laminate_risk import apply_flexible_laminate_risk_to_tco
@@ -38,6 +39,11 @@ def _is_steel_route(assumptions):
     )
 
 
+def _in_streamlit_runtime() -> bool:
+    """Return True only for an active Streamlit script execution context."""
+    return get_script_run_ctx(suppress_warning=True) is not None
+
+
 def _dispatch_steel_governed_route(df, assumptions):
     """Render and terminate the isolated Steel route before generic scoring."""
     apply_hosted_readiness_overrides()
@@ -48,12 +54,7 @@ def _dispatch_steel_governed_route(df, assumptions):
 
 
 def _enrich_steel_scores(df, assumptions):
-    """Adapt governed C3 Steel scores to the stable application score contract.
-
-    Retained for direct analytical tests and internal compatibility. The hosted
-    application dispatches Steel before generic scoring through
-    ``_dispatch_steel_governed_route``.
-    """
+    """Adapt governed C3 Steel scores to the stable analytical score contract."""
     profile = assumptions.get("steel_profile", "CR_COIL_COMMERCIAL")
     display = assumptions.get("display_currency", "Both")
     scored, recommendation = score_and_recommend_steel_suppliers(
@@ -84,7 +85,9 @@ def enrich_supplier_scores(df, assumptions, weights=None):
     category = assumptions.get("category", "Packaging Procurement")
     commodity = assumptions.get("commodity", "Corrugated Board")
     if _is_steel_route(assumptions):
-        _dispatch_steel_governed_route(df, assumptions)
+        if _in_streamlit_runtime():
+            _dispatch_steel_governed_route(df, assumptions)
+        return _enrich_steel_scores(df, assumptions)
 
     weights = weights or (
         RAW_MATERIAL_WEIGHTS if category == "Raw Material Procurement" else DEFAULT_WEIGHTS
