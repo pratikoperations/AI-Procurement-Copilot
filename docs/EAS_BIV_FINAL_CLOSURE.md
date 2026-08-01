@@ -10,7 +10,7 @@ Create a governed, read-only explanation and evidence layer around the existing 
 
 ## Closure baseline
 
-- Starting authoritative main SHA: `834b34db145cc0156196579f7419e7db7b438106`
+- Gate 5 starting baseline / Gate 4 merged baseline SHA: `834b34db145cc0156196579f7419e7db7b438106`
 - Merged Gate 4 PR: `#42`
 - Gate 4 accepted head SHA: `cbc4652290dbf5c7579cce7b30d37ee64bc7a225`
 - Gate 4 merge commit: `834b34db145cc0156196579f7419e7db7b438106`
@@ -22,6 +22,8 @@ Create a governed, read-only explanation and evidence layer around the existing 
 - Python compilation: passed
 - Streamlit smoke: passed
 - Warning boundary: one pre-existing pandas `FutureWarning`; no new Gate 4 warning
+
+This SHA is the pre-Gate 5 baseline, not the final frozen Gate 5 main SHA. The final resulting main SHA is recorded in the governed post-merge verification and final-freeze declaration so this closure record remains valid without a second documentation PR.
 
 ## Gate capability summary
 
@@ -190,12 +192,16 @@ Physical browser and device observations are not inferred from automated tests. 
 - Human-review status is read-only and is not persisted.
 - Some technical evidence remains displayed in expandable JSON structures.
 
+## Final-freeze SHA recording
+
+The merge commit created when the governed Gate 5 PR enters `main` is the final resulting main SHA. That SHA is captured in the governed post-merge verification and final-freeze declaration together with the merged PR state, exact file boundary, CI result and retained-governance checks. The declaration is the authoritative freeze record; this repository document intentionally records the pre-merge Gate 5 baseline.
+
 ## Final freeze criteria
 
 The programme may be declared frozen when:
 
 1. Gate 5 documentation is governed, CI-validated and merged.
-2. The final resulting main SHA is recorded.
+2. The final resulting main SHA is captured in the governed post-merge verification and final-freeze declaration.
 3. All closure documents use consistent contract, CI and coverage facts.
 4. No unsupported hosted, external-verification, production or realized-savings claim remains.
 5. Manual browser/device items are either evidenced as passed/failed or remain explicitly `not performed`.
