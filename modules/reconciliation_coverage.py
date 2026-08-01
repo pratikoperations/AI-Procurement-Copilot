@@ -27,7 +27,7 @@ RECONCILIATION_COVERAGE = (
     ReconciliationCoverage("REC-TCO-PKG", "tco", "Packaging", "TCO-001", "F-TCO-PKG", "modules/tco.py", "calculate_supplier_tco", "authoritative_output"),
     ReconciliationCoverage("REC-TCO-RM", "tco", "Raw materials", "TCO-002", "F-TCO-RM", "modules/raw_material_tco.py", "calculate_raw_material_tco", "authoritative_output"),
     ReconciliationCoverage("REC-RISK-GEN", "risk", "Generic", "RSK-001", "F-RISK-GEN", "modules/risk.py", "calculate_risk", "authoritative_output"),
-    ReconciliationCoverage("REC-RISK-C2", "risk", "Flexible Laminates", "RSK-002", "F-RISK-GEN", "modules/flexible_laminate_risk.py", "calculate_flexible_laminate_risk", "authoritative_output"),
+    ReconciliationCoverage("REC-RISK-C2", "risk", "Flexible Laminates", "RSK-002", "F-RISK-GEN", "modules/flexible_laminate_risk.py", "assess_flexible_laminate_supplier", "authoritative_output"),
     ReconciliationCoverage("REC-RISK-C3", "risk", "Steel", "RSK-003", "F-SCORE-STEEL", "modules/steel_risk.py", "score_and_recommend_steel_suppliers", "authoritative_output"),
     ReconciliationCoverage("REC-SCORE-GEN", "scoring", "Packaging and Raw materials", "SCR-001", "F-SCORE-GEN", "modules/scoring.py", "enrich_supplier_scores", "weighted_contribution"),
     ReconciliationCoverage("REC-SCORE-C3", "scoring", "Steel", "SCR-002", "F-SCORE-STEEL", "modules/steel_risk.py", "score_and_recommend_steel_suppliers", "weighted_contribution"),
