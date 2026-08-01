@@ -1,8 +1,8 @@
 # AI Procurement Copilot
 
-**Governed, category-aware procurement decision support for RFQ comparison and sourcing evaluation.**
+**Governed, category-aware procurement decision support for RFQ comparison, sourcing evaluation and calculation explainability.**
 
-> Portfolio demonstration · Read-only · Validation-gated · Human approval mandatory · No live ERP write-back
+> Portfolio demonstration · Read-only governance layers · Validation-gated · Human approval mandatory · No live ERP write-back
 
 ![AI Procurement Copilot v1.2 hero](docs/assets/hero/ai_procurement_copilot_v1_2_hero.svg)
 
@@ -12,32 +12,32 @@
 
 ## Current repository status
 
-- Public application identity: **AI Procurement Copilot v1.2 — Portfolio Presentation Release**
-- Current authoritative main SHA after S1 closure correction: **`e7d3d337d4bfeeb0b750372b6c1cf8537959f368`**
+- Gate 5 starting baseline / Gate 4 merged baseline: **`834b34db145cc0156196579f7419e7db7b438106`**
+- Explainability, Assumption Provenance and SourceMate — Basic Interview Version: **Gate 5 provides documentation, evidence and final-closure assurance without changing production functionality**
+- Governed Calculation Explorer contract: **`AIPC-GOVERNED-EXPLORER-1.0`**
+- SourceMate Basic contract: **`AIPC-SOURCEMATE-BASIC-1.0`**
+- Calculation trace contract: **`AIPC-CALC-TRACE-1.0`**
+- Accepted Gate 4 CI: **Quality Checks run 816, run ID `30706340753`, job ID `91386012618`, Python 3.11.15, 1011 passed, 0 failures, 0 errors, compilation passed, Streamlit smoke passed**
+- Warning boundary: **one pre-existing pandas FutureWarning; no new Gate 4 warning**
 - Frozen v1.2 release baseline: **`4803b1d72fa8a6509d9d7faf0e9decc677c447be`**
 - Frozen v1.1 baseline: **`b85cd37aaae709058eb15350d680b18c03da46ba`**
-- Build Group S1: **S1.1–S1.5 complete, including S1.5.1 responsive containment correction**
-- Controlled v1.3 workbook review and analytical-handoff foundation: **merged, governed and default-off unless explicitly enabled**
-- Final verified S1 CI: **Quality Checks #621 — 447 passed, 0 failed, 0 errors, 1 existing pandas FutureWarning; Streamlit smoke passed**
-- S1.5.1 corrective PR: **PR #29**, merged as **`e7d3d337d4bfeeb0b750372b6c1cf8537959f368`**
-- Tag: **not created by deliberate release decision**
-- GitHub Release: **not created by deliberate release decision**
+- Tag and GitHub Release: **not created by deliberate release decision**
 
-The frozen v1.2 release record remains historical and unchanged. Later controlled builds add governed workbook intake, review orchestration, a default-off analytical handoff, UI hardening, responsive behavior and runtime efficiency without reclassifying the v1.2 release as incomplete.
+The frozen v1.1 and v1.2 release records remain historical and unchanged. Later controlled builds are additive and do not reclassify those releases as incomplete.
 
 ## Business problem
 
-Procurement teams often compare supplier quotations across disconnected spreadsheets, inconsistent assumptions and incomplete evidence. A lowest-price result can be mistaken for a best-value decision, while risk, delivery, quality, commercial terms and data confidence remain difficult to explain.
+Procurement teams often compare supplier quotations across disconnected spreadsheets, inconsistent assumptions and incomplete evidence. A lowest-price result can be mistaken for a best-value decision, while the formula source, assumption provenance, trace identity and evidence quality remain difficult to explain.
 
-AI Procurement Copilot turns that fragmented review into a visible, governed decision-support workflow. It helps procurement professionals compare quotations, test sourcing scenarios, prepare negotiation positions and generate consistent review outputs without replacing human approval.
+AI Procurement Copilot turns that fragmented review into a visible, governed decision-support workflow. It helps procurement professionals compare quotations, test sourcing scenarios, prepare negotiation positions and inspect calculation evidence without replacing human approval.
 
 ## Five business questions answered
 
 1. Are supplier quotations sufficiently complete and valid for comparison?
 2. How do quotations compare after governed currency, unit and comparison-basis handling?
 3. Which commercial, cost, risk and sourcing factors materially affect the recommendation?
-4. When should the system withhold award-oriented language because evidence is insufficient?
-5. Which executive and downloadable outputs can support human procurement review?
+4. Which calculation, assumptions, versions and evidence support a result?
+5. When should the system withhold or qualify award-oriented language because evidence is incomplete?
 
 ## Workflow
 
@@ -46,8 +46,9 @@ AI Procurement Copilot turns that fragmented review into a visible, governed dec
 3. Validate structure, completeness, currency, units and business rules.
 4. Compare supplier cost, risk, performance, ESG and commercial conditions.
 5. Review scenarios, allocation options and negotiation intelligence.
-6. Generate executive-facing and machine-readable outputs.
-7. Complete human procurement review and approval outside the application.
+6. Inspect the Governed Calculation Explorer, assumption provenance, trace, reconciliation and SourceMate evidence.
+7. Generate executive-facing and machine-readable outputs.
+8. Complete human procurement review and approval outside the application.
 
 See [User Workflow](docs/03_USER_WORKFLOW.md).
 
@@ -65,7 +66,26 @@ See [User Workflow](docs/03_USER_WORKFLOW.md).
 - Executive memos, supplier communication and governed downloads
 - Read-only ERP workbook structural preview with draft mappings
 - Controlled governed-workbook review and default-off analytical handoff
-- Responsive presentation and deterministic export caching
+- Governed calculation catalogue and assumption provenance
+- Deterministic calculation traces with retained configuration versions
+- Reconciliation and export evidence assurance
+- Governed Calculation Explorer and SourceMate Basic Evidence View
+- Explicit adapter-backed and `unsupported_deferred_coverage` states
+- Evidence-derived, read-only human-review checklist
+
+## EAS-BIV coverage
+
+Dedicated adapter-backed coverage remains exactly:
+
+- `REC-PET`
+- `REC-KRF`
+- `REC-COR`
+- `REC-LAM`
+- `REC-STL`
+- `REC-SCORE-GEN`
+- `REC-ELG`
+
+All remaining non-export routes remain `unsupported_deferred_coverage`. Deferred routes are not represented as adapter-reconciled and do not receive fabricated traces.
 
 ## What this project proves
 
@@ -73,60 +93,63 @@ See [User Workflow](docs/03_USER_WORKFLOW.md).
 - Ability to translate procurement requirements into a working application
 - Category-aware comparison and decision-support logic
 - Controlled validation and human-review gates
+- Calculation metadata, assumption provenance and deterministic trace design
+- Reconciliation and evidence-boundary governance
 - Automated testing, branch discipline and staged release governance
 - Clear separation between business-facing reports and audit outputs
 - Governed ERP-export intake without overstating integration maturity
-- Accessibility and responsive-presentation hardening appropriate to a portfolio application
+- Scope discipline through explicit deferred coverage
 
 ## What it does not prove
 
 - Production deployment readiness
 - Live SAP or Oracle integration
-- Universal ERP mappings
-- Enterprise-scale performance
+- Universal ERP or category compatibility
+- Enterprise-scale performance or security
+- External evidence verification
 - Realized savings from live organizational use
 - Autonomous sourcing, supplier approval or award execution
-- ERP write-back
-- Formal WCAG certification
+- Approval persistence, production allocation or ERP write-back
+- Formal browser/mobile or WCAG certification
 
 ## Architecture
 
 ![Five-stage architecture](docs/assets/diagrams/architecture_flow.svg)
 
-The application keeps structural intake, governed review, analytical execution and human approval boundaries explicit. The controlled analytical-handoff route remains governed and default-off unless separately enabled.
+The application keeps structural intake, analytical execution, explainability, evidence presentation and human approval boundaries explicit. Existing business services remain authoritative; formula metadata is documentation only.
 
-See [Architecture](docs/04_ARCHITECTURE.md) and [Data and Validation](docs/05_DATA_AND_VALIDATION.md).
+See [Architecture](docs/04_ARCHITECTURE.md), [Data and Validation](docs/05_DATA_AND_VALIDATION.md) and [EAS-BIV Final Closure](docs/EAS_BIV_FINAL_CLOSURE.md).
 
 ## Test and quality evidence
 
-The repository uses automated checks for compilation, procurement calculations, validation, currency and unit integrity, exports, UI contracts, governed-workbook controls and Streamlit startup.
+Accepted EAS-BIV Gate 4 evidence:
 
-Final S1 evidence:
+- Gate 4 merged baseline SHA: `834b34db145cc0156196579f7419e7db7b438106`;
+- PR #42 merged the Governed Calculation Explorer and SourceMate Basic Evidence View;
+- Quality Checks run 816, run ID `30706340753`, job ID `91386012618`;
+- Python 3.11.15;
+- 1011 regression tests passed with 0 failures and 0 errors;
+- Python compilation passed;
+- canonical Streamlit smoke passed;
+- one pre-existing pandas FutureWarning remained;
+- no new Gate 4 warning was introduced.
 
-- authoritative main SHA: `e7d3d337d4bfeeb0b750372b6c1cf8537959f368`;
-- PR #29 merged the S1.5.1 responsive containment correction;
-- Quality Checks run #621, run ID `30572516967`: **success**;
-- 447 regression tests passed with 0 failures and 0 errors;
-- one existing pandas FutureWarning remained in adversarial-input testing;
-- canonical Streamlit smoke test passed;
-- responsive CSS is applied through `render_sidebar()` calling `apply_ui_theme()`;
-- code and automated tests verify viewport containment, metric wrapping, tablet/mobile reflow, internal table scrolling, visible keyboard-focus rules and reduced-motion handling;
-- the governed route and analytical handoff remain default-off unless explicitly enabled;
-- no analytical, validation, scoring, threshold, workbook-contract or governance logic changed in S1.5.1.
+Automated and source-level verification do not constitute physical browser-device certification. Manual hosted desktop and Android observations remain `not performed` unless actual evidence is separately supplied.
 
-Automated and code-level verification do not constitute formal browser-device certification. Manual browser review remains the appropriate final check for computed layout, focus appearance and physical scrollbar behavior.
-
-See [Test Evidence](docs/06_TEST_EVIDENCE.md), [Release Record](docs/09_RELEASE_RECORD.md) and [S1 Build Closure](docs/S1_BUILD_CLOSURE.md).
+See [Test Evidence](docs/06_TEST_EVIDENCE.md), [EAS-BIV Interview Evidence Pack](docs/EAS_BIV_INTERVIEW_EVIDENCE_PACK.md) and [Release Record](docs/09_RELEASE_RECORD.md).
 
 ## Governance and limitations
 
 - Human procurement approval remains mandatory.
-- Failed validation can block or condition recommendation language.
+- Formula metadata is documentation only and is never executed.
+- Existing business services produce authoritative results.
+- Unavailable evidence is disclosed and is not reconstructed.
+- SourceMate Basic presents internal evidence references and does not perform external verification.
+- Deferred routes are not represented as adapter-reconciled.
 - The application does not execute transactions or mutate ERP systems.
 - Illustrative monetary outputs are not realized-savings claims.
 - Synthetic or sanitized data should be used for public demonstration.
-- Production use would require identity, access, security, privacy, logging and operational controls outside this portfolio scope.
-- Accessibility hardening is not a formal WCAG certification.
+- Production use would require enterprise identity, security, privacy, logging, monitoring and operational controls.
 
 See [Governance and Limitations](docs/07_GOVERNANCE_AND_LIMITATIONS.md).
 
@@ -142,6 +165,8 @@ See [Governance and Limitations](docs/07_GOVERNANCE_AND_LIMITATIONS.md).
 - [Demo Guide](docs/08_DEMO_GUIDE.md)
 - [Release Record](docs/09_RELEASE_RECORD.md)
 - [S1 Build Closure](docs/S1_BUILD_CLOSURE.md)
+- [EAS-BIV Final Closure](docs/EAS_BIV_FINAL_CLOSURE.md)
+- [EAS-BIV Interview Evidence Pack](docs/EAS_BIV_INTERVIEW_EVIDENCE_PACK.md)
 
 ## Technical setup
 
@@ -169,8 +194,13 @@ Detailed setup and portability guidance remain in `SETUP_GUIDE.md`, `AI_HANDOFF_
 | v1.3 foundation | Versioned workbook contracts, adapter, orchestration, governed review and default-off analytical handoff |
 | S1.1–S1.4 | UI consistency, validation guidance, mobile responsiveness and runtime efficiency |
 | S1.5 | Accessibility and final UX assurance completed |
-| S1.5.1 | Responsive containment correction completed through PR #29 and merge `e7d3d337d4bfeeb0b750372b6c1cf8537959f368` |
+| S1.5.1 | Responsive containment correction completed through PR #29 |
+| EAS-BIV Gate 1A | Calculation catalogue and assumption provenance |
+| EAS-BIV Gate 2 | Governed parameter precedence and deterministic traces |
+| EAS-BIV Gate 3 | Reconciliation and export evidence assurance |
+| EAS-BIV Gate 4 | Governed Calculation Explorer and SourceMate Basic, merged as `834b34db145cc0156196579f7419e7db7b438106` |
+| EAS-BIV Gate 5 | Documentation, evidence and final closure |
 
 ## Historical relationship
 
-The v1.2 release remains a completed frozen historical baseline. Subsequent authorized work is additive and controlled. It does not rewrite v1.2 history or convert the portfolio application into a production, autonomous or live-ERP system.
+The v1.1 and v1.2 releases remain completed frozen historical baselines. Subsequent authorized work is additive and controlled. It does not rewrite release history or convert the portfolio application into a production, autonomous or live-ERP system.
