@@ -7,94 +7,24 @@ import streamlit as st
 
 HOSTED_READINESS_CSS = """
 /*
- * Streamlit 1.59.1 / BaseWeb select governance.
+ * Theme-level interactive accent governance.
+ * Streamlit Community Cloud previously rendered valid controls with its default
+ * red primary color while the application-wide keyboard focus token remained
+ * yellow. The combination appeared as a red select border plus a yellow stripe.
  *
- * Hosted evidence showed that the generated BaseWeb control retained two
- * independent visual states: Streamlit's primary-color treatment on the
- * immediate control shell and the application-wide focus token on a nested
- * focusable node. The nested focus indication was clipped at the trailing
- * indicator boundary and appeared as a yellow vertical stripe.
- *
- * Keep one visual owner: the immediate BaseWeb control shell. Locally remap
- * focus tokens to the governed blue, neutralize nested focus visuals, and
- * reserve red for aria-invalid only.
+ * `.streamlit/config.toml` now sets Streamlit's primary color to governed blue.
+ * This final token override aligns application keyboard focus with that same
+ * blue and removes the need for fragile BaseWeb select descendant selectors.
  */
-[data-baseweb="select"] {
-    --aipc-focus: var(--aipc-select-focus);
-    --primary-color: var(--aipc-select-focus);
-    max-width: 100% !important;
-    min-width: 0 !important;
-    border: 0 !important;
-    outline: 3px solid transparent !important;
-    outline-offset: 0 !important;
-    box-shadow: none !important;
+:root {
+    --aipc-focus: #58A6FF;
+    --aipc-select-focus: #58A6FF;
+    --primary-color: #58A6FF;
 }
 
-/* Exact visual owner for normal, focused and open select states. */
-[data-baseweb="select"] > div {
-    max-width: 100% !important;
-    min-width: 0 !important;
-    border: 1px solid var(--aipc-border) !important;
-    outline: 3px solid transparent !important;
-    outline-offset: 0 !important;
-    box-shadow: none !important;
-    transition: border-color 120ms ease, box-shadow 120ms ease;
-}
-
-/*
- * Nested BaseWeb input/combobox/tabindex nodes must not draw a second ring.
- * The transparent outline preserves the accessibility contract without using
- * outline:none. The trailing indicator shell must not expose a colored divider.
- */
-[data-baseweb="select"] :is(
-    input,
-    [role="combobox"],
-    [tabindex]:not([tabindex="-1"])
-) {
-    --aipc-focus: var(--aipc-select-focus);
-    outline-color: transparent !important;
-    box-shadow: none !important;
-}
-
-[data-baseweb="select"] :is(
-    input,
-    [role="combobox"],
-    [tabindex]:not([tabindex="-1"])
-):focus,
-[data-baseweb="select"] :is(
-    input,
-    [role="combobox"],
-    [tabindex]:not([tabindex="-1"])
-):focus-visible {
-    outline: 3px solid transparent !important;
-    outline-offset: 0 !important;
-    border-color: transparent !important;
-    box-shadow: none !important;
-}
-
-[data-baseweb="select"] > div > div:last-child {
-    border-left-color: transparent !important;
-    outline-color: transparent !important;
-    box-shadow: none !important;
-}
-
-[data-baseweb="select"]:hover > div {
-    border-color: rgba(148, 163, 184, 0.65) !important;
-}
-
-[data-baseweb="select"]:focus-within > div,
-[data-baseweb="select"]:has([aria-expanded="true"]) > div {
-    border-color: var(--aipc-select-focus) !important;
-    outline: 3px solid transparent !important;
-    outline-offset: 0 !important;
-    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.46) !important;
-}
-
-/* Genuine invalid state overrides valid focus/open state. */
-[data-baseweb="select"]:has([aria-invalid="true"]) > div,
-[data-baseweb="select"] [role="combobox"][aria-invalid="true"] {
+/* Preserve genuine validation red without styling normal focus as an error. */
+[aria-invalid="true"] {
     border-color: var(--aipc-error) !important;
-    box-shadow: 0 0 0 2px rgba(197, 48, 48, 0.32) !important;
 }
 
 /* Keep menu options readable and selected state unambiguous. */
