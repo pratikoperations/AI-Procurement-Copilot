@@ -1,6 +1,8 @@
 """Direct authoritative runtime and production-export assurance for EAS-BIV Gate 3."""
 from __future__ import annotations
 
+from copy import deepcopy
+from dataclasses import replace
 from io import BytesIO
 import json
 import math
@@ -11,7 +13,11 @@ import pandas as pd
 from modules.allocation import recommend_allocation
 from modules.allocation_optimizer import optimize_allocation
 from modules.calculation_reconciliation_gate3 import reconcile_trace
-from modules.calculation_trace import build_trace
+from modules.calculation_trace_adapters import (
+    build_recommendation_eligibility_trace,
+    build_should_cost_trace,
+    build_supplier_score_trace,
+)
 from modules.data_loader import get_demo_data, get_demo_suppliers, get_flexible_laminate_demo_suppliers
 from modules.esg import calculate_esg_score
 from modules.evidence_assurance import assure_excel_evidence, assure_json_evidence
@@ -23,6 +29,11 @@ from modules.raw_material_cost import calculate_raw_material_should_cost
 from modules.raw_material_risk import calculate_raw_material_risk
 from modules.raw_material_tco import calculate_raw_material_tco
 from modules.recommendation_eligibility import evaluate_recommendation_eligibility
+from modules.reconciliation_coverage import (
+    ADAPTER_BACKED_COVERAGE_IDS,
+    RECONCILIATION_COVERAGE,
+    adapter_coverage_classification,
+)
 from modules.risk import calculate_risk
 from modules.scenario import run_scenario_table
 from modules.scenario_engine import run_all_flexible_laminate_scenarios, run_intelligence_scenario
@@ -40,83 +51,185 @@ C2 = {"category":"Packaging Procurement","commodity":"Flexible Laminates","lamin
 STEEL_COST = {"annual_volume_kg":500000,"base_steel_usd_per_kg":0.72,"profile_premium_usd_per_kg":0.05,"rolling_conversion_usd_per_kg":0.10,"zinc_cost_usd_per_kg":0.0,"paint_treatment_usd_per_kg":0.0,"energy_surcharge_usd_per_kg":0.04,"yield_pct":96.0,"slitting_cutting_usd_per_kg":0.025,"packing_usd_per_kg":0.015,"freight_usd_per_kg":0.045,"sourcing_route":"Domestic","import_duty_pct":0.0,"supplier_margin_pct":8.0}
 
 
-def _snapshot(value):
-    """Normalize authoritative runtime output for the public trace contract.
-
-    Non-finite cells are disclosed as unavailable (None); no value is inferred or recalculated.
-    """
+def _snapshot_with_unavailable(value, path="$"):
+    """Return a trace-safe copy plus exact unavailable non-finite paths."""
+    unavailable = []
     if isinstance(value, pd.DataFrame):
-        return _snapshot(value.to_dict(orient="records"))
+        return _snapshot_with_unavailable(value.to_dict(orient="records"), path)
     if isinstance(value, pd.Series):
-        return _snapshot(value.to_dict())
+        return _snapshot_with_unavailable(value.to_dict(), path)
     if isinstance(value, tuple):
-        return [_snapshot(item) for item in value]
+        value = list(value)
     if isinstance(value, list):
-        return [_snapshot(item) for item in value]
+        normalized = []
+        for index, item in enumerate(value):
+            converted, paths = _snapshot_with_unavailable(item, f"{path}[{index}]")
+            normalized.append(converted)
+            unavailable.extend(paths)
+        return normalized, tuple(unavailable)
     if isinstance(value, dict):
-        return {str(key): _snapshot(item) for key, item in value.items()}
+        normalized = {}
+        for key, item in value.items():
+            converted, paths = _snapshot_with_unavailable(item, f"{path}.{key}")
+            normalized[str(key)] = converted
+            unavailable.extend(paths)
+        return normalized, tuple(unavailable)
     if value is pd.NA:
-        return None
+        return None, (path,)
     if isinstance(value, Real) and not isinstance(value, bool):
         if not math.isfinite(float(value)):
-            return None
-        return int(value) if isinstance(value, Integral) else float(value)
-    return value
+            return None, (path,)
+        return (int(value) if isinstance(value, Integral) else float(value)), ()
+    return value, ()
 
 
-def _reconcile(service, output, calculation_id, formula_id, category):
-    snapshot = _snapshot(output)
-    trace = build_trace(calculation_id=calculation_id, formula_id=formula_id, formula_version="1.0", category=category, input_snapshot={"fixture":"Gate 3 direct authoritative runtime"}, raw_output=snapshot, configuration_versions={})
-    result = reconcile_trace(trace=trace, authoritative_service=service, authoritative_output=snapshot, calculation_id=calculation_id, formula_id=formula_id, formula_version="1.0", compared_fields=("",), repeated_trace_id=trace.trace_id)
-    assert result.classification == "exact_match"
-    assert result.blocking_status == "clear"
+def _reconcile_adapter(trace, authoritative_output, service, unavailable=()):
+    result = reconcile_trace(
+        trace=trace,
+        authoritative_service=service,
+        authoritative_output=authoritative_output,
+        calculation_id=trace.calculation_id,
+        formula_id=trace.formula_id,
+        formula_version=trace.formula_version,
+        compared_fields=("",),
+        unavailable_evidence=tuple(unavailable),
+        repeated_trace_id=trace.trace_id,
+    )
+    expected_class = "unavailable_authoritative_intermediate" if unavailable else "exact_match"
+    expected_status = "review_required" if unavailable else "clear"
+    assert result.classification == expected_class
+    assert result.blocking_status == expected_status
     assert result.human_review_status == "required"
+    return result
 
 
-def test_direct_cost_tco_risk_scoring_and_eligibility_routes():
+def _should_cost_case(coverage_id, service, output, calculation_id, formula_id, category):
+    normalized, unavailable = _snapshot_with_unavailable(output)
+    trace = build_should_cost_trace(
+        calculation_id=calculation_id,
+        formula_id=formula_id,
+        category=category,
+        inputs={"fixture":"Gate 3 adapter-backed runtime", "coverage_id":coverage_id},
+        authoritative_result=normalized,
+    )
+    assert trace.raw_output is not normalized
+    result = _reconcile_adapter(trace, normalized, service, unavailable)
+    assert adapter_coverage_classification(coverage_id) == "adapter_backed"
+    return trace, normalized, result
+
+
+def test_adapter_backed_should_cost_routes_reconcile_independently():
+    cases = (
+        ("REC-PET", "calculate_raw_material_should_cost:PET", calculate_raw_material_should_cost("PET Resin"), "PET-001", "F-RM-SHOULDCOST", "PET Resin"),
+        ("REC-KRF", "calculate_raw_material_should_cost:Kraft", calculate_raw_material_should_cost("Kraft Paper"), "KRF-001", "F-RM-SHOULDCOST", "Kraft Paper"),
+        ("REC-COR", "calculate_packaging_should_cost", calculate_packaging_should_cost(), "COR-001", "F-PKG-SHOULDCOST", "Corrugated Board"),
+        ("REC-LAM", "calculate_flexible_laminate_should_cost", calculate_flexible_laminate_should_cost(), "LAM-004", "F-C2-SHOULDCOST", "Flexible Laminates"),
+        ("REC-STL", "calculate_steel_should_cost", calculate_steel_should_cost("CR_COIL_COMMERCIAL", **STEEL_COST), "STL-003", "F-C3-SHOULDCOST", "Steel"),
+    )
+    for case in cases:
+        _should_cost_case(*case)
+
+
+def test_adapter_backed_scoring_and_eligibility_routes_reconcile():
+    generic = get_demo_suppliers().copy()
+    scored = enrich_supplier_scores(generic, GENERIC)
+    score_output, score_unavailable = _snapshot_with_unavailable(scored.iloc[0].to_dict())
+    score_trace = build_supplier_score_trace(
+        inputs={**GENERIC, "fixture":"Gate 3 adapter-backed runtime"},
+        authoritative_result=score_output,
+        supplier=str(score_output.get("Supplier")),
+    )
+    assert score_trace.raw_output is not score_output
+    _reconcile_adapter(score_trace, score_output, "enrich_supplier_scores", score_unavailable)
+
+    eligibility = evaluate_recommendation_eligibility(
+        {"is_valid":True,"errors":[],"warnings":[]},
+        {"blocking_issues":[],"non_blocking_issues":[]},
+        {"data_confidence_score":90,"confidence_category":"Strong"},
+        scored,
+        500000,
+    )
+    eligibility_output, eligibility_unavailable = _snapshot_with_unavailable(eligibility)
+    eligibility_trace = build_recommendation_eligibility_trace(
+        inputs={"category":"All", "fixture":"Gate 3 adapter-backed runtime"},
+        authoritative_result=eligibility_output,
+    )
+    assert eligibility_trace.raw_output is not eligibility_output
+    _reconcile_adapter(eligibility_trace, eligibility_output, "evaluate_recommendation_eligibility", eligibility_unavailable)
+
+
+def test_broken_adapter_output_is_detected_and_blocked():
+    _, normalized, trace_result = _should_cost_case(
+        "REC-KRF", "calculate_raw_material_should_cost:Kraft",
+        calculate_raw_material_should_cost("Kraft Paper"),
+        "KRF-001", "F-RM-SHOULDCOST", "Kraft Paper",
+    )
+    assert trace_result.blocking_status == "clear"
+    trace = build_should_cost_trace(
+        calculation_id="KRF-001", formula_id="F-RM-SHOULDCOST", category="Kraft Paper",
+        inputs={"fixture":"broken adapter adversarial"}, authoritative_result=normalized,
+    )
+    broken_output = deepcopy(trace.raw_output)
+    key = next(iter(broken_output))
+    broken_output[key] = "deliberately changed adapter field"
+    broken_trace = replace(trace, raw_output=broken_output)
+    result = reconcile_trace(
+        trace=broken_trace,
+        authoritative_service="calculate_raw_material_should_cost:Kraft",
+        authoritative_output=normalized,
+        calculation_id="KRF-001", formula_id="F-RM-SHOULDCOST", formula_version="1.0",
+        compared_fields=("",),
+    )
+    assert result.blocking_status == "blocked"
+    assert result.classification == "existing_business_logic_inconsistency"
+
+
+def test_nonfinite_paths_are_disclosed_without_mutation():
+    authoritative = {"finite_zero":0.0,"negative_zero":-0.0,"integer":7,"boolean":False,"nested":{"nan":float("nan"),"positive_inf":float("inf"),"negative_inf":float("-inf"),"missing":pd.NA}}
+    original = deepcopy(authoritative)
+    normalized, unavailable = _snapshot_with_unavailable(authoritative)
+    assert unavailable == ("$.nested.nan", "$.nested.positive_inf", "$.nested.negative_inf", "$.nested.missing")
+    assert normalized["finite_zero"] == 0.0
+    assert math.copysign(1.0, normalized["negative_zero"]) == -1.0
+    assert normalized["integer"] == 7 and normalized["boolean"] is False
+    trace = build_should_cost_trace(
+        calculation_id="TEST-NONFINITE", formula_id="F-RM-SHOULDCOST", category="Test",
+        inputs={"fixture":"non-finite evidence"}, authoritative_result=normalized,
+    )
+    result = _reconcile_adapter(trace, normalized, "controlled_nonfinite_fixture", unavailable)
+    assert result.unavailable_evidence == unavailable
+    assert math.isnan(original["nested"]["nan"]) and math.isnan(authoritative["nested"]["nan"])
+    assert authoritative["nested"]["positive_inf"] == original["nested"]["positive_inf"]
+
+
+def test_non_adapter_routes_execute_but_are_explicitly_deferred():
     generic = get_demo_suppliers().copy(); generic_row = generic.iloc[0].to_dict()
     raw = get_demo_data("Raw Material Procurement", "PET Resin"); raw_row = raw.iloc[0].to_dict()
     c2 = get_flexible_laminate_demo_suppliers("PET / PE"); c2_row = c2.iloc[0].to_dict()
     steel = get_demo_data("Raw Material Procurement", "Steel")
-    routes = (
-        ("calculate_raw_material_should_cost:PET", calculate_raw_material_should_cost("PET Resin"), "PET-001", "F-RM-SHOULDCOST", "PET Resin"),
-        ("calculate_raw_material_should_cost:Kraft", calculate_raw_material_should_cost("Kraft Paper"), "KRF-001", "F-RM-SHOULDCOST", "Kraft Paper"),
-        ("calculate_packaging_should_cost", calculate_packaging_should_cost(), "COR-001", "F-PKG-SHOULDCOST", "Corrugated Board"),
-        ("calculate_flexible_laminate_should_cost", calculate_flexible_laminate_should_cost(), "LAM-004", "F-C2-SHOULDCOST", "Flexible Laminates"),
-        ("calculate_steel_should_cost", calculate_steel_should_cost("CR_COIL_COMMERCIAL", **STEEL_COST), "STL-003", "F-C3-SHOULDCOST", "Steel"),
-        ("calculate_supplier_tco", calculate_supplier_tco(generic_row, 500000), "TCO-001", "F-TCO-PKG", "Packaging"),
-        ("calculate_raw_material_tco", calculate_raw_material_tco(raw_row, 500000), "TCO-002", "F-TCO-RM", "Raw materials"),
-        ("calculate_risk", calculate_risk(generic_row), "RSK-001", "F-RISK-GEN", "Generic"),
-        ("assess_flexible_laminate_supplier", assess_flexible_laminate_supplier(c2_row), "RSK-002", "F-RISK-GEN", "Flexible Laminates"),
-        ("calculate_raw_material_risk", calculate_raw_material_risk(raw_row), "RSK-RM", "F-RISK-GEN", "Raw materials"),
-        ("calculate_performance_score", {"performance_score":calculate_performance_score(generic_row)}, "PER-001", "F-PERFORMANCE", "Packaging and Raw materials"),
-        ("calculate_esg_score", {"esg_score":calculate_esg_score(generic_row)}, "ESG-001", "F-ESG", "Packaging and Raw materials"),
-    )
-    for route in routes: _reconcile(*route)
     scored = enrich_supplier_scores(generic, GENERIC)
-    _reconcile("enrich_supplier_scores:scoring", scored, "SCR-001", "F-SCORE-GEN", "Packaging and Raw materials")
-    _reconcile("enrich_supplier_scores:technical_eligibility", scored[["Supplier","technical_eligible"]], "ELG-TECH", "F-ELIGIBILITY", "Cross-category")
-    steel_scored, recommendation = score_and_recommend_steel_suppliers(steel, "CR_COIL_COMMERCIAL", 500000, 83.0)
-    _reconcile("score_and_recommend_steel_suppliers", {"scored":steel_scored,"recommendation":recommendation}, "SCR-002", "F-SCORE-STEEL", "Steel")
-    eligibility = evaluate_recommendation_eligibility({"is_valid":True,"errors":[],"warnings":[]},{"blocking_issues":[],"non_blocking_issues":[]},{"data_confidence_score":90,"confidence_category":"Strong"},scored,500000)
-    _reconcile("evaluate_recommendation_eligibility", eligibility, "ELG-001", "F-ELIGIBILITY", "All")
-
-
-def test_direct_allocation_and_scenario_routes():
-    generic = get_demo_suppliers(); scored = enrich_supplier_scores(generic, GENERIC)
-    standard = recommend_allocation(scored, 500000, min_risk_score=0, min_esg_score=0)
-    optimized = optimize_allocation(scored, 500000)
-    generic_scenario = run_intelligence_scenario(generic, GENERIC, "Base Case")
-    c2_scenarios = run_all_flexible_laminate_scenarios(get_flexible_laminate_demo_suppliers("PET / PE"), C2)
-    steel_summary, steel_details = run_governed_steel_scenarios(get_demo_data("Raw Material Procurement", "Steel"), "CR_COIL_COMMERCIAL", 500000, 83.0, "Both")
-    routes = (
-        ("recommend_allocation", standard, "ALC-001", "F-ALLOC-STD", "Generic"),
-        ("optimize_allocation", optimized, "ALC-002", "F-ALLOC-OPT", "Generic"),
-        ("run_intelligence_scenario", generic_scenario, "SCN-001", "F-SCENARIO-GENERIC", "Generic"),
-        ("run_all_flexible_laminate_scenarios", c2_scenarios, "SCN-002", "F-SCENARIO-C2", "Flexible Laminates"),
-        ("run_governed_steel_scenarios", {"summary":steel_summary,"details":steel_details}, "SCN-003", "F-SCENARIO-STEEL", "Steel"),
-    )
-    for route in routes: _reconcile(*route)
+    steel_scored, steel_recommendation = score_and_recommend_steel_suppliers(steel, "CR_COIL_COMMERCIAL", 500000, 83.0)
+    direct_outputs = {
+        "REC-TCO-PKG": calculate_supplier_tco(generic_row, 500000),
+        "REC-TCO-RM": calculate_raw_material_tco(raw_row, 500000),
+        "REC-RISK-GEN": calculate_risk(generic_row),
+        "REC-RISK-C2": assess_flexible_laminate_supplier(c2_row),
+        "REC-RISK-C3": (steel_scored, steel_recommendation),
+        "REC-SCORE-C3": (steel_scored, steel_recommendation),
+        "REC-PER": calculate_performance_score(generic_row),
+        "REC-ESG": calculate_esg_score(generic_row),
+        "REC-TECH": scored[["Supplier","technical_eligible"]],
+        "REC-ALLOC-STD": recommend_allocation(scored, 500000, min_risk_score=0, min_esg_score=0),
+        "REC-ALLOC-OPT": optimize_allocation(scored, 500000),
+        "REC-SCN-GEN": run_intelligence_scenario(generic, GENERIC, "Base Case"),
+        "REC-SCN-C2": run_all_flexible_laminate_scenarios(c2, C2),
+        "REC-SCN-C3": run_governed_steel_scenarios(steel, "CR_COIL_COMMERCIAL", 500000, 83.0, "Both"),
+    }
+    assert all(output is not None for output in direct_outputs.values())
+    assert all(adapter_coverage_classification(key) == "unsupported_deferred_coverage" for key in direct_outputs)
+    assert ADAPTER_BACKED_COVERAGE_IDS.isdisjoint(direct_outputs)
+    registered = {item.coverage_id for item in RECONCILIATION_COVERAGE}
+    assert set(direct_outputs) <= registered
 
 
 def test_production_c2_excel_and_json_assurance():
