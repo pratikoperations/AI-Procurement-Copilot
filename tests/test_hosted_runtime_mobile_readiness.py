@@ -124,16 +124,35 @@ def test_page_overflow_is_clipped_but_tables_scroll_internally() -> None:
     assert "-webkit-overflow-scrolling: touch" in css
 
 
-def test_select_focus_targets_rendered_nested_nodes() -> None:
+def test_select_focus_has_one_visual_owner_and_blue_local_tokens() -> None:
     css = hosted_readiness_ui.HOSTED_READINESS_CSS
-    assert '[data-baseweb="select"] > div > div' in css
-    assert '[role="combobox"][aria-expanded="true"]' in css
-    assert ":is(" in css
+    wrapper = css.split('[data-baseweb="select"] {', 1)[1].split("}", 1)[0]
+    shell = css.split('[data-baseweb="select"] > div {', 1)[1].split("}", 1)[0]
+    focus = css.split('[data-baseweb="select"]:focus-within > div,', 1)[1].split("}", 1)[0]
+
+    assert "--aipc-focus: var(--aipc-select-focus)" in wrapper
+    assert "--primary-color: var(--aipc-select-focus)" in wrapper
+    assert "border: 1px solid var(--aipc-border) !important" in shell
+    assert "border-color: var(--aipc-select-focus) !important" in focus
+    assert "rgba(88, 166, 255" in focus
+
+
+def test_select_nested_focus_and_trailing_indicator_are_neutralized() -> None:
+    css = hosted_readiness_ui.HOSTED_READINESS_CSS
+    assert '[data-baseweb="select"] :is(' in css
+    assert "outline: 3px solid transparent !important" in css
     assert "border-color: transparent !important" in css
-    assert "border-color: var(--aipc-select-focus) !important" in css
-    assert '[role="combobox"][aria-invalid="true"]' in css
-    assert "border-color: var(--aipc-error) !important" in css
+    assert '[data-baseweb="select"] > div > div:last-child' in css
+    assert "border-left-color: transparent !important" in css
     assert "outline: none" not in css
+
+
+def test_select_invalid_state_remains_distinct_and_red() -> None:
+    css = hosted_readiness_ui.HOSTED_READINESS_CSS
+    invalid = css.split("/* Genuine invalid state overrides valid focus/open state. */", 1)[1].split("/* Keep menu options", 1)[0]
+    assert '[aria-invalid="true"]' in invalid
+    assert "border-color: var(--aipc-error) !important" in invalid
+    assert "rgba(197, 48, 48" in invalid
 
 
 def test_landing_status_contract_has_one_erp_card() -> None:
