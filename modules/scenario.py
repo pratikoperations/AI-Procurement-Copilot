@@ -2,6 +2,7 @@
 
 import pandas as pd
 
+from modules.hosted_readiness_ui import apply_hosted_readiness_overrides
 from modules.recommendation import recommendation_confidence
 from modules.scenario_engine import run_all_flexible_laminate_scenarios
 from modules.scoring import enrich_supplier_scores
@@ -54,8 +55,29 @@ def _flexible_laminate_scenario_table(base_df, assumptions):
     return pd.DataFrame(rows)
 
 
+def _is_steel_route(assumptions):
+    return (
+        assumptions.get("category") == "Raw Material Procurement"
+        and assumptions.get("commodity") == "Steel"
+    )
+
+
 def run_scenario_table(base_df, assumptions):
-    """Run category-aware procurement stress scenarios and return governed winners."""
+    """Run category-aware procurement stress scenarios and return governed winners.
+
+    Steel is dispatched to its dedicated governed dashboard before any generic
+    scenario, recommendation, allocation or export path can continue. The Steel
+    dashboard terminates the Streamlit run after rendering its seven governed
+    scenarios and category-specific downloads.
+    """
+    apply_hosted_readiness_overrides()
+
+    if _is_steel_route(assumptions):
+        from modules.steel_ux import render_steel_governed_dashboard
+
+        render_steel_governed_dashboard(base_df, assumptions)
+        raise RuntimeError("Steel governed route returned without terminating the Streamlit run.")
+
     if assumptions.get("category") == "Packaging Procurement" and assumptions.get("commodity") == "Flexible Laminates":
         return _flexible_laminate_scenario_table(base_df, assumptions)
     is_kraft = assumptions.get("category") == "Raw Material Procurement" and assumptions.get("commodity") == "Kraft Paper"
