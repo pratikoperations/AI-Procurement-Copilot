@@ -24,6 +24,7 @@ UI_CSS = """
     --aipc-border: rgba(128, 128, 128, 0.28);
     --aipc-surface: rgba(128, 128, 128, 0.06);
     --aipc-focus: #F2C94C;
+    --aipc-select-focus: #58A6FF;
     --aipc-info: #2F80ED;
     --aipc-success: #2E8B57;
     --aipc-warning: #B7791F;
@@ -115,6 +116,38 @@ body,
     outline: 3px solid var(--aipc-focus) !important;
     outline-offset: 3px !important;
     box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.85) !important;
+}
+
+/*
+ * BaseWeb select focus governance.
+ * Streamlit's primary-color border and the global combobox focus outline previously
+ * rendered together as a red border plus a clipped yellow stripe in the sidebar.
+ * Use one container-level focus ring and reserve red for genuine invalid state.
+ */
+[data-baseweb="select"] > div {
+    border-color: var(--aipc-border) !important;
+    box-shadow: none !important;
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+[data-baseweb="select"]:hover > div {
+    border-color: rgba(148, 163, 184, 0.65) !important;
+}
+
+[data-baseweb="select"]:focus-within > div {
+    border-color: var(--aipc-select-focus) !important;
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.35) !important;
+}
+
+[data-baseweb="select"] [role="combobox"]:focus-visible {
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
+}
+
+[data-baseweb="select"]:has([aria-invalid="true"]) > div {
+    border-color: var(--aipc-error) !important;
+    box-shadow: 0 0 0 2px rgba(197, 48, 48, 0.28) !important;
 }
 
 /* Consistent card treatment for metrics and status surfaces. */
