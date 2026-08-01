@@ -14,6 +14,7 @@ PRECEDENCE = {
     "supplier_specific": 3,
     "rfq_scenario_override": 4,
 }
+_SUPPORTED_SOURCE_LEVELS = tuple(PRECEDENCE)
 
 
 class ParameterScopeValidationError(ValueError):
@@ -69,6 +70,13 @@ def _payload_sort_key(payload: dict) -> tuple:
 
 
 def _validate_scope(record: ParameterProfileRecord) -> None:
+    if record.source_level not in PRECEDENCE:
+        supported = ", ".join(_SUPPORTED_SOURCE_LEVELS)
+        raise ParameterScopeValidationError(
+            f"Parameter record {record.parameter_record_id} has unsupported source level "
+            f"{record.source_level!r}; supported source levels: {supported}"
+        )
+
     fields = {
         "category": record.category,
         "supplier": record.supplier,
@@ -90,10 +98,9 @@ def _validate_scope(record: ParameterProfileRecord) -> None:
             violations.append("supplier")
         if record.rfq_scenario is not None:
             violations.append("rfq_scenario")
-    elif record.source_level == "rfq_scenario_override":
+    else:  # rfq_scenario_override
         violations = [] if record.rfq_scenario is not None else ["rfq_scenario"]
-    else:
-        violations = ["source_level"]
+
     if violations:
         fields_text = ", ".join(violations)
         raise ParameterScopeValidationError(
@@ -131,6 +138,10 @@ def _equivalent_signature(record: ParameterProfileRecord) -> tuple:
     return (record.value, record.canonical_unit, record.version)
 
 
+def _record_sort_key(record: ParameterProfileRecord) -> tuple:
+    return (-PRECEDENCE[record.source_level], record.parameter_record_id, record.version)
+
+
 def resolve_parameter(
     assumption_id: str,
     candidates: Iterable[ParameterProfileRecord],
@@ -143,12 +154,12 @@ def resolve_parameter(
 ) -> ParameterResolutionResult:
     """Resolve one parameter using RFQ > supplier > category > global precedence."""
     as_of = as_of or date.today()
-    candidate_list = sorted(
-        (r for r in candidates if r.assumption_id == assumption_id),
-        key=lambda r: (-PRECEDENCE[r.source_level], r.parameter_record_id, r.version),
-    )
-    for record in candidate_list:
+    unsorted_candidates = [
+        record for record in candidates if record.assumption_id == assumption_id
+    ]
+    for record in unsorted_candidates:
         _validate_scope(record)
+    candidate_list = sorted(unsorted_candidates, key=_record_sort_key)
 
     relevant = [
         record
@@ -184,10 +195,7 @@ def resolve_parameter(
             continue
         valid.append(record)
 
-    valid = sorted(
-        valid,
-        key=lambda r: (-PRECEDENCE[r.source_level], r.parameter_record_id, r.version),
-    )
+    valid = sorted(valid, key=_record_sort_key)
     available = tuple(
         _record_payload(record, status="candidate") for record in valid
     )
