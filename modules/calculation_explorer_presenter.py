@@ -51,8 +51,16 @@ def _calculation_overview(calculation: Mapping[str, Any]) -> dict[str, Any]:
 
 def _trace_summary(trace: Mapping[str, Any] | None) -> dict[str, Any]:
     if trace is None:
-        return {"available": False, "human_review_status": "required"}
+        return {
+            "available": False,
+            "configuration_versions": None,
+            "configuration_versions_status": "not_available",
+            "configuration_versions_note": "No governed trace is available for this route.",
+            "human_review_status": "required",
+        }
     trace = deepcopy(dict(trace))
+    versions = trace.get("configuration_versions")
+    versions_available = isinstance(versions, Mapping) and bool(versions)
     return {
         "available": True,
         "trace_id": trace.get("trace_id"),
@@ -69,14 +77,25 @@ def _trace_summary(trace: Mapping[str, Any] | None) -> dict[str, Any]:
         "unresolved_or_rejected_parameters": deepcopy(trace.get("unresolved_or_rejected_parameters") or ()),
         "blocking_rule_record": deepcopy(trace.get("blocking_rule_record")),
         "recommendation_impact": trace.get("recommendation_impact"),
-        "configuration_versions": deepcopy(trace.get("configuration_versions") or {}),
+        "configuration_versions": deepcopy(dict(versions)) if versions_available else None,
+        "configuration_versions_status": "satisfied" if versions_available else "not_available",
+        "configuration_versions_note": (
+            "Governed configuration versions retained by the trace."
+            if versions_available
+            else "Configuration-version evidence is unavailable in this trace."
+        ),
         "human_review_status": trace.get("human_review_status", "required"),
     }
 
 
 def _reconciliation_summary(reconciliation: Mapping[str, Any] | None) -> dict[str, Any]:
     if reconciliation is None:
-        return {"available": False, "classification": "unsupported_deferred_coverage", "blocking_status": "review_required", "human_review_status": "required"}
+        return {
+            "available": False,
+            "classification": "unsupported_deferred_coverage",
+            "blocking_status": "review_required",
+            "human_review_status": "required",
+        }
     reconciliation = deepcopy(dict(reconciliation))
     return {
         "available": True,
@@ -94,17 +113,83 @@ def _reconciliation_summary(reconciliation: Mapping[str, Any] | None) -> dict[st
     }
 
 
-def _review_checklist(*, trace_summary: Mapping[str, Any], reconciliation_summary: Mapping[str, Any], sourcemate: Mapping[str, Any]) -> list[dict[str, Any]]:
+def _checklist_item(control: str, status: str, note: str) -> dict[str, Any]:
+    if status not in {"satisfied", "not_satisfied", "not_available"}:
+        raise ValueError(f"Unsupported checklist status: {status}")
+    return {
+        "control": control,
+        "status": status,
+        "satisfied": status == "satisfied",
+        "note": note,
+    }
+
+
+def _review_checklist(
+    *,
+    trace_summary: Mapping[str, Any],
+    reconciliation_summary: Mapping[str, Any],
+    sourcemate: Mapping[str, Any],
+    autonomous_award: bool,
+    human_review_required: bool,
+) -> list[dict[str, Any]]:
+    assumption_sources = sourcemate.get("assumption_sources") or ()
+    export_evidence = sourcemate.get("export_evidence") or ()
+    trace_available = bool(trace_summary.get("available"))
+    deferred = bool(sourcemate.get("dedicated_adapter_deferred"))
+    reconciliation_classification = reconciliation_summary.get("classification")
+    unavailable_evidence = reconciliation_summary.get("unavailable_evidence") or ()
+    unresolved_parameters = trace_summary.get("unresolved_or_rejected_parameters") or ()
+    unavailable_disclosed = bool(unavailable_evidence or unresolved_parameters)
+    trace_human_review = trace_summary.get("human_review_status") == "required"
+    reconciliation_human_review = reconciliation_summary.get("human_review_status") == "required"
+    sourcemate_human_review = sourcemate.get("human_review_required") is True
+
     return [
-        {"control": "Authoritative service identified", "satisfied": bool(sourcemate.get("source_function"))},
-        {"control": "Calculation and formula version identified", "satisfied": bool(sourcemate.get("calculation_id") and sourcemate.get("formula_version"))},
-        {"control": "Assumptions and provenance disclosed", "satisfied": True},
-        {"control": "Trace status disclosed", "satisfied": bool(trace_summary.get("available")) or sourcemate.get("dedicated_adapter_deferred", False)},
-        {"control": "Reconciliation or deferred status disclosed", "satisfied": bool(reconciliation_summary.get("classification"))},
-        {"control": "Evidence locations disclosed", "satisfied": True},
-        {"control": "Unavailable evidence not reconstructed", "satisfied": True},
-        {"control": "Recommendation remains advisory", "satisfied": True},
-        {"control": "Human approval required", "satisfied": True},
+        _checklist_item(
+            "Authoritative service identified",
+            "satisfied" if sourcemate.get("source_function") else "not_satisfied",
+            "Source function is present." if sourcemate.get("source_function") else "Source function is missing.",
+        ),
+        _checklist_item(
+            "Calculation and formula version identified",
+            "satisfied" if sourcemate.get("calculation_id") and sourcemate.get("formula_version") else "not_satisfied",
+            "Calculation and formula version are present." if sourcemate.get("calculation_id") and sourcemate.get("formula_version") else "Calculation or formula version is missing.",
+        ),
+        _checklist_item(
+            "Assumptions and provenance disclosed",
+            "satisfied" if assumption_sources else "not_available",
+            f"{len(assumption_sources)} assumption record(s) disclosed." if assumption_sources else "No assumption records are available for this presentation.",
+        ),
+        _checklist_item(
+            "Trace status disclosed",
+            "satisfied" if trace_available or deferred else "not_available",
+            "Governed trace is available." if trace_available else "Dedicated trace adapter is explicitly deferred." if deferred else "Trace status is unavailable.",
+        ),
+        _checklist_item(
+            "Reconciliation or deferred status disclosed",
+            "satisfied" if reconciliation_classification else "not_available",
+            f"Classification: {reconciliation_classification}." if reconciliation_classification else "No reconciliation or deferred classification is available.",
+        ),
+        _checklist_item(
+            "Evidence locations disclosed",
+            "satisfied" if export_evidence else "not_available",
+            f"{len(export_evidence)} registered export-evidence location(s) disclosed." if export_evidence else "No registered export-evidence location exists for this calculation.",
+        ),
+        _checklist_item(
+            "Unavailable evidence not reconstructed",
+            "satisfied" if unavailable_disclosed else "not_available",
+            "Unavailable or unresolved evidence is explicitly disclosed without reconstruction." if unavailable_disclosed else "No unavailable or unresolved evidence is present in this record.",
+        ),
+        _checklist_item(
+            "Recommendation remains advisory",
+            "satisfied" if autonomous_award is False else "not_satisfied",
+            "The presentation contract prohibits autonomous award." if autonomous_award is False else "Autonomous-award protection is not active.",
+        ),
+        _checklist_item(
+            "Human approval required",
+            "satisfied" if human_review_required and sourcemate_human_review and (trace_human_review or deferred) and reconciliation_human_review else "not_satisfied",
+            "Human review is required by the presentation, SourceMate, and available trace/reconciliation evidence." if human_review_required and sourcemate_human_review and (trace_human_review or deferred) and reconciliation_human_review else "Human-review requirements are inconsistent or missing.",
+        ),
     ]
 
 
@@ -133,6 +218,8 @@ def build_governed_explorer_presentation(
         coverage_id=coverage_id,
         runtime_evidence=runtime_evidence,
     )
+    autonomous_award = False
+    human_review_required = True
     return {
         "contract_version": EXPLORER_PRESENTATION_CONTRACT_VERSION,
         "context": deepcopy(payload.get("context") or {}),
@@ -146,10 +233,12 @@ def build_governed_explorer_presentation(
             trace_summary=trace_summary,
             reconciliation_summary=reconciliation_summary,
             sourcemate=sourcemate,
+            autonomous_award=autonomous_award,
+            human_review_required=human_review_required,
         ),
         "governance_disclosures": list(GOVERNANCE_DISCLOSURES),
         "read_only": True,
         "approval_persistence": False,
-        "autonomous_award": False,
-        "human_review_required": True,
+        "autonomous_award": autonomous_award,
+        "human_review_required": human_review_required,
     }
