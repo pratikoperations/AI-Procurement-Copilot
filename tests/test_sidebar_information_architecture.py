@@ -5,6 +5,7 @@ from pathlib import Path
 from modules import sidebar, steel_ux
 
 
+APP_SOURCE = Path("app.py").read_text(encoding="utf-8")
 SIDEBAR_SOURCE = Path("modules/sidebar.py").read_text(encoding="utf-8")
 STEEL_SOURCE = Path("modules/steel_ux.py").read_text(encoding="utf-8")
 
@@ -56,6 +57,7 @@ def test_steel_hides_nonoperative_generic_controls_but_keeps_contract_defaults()
         "raw_material_shock": 0.0,
         "freight_shock": 0.0,
         "demand_change": 0.0,
+        "procurement_intelligence_scenario": "Base Case",
     }
     assert sidebar.GENERIC_ALLOCATION_DEFAULTS == {
         "max_supplier_share": 75,
@@ -63,6 +65,33 @@ def test_steel_hides_nonoperative_generic_controls_but_keeps_contract_defaults()
         "min_risk_score": 55,
         "min_esg_score": 50,
     }
+
+
+def test_procurement_intelligence_scenario_is_inside_generic_scenario_inputs() -> None:
+    section = SIDEBAR_SOURCE[
+        SIDEBAR_SOURCE.index("def _render_generic_scenario_inputs"):
+        SIDEBAR_SOURCE.index("def _render_generic_allocation_rules")
+    ]
+    assert 'with st.sidebar.expander("Scenario Inputs", expanded=False):' in section
+    assert '"Procurement Intelligence Scenario"' in section
+    assert 'list(SCENARIOS.keys())' in section
+    assert section.index('"Procurement Intelligence Scenario"') > section.index('expander("Scenario Inputs"')
+
+
+def test_no_standalone_procurement_intelligence_scenario_remains_in_app() -> None:
+    assert 'st.sidebar.selectbox("Procurement Intelligence Scenario"' not in APP_SOURCE
+    assert 'selected_scenario = assumptions["procurement_intelligence_scenario"]' in APP_SOURCE
+    assert "from modules.scenario_engine import SCENARIOS" not in APP_SOURCE
+
+
+def test_scenario_selector_contract_is_present_for_generic_categories_and_defaulted_for_steel() -> None:
+    scenario_section = SIDEBAR_SOURCE[
+        SIDEBAR_SOURCE.index("def _render_generic_scenario_inputs"):
+        SIDEBAR_SOURCE.index("def _render_generic_allocation_rules")
+    ]
+    assert 'if enabled:' in scenario_section
+    assert '"procurement_intelligence_scenario": "Base Case"' in SIDEBAR_SOURCE
+    assert 'procurement_intelligence_scenario=' not in APP_SOURCE
 
 
 def test_steel_controls_render_once_before_dashboard() -> None:
@@ -77,6 +106,7 @@ def test_backward_compatible_sidebar_return_keys_are_retained() -> None:
         "data_source", "category", "commodity", "category_profile", "fx_rate",
         "display_currency", "annual_volume", "annual_volume_unit",
         "raw_material_shock", "freight_shock", "demand_change",
+        "procurement_intelligence_scenario",
         "max_supplier_share", "min_backup_share", "min_risk_score", "min_esg_score",
         "kraft_variant", "kraft_gsm", "kraft_strength_grade",
         "laminate_structure", "laminate_total_micron", "laminate_print_profile",
