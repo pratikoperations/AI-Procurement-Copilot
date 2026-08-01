@@ -51,7 +51,9 @@ def normalize_steel_dependent_state(values: Mapping) -> dict:
             raise ValueError(f"{key} has an invalid governed value.")
         return value
 
-    zinc, paint, duty = number("steel_zinc_cost_usd_per_kg"), number("steel_paint_treatment_usd_per_kg"), number("steel_import_duty_pct")
+    zinc = number("steel_zinc_cost_usd_per_kg")
+    paint = number("steel_paint_treatment_usd_per_kg")
+    duty = number("steel_import_duty_pct")
     if profile == "CR_COIL_COMMERCIAL":
         zinc, paint = 0.0, 0.0
     elif profile == "GI_COIL_Z120":
@@ -65,7 +67,13 @@ def normalize_steel_dependent_state(values: Mapping) -> dict:
         raise ValueError(f"Unsupported Steel substitution state '{substitution}'.")
     if scenario not in STEEL_SCENARIOS:
         raise ValueError(f"Unsupported Steel scenario '{scenario}'.")
-    state.update({"steel_zinc_cost_usd_per_kg": zinc, "steel_paint_treatment_usd_per_kg": paint, "steel_import_duty_pct": duty, "steel_substitution_status": substitution, "steel_scenario": scenario})
+    state.update({
+        "steel_zinc_cost_usd_per_kg": zinc,
+        "steel_paint_treatment_usd_per_kg": paint,
+        "steel_import_duty_pct": duty,
+        "steel_substitution_status": substitution,
+        "steel_scenario": scenario,
+    })
     return state
 
 
@@ -90,21 +98,16 @@ def _initialize_steel_widget_state(assumptions: Mapping) -> dict:
 
 
 def _sync_steel_dependents_from_widget_state() -> None:
-    """Update only dependent widgets inside a pre-rerun callback.
-
-    Streamlit executes on_change callbacks before the next script rerun, so these
-    assignments occur before the dependent widgets are instantiated. The callback
-    deliberately never writes the triggering widget keys steel_profile or
-    steel_sourcing_route.
-    """
+    """Update only dependent widgets inside a pre-rerun callback."""
     normalized = normalize_steel_dependent_state(dict(st.session_state))
     for key in STEEL_DEPENDENT_STATE_KEYS:
         st.session_state[key] = normalized[key]
 
 
-def _render_controls(assumptions: Mapping) -> dict:
+def render_steel_sidebar_controls(assumptions: Mapping) -> dict:
+    """Render Steel category inputs once and return normalized governed state."""
     _initialize_steel_widget_state(assumptions)
-    with st.sidebar.expander("Steel Decision Controls", expanded=True):
+    with st.sidebar.expander("Category Inputs — Steel", expanded=True):
         st.caption("Controlled synthetic C3 assumptions; not live market data or technical certification.")
         profile = st.selectbox(
             "Steel Profile",
@@ -118,9 +121,28 @@ def _render_controls(assumptions: Mapping) -> dict:
             key="steel_sourcing_route",
             on_change=_sync_steel_dependents_from_widget_state,
         )
-        st.number_input("Zinc Cost USD/kg", min_value=0.0, step=0.01, key="steel_zinc_cost_usd_per_kg", disabled=profile == "CR_COIL_COMMERCIAL")
-        st.number_input("Paint / Treatment Cost USD/kg", min_value=0.0, step=0.01, key="steel_paint_treatment_usd_per_kg", disabled=profile != "PPGI_COIL_Z120")
-        st.number_input("Import Duty %", min_value=0.0, max_value=100.0, step=1.0, key="steel_import_duty_pct", disabled=route == "Domestic")
+        st.number_input(
+            "Zinc Cost USD/kg",
+            min_value=0.0,
+            step=0.01,
+            key="steel_zinc_cost_usd_per_kg",
+            disabled=profile == "CR_COIL_COMMERCIAL",
+        )
+        st.number_input(
+            "Paint / Treatment Cost USD/kg",
+            min_value=0.0,
+            step=0.01,
+            key="steel_paint_treatment_usd_per_kg",
+            disabled=profile != "PPGI_COIL_Z120",
+        )
+        st.number_input(
+            "Import Duty %",
+            min_value=0.0,
+            max_value=100.0,
+            step=1.0,
+            key="steel_import_duty_pct",
+            disabled=route == "Domestic",
+        )
         st.selectbox("Substitution State", SUBSTITUTION_STATES, key="steel_substitution_status")
         st.selectbox("Governed Scenario", STEEL_SCENARIOS, key="steel_scenario")
         st.caption("Annual volume is entered in kg. Metric-tonne reporting is informational only.")
@@ -138,12 +160,21 @@ def _display_allocation(frame: pd.DataFrame, display_mode: str) -> pd.DataFrame:
 
 def render_steel_governed_dashboard(suppliers: pd.DataFrame, assumptions: Mapping) -> None:
     """Render the isolated Steel route, then stop before generic downstream outputs."""
-    state = _render_controls(assumptions)
+    state = normalize_steel_dependent_state(assumptions)
     profile, volume = state["steel_profile"], float(assumptions["annual_volume"])
     fx, display_mode = float(assumptions["fx_rate"]), assumptions.get("display_currency", "Both")
     summary, details = run_governed_steel_scenarios(
-        suppliers, profile, volume, fx, display_mode,
-        cost_assumptions={"zinc_cost_usd_per_kg": state["steel_zinc_cost_usd_per_kg"], "paint_treatment_usd_per_kg": state["steel_paint_treatment_usd_per_kg"], "sourcing_route": state["steel_sourcing_route"], "import_duty_pct": state["steel_import_duty_pct"]},
+        suppliers,
+        profile,
+        volume,
+        fx,
+        display_mode,
+        cost_assumptions={
+            "zinc_cost_usd_per_kg": state["steel_zinc_cost_usd_per_kg"],
+            "paint_treatment_usd_per_kg": state["steel_paint_treatment_usd_per_kg"],
+            "sourcing_route": state["steel_sourcing_route"],
+            "import_duty_pct": state["steel_import_duty_pct"],
+        },
         scenario_assumptions={"grade_substitution_status": state["steel_substitution_status"]},
     )
     selected = details[state["steel_scenario"]]
@@ -151,28 +182,70 @@ def render_steel_governed_dashboard(suppliers: pd.DataFrame, assumptions: Mappin
     standard, optimized = selected["standard_allocation"], selected["optimized_allocation"]
 
     st.header("Governed Steel Decision Support")
-    st.warning("Controlled synthetic demonstration only. No live market-data claim, engineering approval, metallurgical certification, autonomous award, production allocation or realised-savings claim.")
+    st.warning(
+        "Controlled synthetic demonstration only. No live market-data claim, engineering approval, "
+        "metallurgical certification, autonomous award, production allocation or realised-savings claim."
+    )
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Selected Profile", profile); c2.metric("Annual Volume", f"{volume:,.0f} kg"); c3.metric("Metric Tonnes", f"{volume / 1000:,.1f} MT"); c4.metric("Eligible Suppliers", int(scored["technical_eligible"].sum()))
+    c1.metric("Selected Profile", profile)
+    c2.metric("Annual Volume", f"{volume:,.0f} kg")
+    c3.metric("Metric Tonnes", f"{volume / 1000:,.1f} MT")
+    c4.metric("Eligible Suppliers", int(scored["technical_eligible"].sum()))
     d1, d2, d3, d4 = st.columns(4)
-    d1.metric("Governed Winner", recommendation.get("winner") or "No winner"); d2.metric("Winner State", recommendation["winner_state"]); d3.metric("Unallocated Volume", f"{optimized.attrs['unallocated_volume_kg']:,.0f} kg"); d4.metric("Human Approval", "Required")
+    d1.metric("Governed Winner", recommendation.get("winner") or "No winner")
+    d2.metric("Winner State", recommendation["winner_state"])
+    d3.metric("Unallocated Volume", f"{optimized.attrs['unallocated_volume_kg']:,.0f} kg")
+    d4.metric("Human Approval", "Required")
 
-    columns = ["Supplier", "technical_eligible", "normalized_usd_per_kg", "equivalent_inr_per_kg", "generic_risk_score", "steel_risk_score", "governed_total_score", "governed_rank", "eligibility_failure_reasons"]
-    decision = scored[[c for c in columns if c in scored.columns]].copy().rename(columns={"technical_eligible": "Technical Eligibility", "normalized_usd_per_kg": "Normalized USD/kg", "equivalent_inr_per_kg": "Equivalent INR/kg", "generic_risk_score": "Generic Supplier Risk", "steel_risk_score": "Steel-Specific Risk", "governed_total_score": "Governed Total Score", "governed_rank": "Governed Rank", "eligibility_failure_reasons": "Eligibility Failure Reasons"})
-    if display_mode == "USD": decision = decision.drop(columns=["Equivalent INR/kg"], errors="ignore")
-    if display_mode == "INR": decision = decision.drop(columns=["Normalized USD/kg"], errors="ignore")
-    st.subheader("Supplier Comparison"); st.dataframe(decision, width="stretch", hide_index=True)
-    st.subheader("Standard Allocation"); st.dataframe(_display_allocation(standard, display_mode), width="stretch", hide_index=True); st.caption(f"Unallocated volume: {standard.attrs['unallocated_volume_kg']:,.0f} kg")
-    st.subheader("Optimized Allocation"); st.dataframe(_display_allocation(optimized, display_mode), width="stretch", hide_index=True); st.caption(f"Unallocated volume: {optimized.attrs['unallocated_volume_kg']:,.0f} kg")
-    st.subheader("Seven Governed Scenarios"); st.dataframe(summary, width="stretch", hide_index=True)
+    columns = [
+        "Supplier", "technical_eligible", "normalized_usd_per_kg", "equivalent_inr_per_kg",
+        "generic_risk_score", "steel_risk_score", "governed_total_score", "governed_rank",
+        "eligibility_failure_reasons",
+    ]
+    decision = scored[[c for c in columns if c in scored.columns]].copy().rename(columns={
+        "technical_eligible": "Technical Eligibility",
+        "normalized_usd_per_kg": "Normalized USD/kg",
+        "equivalent_inr_per_kg": "Equivalent INR/kg",
+        "generic_risk_score": "Generic Supplier Risk",
+        "steel_risk_score": "Steel-Specific Risk",
+        "governed_total_score": "Governed Total Score",
+        "governed_rank": "Governed Rank",
+        "eligibility_failure_reasons": "Eligibility Failure Reasons",
+    })
+    if display_mode == "USD":
+        decision = decision.drop(columns=["Equivalent INR/kg"], errors="ignore")
+    if display_mode == "INR":
+        decision = decision.drop(columns=["Normalized USD/kg"], errors="ignore")
+    st.subheader("Supplier Comparison")
+    st.dataframe(decision, width="stretch", hide_index=True)
+    st.subheader("Standard Allocation")
+    st.dataframe(_display_allocation(standard, display_mode), width="stretch", hide_index=True)
+    st.caption(f"Unallocated volume: {standard.attrs['unallocated_volume_kg']:,.0f} kg")
+    st.subheader("Optimized Allocation")
+    st.dataframe(_display_allocation(optimized, display_mode), width="stretch", hide_index=True)
+    st.caption(f"Unallocated volume: {optimized.attrs['unallocated_volume_kg']:,.0f} kg")
+    st.subheader("Seven Governed Scenarios")
+    st.dataframe(summary, width="stretch", hide_index=True)
 
     manifest = build_steel_governance_manifest(state, summary, selected, fx, display_mode)
     excel_bytes = build_steel_excel_workbook(state, summary, selected, manifest)
     json_bytes = build_steel_json_export(manifest)
     st.subheader("Governed Steel Downloads")
     e1, e2 = st.columns(2)
-    e1.download_button("Download Steel Excel Analysis", excel_bytes, "governed_steel_analysis.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
-    e2.download_button("Download Steel Decision Audit JSON", json_bytes, "governed_steel_decision_audit.json", "application/json", use_container_width=True)
+    e1.download_button(
+        "Download Steel Excel Analysis",
+        excel_bytes,
+        "governed_steel_analysis.xlsx",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True,
+    )
+    e2.download_button(
+        "Download Steel Decision Audit JSON",
+        json_bytes,
+        "governed_steel_decision_audit.json",
+        "application/json",
+        use_container_width=True,
+    )
     st.info("Recommendation remains pending human approval. No autonomous award is performed.")
     st.caption("Grade-substitution states are workflow evidence only and do not provide engineering approval.")
     st.stop()
