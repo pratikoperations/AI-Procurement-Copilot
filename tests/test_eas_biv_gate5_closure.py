@@ -68,6 +68,7 @@ def test_external_verification_and_autonomous_award_are_not_claimed():
 
 def test_manual_hosted_and_mobile_validation_is_not_overstated():
     closure = _text(CLOSURE).lower()
+    matrix_rows = [line for line in closure.splitlines() if line.startswith("|")]
     for observation in (
         "desktop hosted load",
         "narrow desktop viewport",
@@ -82,7 +83,7 @@ def test_manual_hosted_and_mobile_validation_is_not_overstated():
         "human review section",
         "packaging tco deferred state",
     ):
-        row = next(line for line in closure.splitlines() if observation in line)
+        row = next(line for line in matrix_rows if observation in line)
         assert "not performed" in row
     assert "physical browser and device observations are not inferred" in closure
 
