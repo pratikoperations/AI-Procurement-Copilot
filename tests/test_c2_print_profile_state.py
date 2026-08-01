@@ -142,5 +142,5 @@ def test_sidebar_uses_explicit_stable_widget_keys_and_normalization():
         assert key in source
     assert "normalize_laminate_colour_count" in source
     assert "normalize_laminate_tooling_state" in source
-    assert "disabled=laminate_print_profile == \"Unprinted\"" in source
+    assert 'disabled=values["laminate_print_profile"] == "Unprinted"' in source
     assert "disabled=unprinted" in source

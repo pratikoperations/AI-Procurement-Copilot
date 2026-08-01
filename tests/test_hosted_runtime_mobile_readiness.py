@@ -53,7 +53,7 @@ def test_generic_scenario_source_keeps_steel_guard_before_generic_loop() -> None
 
 def test_steel_widget_state_is_initialized_before_controls() -> None:
     source = Path("modules/steel_ux.py").read_text(encoding="utf-8")
-    render_start = source.index("def _render_controls")
+    render_start = source.index("def render_steel_sidebar_controls")
     initialize = source.index("_initialize_steel_widget_state(assumptions)", render_start)
     profile_widget = source.index('key="steel_profile"', render_start)
     route_widget = source.index('key="steel_sourcing_route"', render_start)
@@ -62,7 +62,7 @@ def test_steel_widget_state_is_initialized_before_controls() -> None:
 
 def test_steel_render_path_has_no_post_widget_bound_key_assignment() -> None:
     source = Path("modules/steel_ux.py").read_text(encoding="utf-8")
-    render = source[source.index("def _render_controls"):source.index("def _display_allocation")]
+    render = source[source.index("def render_steel_sidebar_controls"):source.index("def _display_allocation")]
     assert "apply_steel_state_transition(st.session_state" not in render
     assert 'st.session_state["steel_profile"] =' not in render
     assert 'st.session_state["steel_sourcing_route"] =' not in render

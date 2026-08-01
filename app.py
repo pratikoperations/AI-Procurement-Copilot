@@ -39,7 +39,7 @@ from modules.rfq_review_ui import (
 )
 from modules.risk_intelligence import assess_procurement_risks
 from modules.scenario import run_scenario_table
-from modules.scenario_engine import SCENARIOS, run_intelligence_scenario
+from modules.scenario_engine import run_intelligence_scenario
 from modules.scoring import enrich_supplier_scores
 from modules.sidebar import render_sidebar
 from modules.strategy_engine import recommend_strategy
@@ -349,7 +349,7 @@ risk_result = assess_procurement_risks(scored_df, optimized_allocation["allocati
 strategy_result = recommend_strategy(scored_df, assumptions["annual_volume"])
 intelligence_decision = generate_decision(scored_df, optimized_allocation["allocation_df"], risk_result)
 negotiation_intelligence = build_negotiation_intelligence(scored_df, assumptions["annual_volume"], should_cost["target_unit_cost_usd"])
-selected_scenario = st.sidebar.selectbox("Procurement Intelligence Scenario", list(SCENARIOS.keys()), index=0)
+selected_scenario = assumptions["procurement_intelligence_scenario"]
 intelligence_scenario_result = run_intelligence_scenario(suppliers_df, assumptions, selected_scenario)
 provisional_executive_narrative = generate_executive_narrative(
     intelligence_decision, strategy_result, optimized_allocation, risk_result,
