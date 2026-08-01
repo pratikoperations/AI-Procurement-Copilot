@@ -1,5 +1,7 @@
 """Final Gate 2 validation tests for controlled source levels and mapping keys."""
 
+from types import SimpleNamespace
+
 import pytest
 
 from modules.calculation_trace import deterministic_trace_id
@@ -7,26 +9,34 @@ from modules.parameter_precedence import (
     ParameterScopeValidationError,
     resolve_parameter,
 )
-from modules.parameter_profile_records import ParameterProfileRecord
 
 
-def _record(record_id: str, source_level: str) -> ParameterProfileRecord:
-    return ParameterProfileRecord(
-        record_id,
-        "ASM-001",
-        1,
-        "USD/kg",
-        "USD/kg",
-        None,
-        None,
-        None,
-        source_level,
-        "approved assumption",
+def _malformed_source_level_record():
+    """Bypass the profile model's own guard to test the resolver boundary directly."""
+    return SimpleNamespace(
+        parameter_record_id="bad-level",
+        assumption_id="ASM-001",
+        value=1,
+        canonical_unit="USD/kg",
+        original_unit="USD/kg",
+        category=None,
+        supplier=None,
+        rfq_scenario=None,
+        source_level="regional_default",
+        evidence_classification="approved assumption",
+        source_reference=None,
+        effective_date=None,
+        review_expiry_date=None,
+        confidence=None,
+        override_status="not_overridden",
+        override_reason=None,
+        approver=None,
+        version="1.0",
     )
 
 
 def test_unsupported_source_level_fails_with_controlled_error_not_keyerror():
-    record = _record("bad-level", "regional_default")
+    record = _malformed_source_level_record()
     with pytest.raises(ParameterScopeValidationError) as captured:
         resolve_parameter("ASM-001", [record])
     message = str(captured.value)
