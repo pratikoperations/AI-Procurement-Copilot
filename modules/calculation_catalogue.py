@@ -1,7 +1,7 @@
-"""Versioned read-only metadata for calculation explainability.
+"""Versioned, read-only calculation and assumption metadata.
 
-Expressions are documentation only. Existing procurement engines remain the
-sole authoritative source of business results.
+Formula expressions are documentation only. Existing procurement engines remain
+solely authoritative for business results.
 """
 from __future__ import annotations
 from dataclasses import dataclass
@@ -13,6 +13,7 @@ HUMAN_REVIEW_BOUNDARY = (
     "live-market claim or realized-savings claim is permitted."
 )
 UNDOCUMENTED_DEFAULT = "existing undocumented controlled default"
+STRATEGIC_FIT_STATUS = "deferred — no authoritative cross-category score identified"
 
 
 @dataclass(frozen=True)
@@ -91,6 +92,7 @@ def _formula(fid, name, cats, file, func, expr, inputs, units, steps, output, ou
 FORMULAS = (
     _formula("F-COM-VOLUME", "Effective annual volume", ("All",), "modules/category_cost_router.py", "calculate_category_should_cost", "annual_volume * (1 + demand_change)", ("annual_volume", "demand_change"), ("category unit", "fraction"), ("resolve volume", "apply demand"), "effective volume", "category unit"),
     _formula("F-COM-FX", "USD-INR conversion", ("All",), "modules/steel_cost.py", "steel_should_cost_dataframe", "usd_value * fx_rate", ("usd_value", "fx_rate"), ("USD", "INR/USD"), ("read FX", "convert"), "INR value", "INR"),
+    _formula("F-ANNUAL-VALUE", "Annual value", ("All",), "modules/raw_material_cost.py; modules/flexible_laminate_cost.py; modules/steel_cost.py", "umbrella: calculate_raw_material_should_cost; calculate_flexible_laminate_should_cost; calculate_steel_should_cost", "unit_value * annual_volume", ("unit value", "annual volume"), ("currency/unit", "category unit"), ("read authoritative unit value", "multiply by governed volume"), "annual value", "currency/year"),
     _formula("F-RM-SHOULDCOST", "Raw-material should-cost", ("PET Resin", "Kraft Paper", "Raw materials"), "modules/raw_material_cost.py", "calculate_raw_material_should_cost", "sum(adjusted components)", ("baseline", "shocks"), ("USD/kg", "fraction"), ("resolve baseline", "apply shocks", "sum"), "target cost", "USD/kg"),
     _formula("F-PKG-SHOULDCOST", "Generic packaging should-cost", ("Corrugated Board", "Generic packaging"), "modules/should_cost.py", "calculate_packaging_should_cost", "sum(adjusted components) * (1 + fx_shock)", ("components", "shocks"), ("USD/unit", "fraction"), ("adjust", "sum"), "target cost", "USD/unit"),
     _formula("F-C2-SHOULDCOST", "Flexible Laminates should-cost", ("Flexible Laminates",), "modules/flexible_laminate_cost.py", "calculate_flexible_laminate_should_cost", "authoritative C2 component reconciliation", ("structure", "losses", "tooling", "shocks"), ("mixed", "%", "USD/kg", "fraction"), ("substrate", "conversion", "yield", "tooling", "freight", "margin"), "target cost", "USD/kg"),
@@ -120,7 +122,7 @@ def _calc(cid, name, category, formula, variables, unit, source, outputs, fid, f
 CALCULATIONS = (
     _calc("COM-001", "Effective Annual Volume", "Cross-category", "annual_volume * (1 + demand_change)", ("annual_volume", "demand_change"), "category unit", "modules/category_cost_router.py", ("should_cost", "tco", "allocation", "exports"), "F-COM-VOLUME", "calculate_category_should_cost"),
     _calc("COM-002", "USD to INR Conversion", "Cross-category", "usd_value * fx_rate", ("usd_value", "fx_rate"), "INR", "modules/steel_cost.py", ("display", "excel", "json"), "F-COM-FX", "steel_should_cost_dataframe"),
-    _calc("COM-003", "Annual Value", "Cross-category", "unit_value * annual_volume", ("unit_value", "annual_volume"), "currency/year", "umbrella: category dataframe and export services", ("dashboard", "excel", "json"), "F-COM-VOLUME", "umbrella: category dataframe services"),
+    _calc("COM-003", "Annual Value", "Cross-category", "unit_value * annual_volume", ("unit_value", "annual_volume"), "currency/year", "modules/raw_material_cost.py; modules/flexible_laminate_cost.py; modules/steel_cost.py", ("dashboard", "excel", "json"), "F-ANNUAL-VALUE", "umbrella: calculate_raw_material_should_cost; calculate_flexible_laminate_should_cost; calculate_steel_should_cost"),
     _calc("PET-001", "PET Resin Target Unit Cost", "PET Resin", "sum(adjusted components)", ("baseline", "shocks"), "USD/kg", "modules/raw_material_cost.py", ("should_cost", "recommendation", "exports"), "F-RM-SHOULDCOST", "calculate_raw_material_should_cost"),
     _calc("KRF-001", "Kraft Paper Target Unit Cost", "Kraft Paper", "sum(adjusted governed components)", ("variant", "gsm", "strength", "shocks"), "USD/kg", "modules/raw_material_cost.py", ("should_cost", "recommendation", "exports"), "F-RM-SHOULDCOST", "calculate_raw_material_should_cost", "GSM premium represents controlled profile availability, not physical mass consumption."),
     _calc("COR-001", "Corrugated Board Target Unit Cost", "Corrugated Board", "sum(adjusted generic packaging components)", ("components", "shocks"), "USD/unit", "modules/should_cost.py", ("should_cost", "recommendation", "exports"), "F-PKG-SHOULDCOST", "calculate_packaging_should_cost"),
@@ -214,7 +216,6 @@ JSON_EVIDENCE_MAP = {
     "SCN-002": "flexible_laminates_governance.scenarios",
     "SCN-003": "steel_governance.scenarios",
 }
-STRATEGIC_FIT_STATUS = "deferred — no authoritative cross-category score identified"
 
 
 def calculation_by_id(calculation_id: str) -> CalculationDefinition:
