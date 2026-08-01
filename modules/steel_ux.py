@@ -21,6 +21,13 @@ STEEL_STATE_DEFAULTS = {
     "steel_import_duty_pct": 0.0, "steel_substitution_status": "Non-applicable",
     "steel_scenario": "Base Case",
 }
+STEEL_DEPENDENT_STATE_KEYS = (
+    "steel_zinc_cost_usd_per_kg",
+    "steel_paint_treatment_usd_per_kg",
+    "steel_import_duty_pct",
+    "steel_substitution_status",
+    "steel_scenario",
+)
 
 
 def normalize_steel_dependent_state(values: Mapping) -> dict:
@@ -63,6 +70,7 @@ def normalize_steel_dependent_state(values: Mapping) -> dict:
 
 
 def apply_steel_state_transition(session_state: MutableMapping, profile: str, route: str) -> dict:
+    """Normalize a non-rendered Steel state mapping for analytical workflows/tests."""
     values = dict(session_state)
     values.update({"steel_profile": profile, "steel_sourcing_route": route})
     normalized = normalize_steel_dependent_state(values)
@@ -71,28 +79,52 @@ def apply_steel_state_transition(session_state: MutableMapping, profile: str, ro
     return normalized
 
 
-def _render_controls(assumptions: Mapping) -> dict:
+def _initialize_steel_widget_state(assumptions: Mapping) -> dict:
+    """Initialize all widget-bound values before any Steel widget is instantiated."""
     for key, value in STEEL_STATE_DEFAULTS.items():
         st.session_state.setdefault(key, value)
-    current = normalize_steel_dependent_state({**assumptions, **st.session_state})
+    normalized = normalize_steel_dependent_state({**assumptions, **dict(st.session_state)})
     for key in STEEL_STATE_DEFAULTS:
-        st.session_state[key] = current[key]
+        st.session_state[key] = normalized[key]
+    return normalized
+
+
+def _sync_steel_dependents_from_widget_state() -> None:
+    """Update only dependent widgets inside a pre-rerun callback.
+
+    Streamlit executes on_change callbacks before the next script rerun, so these
+    assignments occur before the dependent widgets are instantiated. The callback
+    deliberately never writes the triggering widget keys steel_profile or
+    steel_sourcing_route.
+    """
+    normalized = normalize_steel_dependent_state(dict(st.session_state))
+    for key in STEEL_DEPENDENT_STATE_KEYS:
+        st.session_state[key] = normalized[key]
+
+
+def _render_controls(assumptions: Mapping) -> dict:
+    _initialize_steel_widget_state(assumptions)
     with st.sidebar.expander("Steel Decision Controls", expanded=True):
         st.caption("Controlled synthetic C3 assumptions; not live market data or technical certification.")
-        profile = st.selectbox("Steel Profile", STEEL_PROFILES, key="steel_profile")
-        route = st.selectbox("Sourcing Route", SOURCING_ROUTES, key="steel_sourcing_route")
-        apply_steel_state_transition(st.session_state, profile, route)
-        profile, route = st.session_state["steel_profile"], st.session_state["steel_sourcing_route"]
+        profile = st.selectbox(
+            "Steel Profile",
+            STEEL_PROFILES,
+            key="steel_profile",
+            on_change=_sync_steel_dependents_from_widget_state,
+        )
+        route = st.selectbox(
+            "Sourcing Route",
+            SOURCING_ROUTES,
+            key="steel_sourcing_route",
+            on_change=_sync_steel_dependents_from_widget_state,
+        )
         st.number_input("Zinc Cost USD/kg", min_value=0.0, step=0.01, key="steel_zinc_cost_usd_per_kg", disabled=profile == "CR_COIL_COMMERCIAL")
         st.number_input("Paint / Treatment Cost USD/kg", min_value=0.0, step=0.01, key="steel_paint_treatment_usd_per_kg", disabled=profile != "PPGI_COIL_Z120")
         st.number_input("Import Duty %", min_value=0.0, max_value=100.0, step=1.0, key="steel_import_duty_pct", disabled=route == "Domestic")
         st.selectbox("Substitution State", SUBSTITUTION_STATES, key="steel_substitution_status")
         st.selectbox("Governed Scenario", STEEL_SCENARIOS, key="steel_scenario")
         st.caption("Annual volume is entered in kg. Metric-tonne reporting is informational only.")
-    normalized = normalize_steel_dependent_state({**assumptions, **st.session_state})
-    for key in STEEL_STATE_DEFAULTS:
-        st.session_state[key] = normalized[key]
-    return normalized
+    return normalize_steel_dependent_state({**assumptions, **dict(st.session_state)})
 
 
 def _display_allocation(frame: pd.DataFrame, display_mode: str) -> pd.DataFrame:
