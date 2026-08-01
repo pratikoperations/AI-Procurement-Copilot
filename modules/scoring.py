@@ -1,9 +1,11 @@
 """Category-aware supplier scoring engine."""
 
 import pandas as pd
+from streamlit.runtime.scriptrunner import get_script_run_ctx
 
 from modules.esg import calculate_esg_score
 from modules.flexible_laminate_risk import apply_flexible_laminate_risk_to_tco
+from modules.hosted_readiness_ui import apply_hosted_readiness_overrides
 from modules.performance import calculate_performance_score
 from modules.raw_material_tco import calculate_raw_material_tco
 from modules.steel_risk import score_and_recommend_steel_suppliers
@@ -30,8 +32,29 @@ RAW_MATERIAL_WEIGHTS = {
 }
 
 
+def _is_steel_route(assumptions):
+    return (
+        assumptions.get("category") == "Raw Material Procurement"
+        and assumptions.get("commodity") == "Steel"
+    )
+
+
+def _in_streamlit_runtime() -> bool:
+    """Return True only for an active Streamlit script execution context."""
+    return get_script_run_ctx(suppress_warning=True) is not None
+
+
+def _dispatch_steel_governed_route(df, assumptions):
+    """Render and terminate the isolated Steel route before generic scoring."""
+    apply_hosted_readiness_overrides()
+    from modules.steel_ux import render_steel_governed_dashboard
+
+    render_steel_governed_dashboard(df, assumptions)
+    raise RuntimeError("Steel governed route returned without terminating the Streamlit run.")
+
+
 def _enrich_steel_scores(df, assumptions):
-    """Adapt governed C3 Steel scores to the stable application score contract."""
+    """Adapt governed C3 Steel scores to the stable analytical score contract."""
     profile = assumptions.get("steel_profile", "CR_COIL_COMMERCIAL")
     display = assumptions.get("display_currency", "Both")
     scored, recommendation = score_and_recommend_steel_suppliers(
@@ -61,7 +84,9 @@ def enrich_supplier_scores(df, assumptions, weights=None):
     """Add category-specific TCO, risk, ESG, performance, and weighted scores."""
     category = assumptions.get("category", "Packaging Procurement")
     commodity = assumptions.get("commodity", "Corrugated Board")
-    if category == "Raw Material Procurement" and commodity == "Steel":
+    if _is_steel_route(assumptions):
+        if _in_streamlit_runtime():
+            _dispatch_steel_governed_route(df, assumptions)
         return _enrich_steel_scores(df, assumptions)
 
     weights = weights or (

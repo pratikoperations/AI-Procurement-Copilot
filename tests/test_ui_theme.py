@@ -71,6 +71,30 @@ def test_metric_and_column_containers_can_shrink_without_horizontal_overflow() -
     assert "max-width: 100%" in css
 
 
+def test_select_focus_and_invalid_states_are_distinct() -> None:
+    css = ui_theme.UI_CSS
+
+    assert '--aipc-select-focus: #58A6FF' in css
+    assert '[data-baseweb="select"]:focus-within > div' in css
+    assert 'border-color: var(--aipc-select-focus) !important' in css
+    assert '[data-baseweb="select"] [role="combobox"]:focus-visible' in css
+    assert 'outline: 3px solid transparent !important' in css
+    assert '[data-baseweb="select"]:has([aria-invalid="true"]) > div' in css
+    assert 'border-color: var(--aipc-error) !important' in css
+
+
+def test_normal_select_focus_does_not_use_error_or_yellow_marker() -> None:
+    css = ui_theme.UI_CSS
+    focus_block = css.split('[data-baseweb="select"]:focus-within > div {', 1)[1].split("}", 1)[0]
+    combobox_block = css.split('[data-baseweb="select"] [role="combobox"]:focus-visible {', 1)[1].split("}", 1)[0]
+
+    assert "var(--aipc-error)" not in focus_block
+    assert "var(--aipc-focus)" not in focus_block
+    assert "outline: 3px solid transparent !important" in combobox_block
+    assert "outline: none" not in combobox_block
+    assert "box-shadow: none !important" in combobox_block
+
+
 def test_apply_ui_theme_injects_css_without_visible_code(monkeypatch) -> None:
     calls = []
 
