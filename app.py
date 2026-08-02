@@ -3,8 +3,6 @@
 import json
 import streamlit as st
 
-from modules.allocation import recommend_allocation
-from modules.allocation_optimizer import optimize_allocation
 from modules.category_cost_router import calculate_category_should_cost
 from modules.category_engine import ensure_category_profile
 from modules.config import APP_NAME, BUILD, EDITION, STATUS
@@ -24,6 +22,7 @@ from modules.exports import (
     build_readable_allocation, build_readable_supplier_comparison,
     build_readable_supplier_scores, dataframe_to_csv_bytes, text_to_bytes,
 )
+from modules.multi_supplier_allocation_application import run_application_allocation
 from modules.negotiation import generate_negotiation_playbook, govern_negotiation_brief, simulate_negotiation
 from modules.negotiation_engine import build_negotiation_intelligence
 from modules.procurement_intelligence_ui import render_procurement_intelligence
@@ -242,17 +241,7 @@ if is_governed_route:
         return {"recommended": recommended_row, "lowest": lowest_row, "confidence": confidence_value, "should_cost": should_cost_value, "should_cost_df": should_cost_table, "decision": decision_value, "value_metrics": value}
 
     def _allocation(outputs):
-        scored = outputs["SCORING_TCO"]
-        allocation = recommend_allocation(
-            scored,
-            annual_volume=assumptions["annual_volume"],
-            max_supplier_share=assumptions["max_supplier_share"],
-            min_backup_share=assumptions["min_backup_share"],
-            min_risk_score=assumptions["min_risk_score"],
-            min_esg_score=assumptions["min_esg_score"],
-        )
-        optimized = optimize_allocation(scored, assumptions["annual_volume"])
-        return {"allocation_df": allocation, "optimized_allocation": optimized}
+        return run_application_allocation(outputs["SCORING_TCO"], assumptions)
 
     def _negotiation(outputs):
         recommendation = outputs["RECOMMENDATION"]
@@ -289,9 +278,11 @@ if is_governed_route:
     should_cost_df = recommendation_bundle["should_cost_df"]
     decision = recommendation_bundle["decision"]
     value_metrics = recommendation_bundle["value_metrics"]
-    allocation_bundle = execution.outputs["ALLOCATION"]
-    allocation_df = allocation_bundle["allocation_df"]
-    optimized_allocation = allocation_bundle["optimized_allocation"]
+    application_allocation = execution.outputs["ALLOCATION"]
+    allocation_route_result = application_allocation.route_result
+    allocation_df = application_allocation.allocation_df
+    optimized_allocation = dict(application_allocation.intelligence_allocation)
+    allocation_control_summary = dict(application_allocation.control_summary)
     negotiation_bundle = execution.outputs["NEGOTIATION"]
     scenario_df = negotiation_bundle["scenario_df"]
     negotiation_result = negotiation_bundle["negotiation_result"]
@@ -329,25 +320,21 @@ else:
 
     decision = best_value_decision(scored_df)
     value_metrics = executive_value_breakdown(scored_df, assumptions["annual_volume"], should_cost["target_unit_cost_usd"])
-    allocation_df = recommend_allocation(
-        scored_df,
-        annual_volume=assumptions["annual_volume"],
-        max_supplier_share=assumptions["max_supplier_share"],
-        min_backup_share=assumptions["min_backup_share"],
-        min_risk_score=assumptions["min_risk_score"],
-        min_esg_score=assumptions["min_esg_score"],
-    )
+    application_allocation = run_application_allocation(scored_df, assumptions)
+    allocation_route_result = application_allocation.route_result
+    allocation_df = application_allocation.allocation_df
+    optimized_allocation = dict(application_allocation.intelligence_allocation)
+    allocation_control_summary = dict(application_allocation.control_summary)
     scenario_df = run_scenario_table(suppliers_df, assumptions)
     negotiation_result = simulate_negotiation(recommended, assumptions["annual_volume"])
     playbook_text = generate_negotiation_playbook(
         recommended, should_cost["target_unit_cost_usd"], lowest["Supplier"],
         lowest["Quoted Unit Price USD"], negotiation_result["annual_saving_usd"],
     )
-    optimized_allocation = optimize_allocation(scored_df, assumptions["annual_volume"])
 
-risk_result = assess_procurement_risks(scored_df, optimized_allocation["allocation_df"])
+risk_result = assess_procurement_risks(scored_df, allocation_df)
 strategy_result = recommend_strategy(scored_df, assumptions["annual_volume"])
-intelligence_decision = generate_decision(scored_df, optimized_allocation["allocation_df"], risk_result)
+intelligence_decision = generate_decision(scored_df, allocation_df, risk_result)
 negotiation_intelligence = build_negotiation_intelligence(scored_df, assumptions["annual_volume"], should_cost["target_unit_cost_usd"])
 selected_scenario = assumptions["procurement_intelligence_scenario"]
 intelligence_scenario_result = run_intelligence_scenario(suppliers_df, assumptions, selected_scenario)
@@ -358,7 +345,7 @@ provisional_executive_narrative = generate_executive_narrative(
 
 supplier_intelligence = build_supplier_intelligence(scored_df, assumptions["category"], assumptions["commodity"])
 assurance = run_validation_assurance(
-    suppliers_df, scored_df, optimized_allocation["allocation_df"],
+    suppliers_df, scored_df, allocation_df,
     supplier_intelligence["profiles"], assumptions, validation,
 )
 data_confidence = assurance["data_confidence"]
@@ -412,7 +399,7 @@ c2_manifest = (
     build_c2_export_manifest(
         scored_df,
         allocation_df,
-        optimized_allocation["allocation_df"],
+        allocation_df,
         scenario_df,
     )
     if is_flexible_laminates
@@ -423,7 +410,7 @@ excel_package = build_excel_workbook(
     readable_scores, readable_comparison,
     display_currency=display_currency, fx_rate=fx_rate,
     annual_volume=volume, annual_volume_unit=volume_unit,
-    optimized_allocation_df=optimized_allocation["allocation_df"],
+    optimized_allocation_df=allocation_df,
     c2_manifest=c2_manifest,
 )
 json_package = build_decision_package_json(
@@ -431,6 +418,33 @@ json_package = build_decision_package_json(
     negotiation_result, eligibility, c2_manifest=c2_manifest,
 )
 supplier_profiles_json = json.dumps(supplier_intelligence["profiles"], indent=2, default=str).encode("utf-8")
+
+route_blocked = allocation_route_result.allocation_result is None
+with st.expander("Governed Multi-Supplier Allocation Route", expanded=route_blocked):
+    route_status = allocation_route_result.route_status.value
+    if route_status == "READY":
+        st.success("Canonical allocation route completed. Human procurement approval remains mandatory.")
+    elif route_status == "WARNING":
+        st.warning("Canonical allocation route completed with warnings. Human procurement review remains mandatory.")
+    else:
+        st.error(f"Canonical allocation route is blocked: {route_status}")
+    st.write(allocation_route_result.route_summary)
+    st.caption(
+        f"Route {allocation_route_result.route_version} | Evidence origin: "
+        f"{allocation_route_result.evidence_origin or 'not available'}"
+    )
+    st.write("**Governed controls**")
+    st.dataframe([allocation_control_summary], width="stretch", hide_index=True)
+    for warning in allocation_route_result.warnings:
+        st.warning(warning)
+    for reason in allocation_route_result.blocking_reasons:
+        st.write(f"- {reason}")
+    if allocation_route_result.partial_evidence:
+        st.warning("Partial evidence captured before adapter failure")
+    st.caption(
+        "No legacy allocation fallback is permitted. This output is a recommendation for human procurement review, "
+        "not an autonomous award, approval record or ERP authorization."
+    )
 
 with st.expander("Validation Assurance Gate", expanded=True):
     c1, c2, c3, c4 = st.columns(4)
