@@ -251,6 +251,10 @@ def run_flexible_laminate_scenario(
         winner = None
     elif not scenario_allocation.allocation_available:
         decision = _blocked_route_decision(scenario_name, scenario_allocation)
+        if len(eligible) == 1:
+            decision["confidence_governance"] = (
+                "Single technically eligible supplier — canonical exactly-two allocation is infeasible."
+            )
         winner = None
     else:
         decision = generate_decision(eligible, canonical_allocation)
