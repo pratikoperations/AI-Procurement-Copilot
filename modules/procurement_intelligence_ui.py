@@ -127,6 +127,10 @@ def render_procurement_intelligence(
             f"Scenario assumptions: {presentation.scenario_assumption_version or 'not versioned'} | "
             "Human procurement review required: Yes | Legacy fallback used: No."
         )
+        st.caption(
+            "No legacy scenario allocation is displayed. The scenario view is a projection of the canonical "
+            "Gate 3C1 route and cannot create an autonomous award."
+        )
 
     st.subheader("AI Explainability 2.0")
     explanation = decision["explainability"]
