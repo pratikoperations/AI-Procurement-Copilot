@@ -259,7 +259,7 @@ def test_k2_continuity_is_minimum_per_one_continuity_supplier():
 
 
 def test_k3_requires_two_suppliers_capable_of_continuity_floor():
-    records = [supplier("Vendor A", 850), supplier("Vendor B", 100), supplier("Vendor C", 50)]
+    records = [supplier("Vendor A", 850), supplier("Vendor B", 90), supplier("Vendor C", 60)]
     request = make_request(required_awardee_count=3, minimum_awarded_share_pct=5, maximum_supplier_share_pct=90, minimum_continuity_share_pct=10)
     result = evaluate_allocation_feasibility(request, records)
     assert result.status_code is FeasibilityStatus.NO_FEASIBLE_K_SUPPLIER_PORTFOLIO
