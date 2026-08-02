@@ -3,6 +3,8 @@
 import pandas as pd
 import streamlit as st
 
+from modules.multi_supplier_allocation_scenario_presenter import build_scenario_presentation
+
 
 def render_procurement_intelligence(
     decision,
@@ -81,11 +83,50 @@ def render_procurement_intelligence(
     st.dataframe(risk_df, width="stretch", hide_index=True)
 
     st.subheader("Scenario Simulation")
-    st.write(f"**Scenario:** {scenario_result['scenario']}")
-    st.info(
-        "Scenario-specific supplier allocation is deferred until the canonical route is governed for "
-        "scenario inputs. No legacy scenario allocation is displayed as an award recommendation."
-    )
+    scenario_allocation = scenario_result.get("scenario_allocation")
+    if scenario_allocation is None:
+        st.error("Canonical scenario allocation evidence is unavailable for this scenario result.")
+    else:
+        scored = scenario_result.get("scored_df", pd.DataFrame())
+        leading_supplier = ""
+        leading_score = None
+        if not scored.empty:
+            leading_supplier = str(scored.iloc[0].get("Supplier", ""))
+            leading_score = scored.iloc[0].get("total_score")
+        presentation = build_scenario_presentation(
+            scenario_allocation,
+            analytical_leading_supplier=leading_supplier,
+            analytical_leading_score=leading_score,
+        )
+        st.write(f"**Scenario:** {presentation.scenario}")
+        st.write(f"**Applicability:** {'Applicable' if presentation.scenario_applicable else 'Not applicable'}")
+        st.write(f"**Canonical route status:** {presentation.route_status}")
+        if presentation.route_status == "READY":
+            st.success("Scenario allocation is available for human procurement review.")
+        elif presentation.route_status == "WARNING":
+            st.warning("Scenario allocation is available with warnings; human review is mandatory.")
+        elif presentation.route_status == "NOT_APPLICABLE":
+            st.info(presentation.status_reason)
+        else:
+            st.error("Scenario allocation is blocked. No supplier award or allocation recommendation is permitted.")
+        if presentation.allocation_available:
+            st.dataframe(presentation.allocation_df, width="stretch", hide_index=True)
+        else:
+            st.info("No canonical scenario allocation is available for this route state.")
+        if presentation.analytical_leading_supplier:
+            st.caption(
+                f"Analytical leading supplier: {presentation.analytical_leading_supplier}. "
+                "This ranking signal is not an award decision."
+            )
+        for warning in presentation.warnings:
+            st.warning(warning)
+        for reason in presentation.blocking_reasons:
+            st.write(f"- {reason}")
+        st.caption(
+            f"Evidence origin: {presentation.evidence_origin or 'not available'} | "
+            f"Scenario assumptions: {presentation.scenario_assumption_version or 'not versioned'} | "
+            "Human procurement review required: Yes | Legacy fallback used: No."
+        )
 
     st.subheader("AI Explainability 2.0")
     explanation = decision["explainability"]
