@@ -3,6 +3,7 @@
 from modules.allocation_optimizer import optimize_allocation
 from modules.data_loader import get_demo_suppliers
 from modules.decision_engine import generate_decision
+from modules.multi_supplier_allocation_route import RouteStatus
 from modules.negotiation_engine import build_negotiation_intelligence
 from modules.risk_intelligence import assess_procurement_risks
 from modules.scenario_engine import run_intelligence_scenario
@@ -67,9 +68,11 @@ def test_risk_intelligence_returns_ranked_risks():
     assert result["top_mitigation"]
 
 
-def test_scenario_engine_recomputes_recommendation():
+def test_scenario_engine_fails_closed_without_capacity_evidence():
     result = run_intelligence_scenario(get_demo_suppliers(), ASSUMPTIONS, "Price Increase")
     assert result["scenario"] == "Price Increase"
     assert not result["scored_df"].empty
-    assert result["decision"]["recommended_supplier"]
-    assert round(result["allocation"]["allocation_df"]["Recommended Allocation %"].sum(), 6) == 100
+    assert result["scenario_allocation"].route_result.route_status is RouteStatus.BLOCKED_MISSING_CAPACITY
+    assert result["allocation"]["allocation_df"].empty
+    assert result["allocation"]["legacy_fallback_used"] is False
+    assert result["decision"]["recommended_supplier"] == "No canonical allocation available"
