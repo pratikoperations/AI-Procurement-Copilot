@@ -160,12 +160,13 @@ def test_excel_contains_standard_optimized_scenario_and_governance_sheets():
     assert {"Allocation", "Standard Allocation", "Optimized Allocation", "Scenarios", "C2 Governance"}.issubset(sheets)
 
 
-def test_live_app_passes_same_c2_manifest_and_optimized_allocation_to_exports():
+def test_live_app_passes_same_c2_manifest_and_canonical_allocation_to_exports():
     source = Path("app.py").read_text(encoding="utf-8")
     assert "build_c2_export_manifest" in source
     assert "c2_manifest = (" in source
-    assert 'optimized_allocation["allocation_df"]' in source
-    assert 'optimized_allocation_df=optimized_allocation["allocation_df"]' in source
+    assert "allocation_df,\n        allocation_df,\n        scenario_df" in source
+    assert "optimized_allocation_df=allocation_df" in source
+    assert 'optimized_allocation["allocation_df"]' not in source
     assert source.count("c2_manifest=c2_manifest") == 2
 
 
