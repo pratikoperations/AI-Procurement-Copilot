@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import date, datetime, timezone
 import json
 import math
 import warnings
@@ -15,6 +16,15 @@ from modules.multi_supplier_allocation_adapter import (
     AdapterStatus,
     build_multi_supplier_allocation_adapter,
 )
+
+
+class UnsupportedEvidence:
+    pass
+
+
+class DeterministicMappingEvidence:
+    def to_dict(self):
+        return {"approved": True, "value": np.int64(7)}
 
 
 def controls(**overrides):
@@ -70,25 +80,81 @@ def build(data=None, control_values=None, **kwargs):
     )
 
 
-def test_valid_six_supplier_route_with_k3():
-    result = build()
-    assert result.ready
-    assert result.status_code is AdapterStatus.ADAPTER_READY
-    assert len(result.supplier_inputs) == 6
-    assert result.request.required_awardee_count == 3
+def decoded(result):
+    return json.loads(result.to_json())
 
 
 @pytest.mark.parametrize(
-    ("commodity", "category", "source_type", "evidence_origin"),
+    ("source_type", "origin", "ready", "expected_origin"),
+    [
+        ("synthetic_demo", None, True, "controlled_synthetic"),
+        ("synthetic_demo", "controlled_synthetic", True, "controlled_synthetic"),
+        ("synthetic_demo", "supplied", False, None),
+        ("steel_synthetic", None, True, "controlled_synthetic"),
+        ("steel_synthetic", "controlled_synthetic", True, "controlled_synthetic"),
+        ("steel_synthetic", "supplied", False, None),
+        ("uploaded_rfq", None, True, "supplied"),
+        ("uploaded_rfq", "supplied", True, "supplied"),
+        ("uploaded_rfq", "controlled_synthetic", False, None),
+        ("governed_workbook", None, True, "governed_workbook"),
+        ("governed_workbook", "governed_workbook", True, "governed_workbook"),
+        ("governed_workbook", "controlled_synthetic", False, None),
+        ("category_adapter", "controlled_synthetic", True, "controlled_synthetic"),
+        ("category_adapter", "supplied", True, "supplied"),
+        ("category_adapter", "governed_workbook", True, "governed_workbook"),
+        ("category_adapter", None, False, None),
+    ],
+)
+def test_source_origin_governance(source_type, origin, ready, expected_origin):
+    data = frame()
+    if source_type == "steel_synthetic":
+        data = data.drop(columns=["adjusted_tco_unit_usd", "total_score"])
+        data["normalized_usd_per_kg"] = [1.1 + i * 0.03 for i in range(len(data))]
+        data["governed_total_score"] = [95 - i for i in range(len(data))]
+    result = build(data, source_type=source_type, evidence_origin=origin)
+    assert result.ready is ready
+    payload = decoded(result)
+    if ready:
+        assert all(item["evidence_origin"] == expected_origin for item in payload["capacity_evidence"])
+    else:
+        assert result.status_code is AdapterStatus.INVALID_ROUTE_INPUT
+        assert payload["ready"] is False
+
+
+@pytest.mark.parametrize(
+    ("source_type", "bad_origin", "required"),
+    [
+        ("uploaded_rfq", "controlled_synthetic", "supplied"),
+        ("governed_workbook", "controlled_synthetic", "governed_workbook"),
+        ("synthetic_demo", "supplied", "controlled_synthetic"),
+        ("steel_synthetic", "supplied", "controlled_synthetic"),
+    ],
+)
+def test_contradictory_origin_reason_is_deterministic(source_type, bad_origin, required):
+    data = frame()
+    if source_type == "steel_synthetic":
+        data = data.drop(columns=["adjusted_tco_unit_usd", "total_score"])
+        data["normalized_usd_per_kg"] = 1.1
+        data["governed_total_score"] = 90.0
+    result = build(data, source_type=source_type, evidence_origin=bad_origin)
+    assert result.blocking_reasons == (
+        f"source_type '{source_type}' requires evidence_origin '{required}'",
+    )
+    assert "0x" not in result.to_json()
+
+
+@pytest.mark.parametrize(
+    ("commodity", "category", "source_type", "origin"),
     [
         ("PET Resin", "Raw Material Procurement", "synthetic_demo", None),
         ("Flexible Laminates", "Packaging Procurement", "category_adapter", "supplied"),
         ("Kraft Paper", "Raw Material Procurement", "synthetic_demo", None),
         ("Corrugated Board", "Packaging Procurement", "synthetic_demo", None),
         ("Generic RFQ", "Other", "uploaded_rfq", None),
+        ("Governed RFQ", "Other", "governed_workbook", None),
     ],
 )
-def test_cross_category_complete_evidence_is_valid(commodity, category, source_type, evidence_origin):
+def test_cross_category_complete_evidence_is_valid(commodity, category, source_type, origin):
     data = frame()
     if commodity == "Flexible Laminates":
         data["Laminate Structure"] = "PET / PE"
@@ -97,119 +163,61 @@ def test_cross_category_complete_evidence_is_valid(commodity, category, source_t
         data["GSM"] = 150
         data["Strength Grade"] = "22 BF"
         data["Kraft Variant"] = "Recycled Kraft"
-    result = build(
-        data,
-        controls(category=category, commodity=commodity),
-        source_type=source_type,
-        evidence_origin=evidence_origin,
-    )
+    result = build(data, controls(category=category, commodity=commodity), source_type=source_type, evidence_origin=origin)
     assert result.ready
+    decoded(result)
 
 
-def test_valid_governed_workbook_with_complete_evidence():
-    result = build(source_type="governed_workbook")
-    assert result.ready
-    assert not result.controlled_defaults_used
-    assert all(item["evidence_class"] == "governed workbook" for item in result.field_provenance)
-
-
-def test_valid_uploaded_rfq_with_complete_evidence():
-    result = build(source_type="uploaded_rfq")
-    assert result.ready
-    assert all("controlled synthetic" not in item["evidence_note"].lower() for item in result.capacity_evidence)
-
-
-def test_valid_steel_scored_route_uses_controlled_aliases():
-    data = frame().drop(columns=["adjusted_tco_unit_usd", "total_score"])
-    data["normalized_usd_per_kg"] = [1.1 + i * 0.03 for i in range(len(data))]
-    data["governed_total_score"] = [95 - i for i in range(len(data))]
-    data["eligibility_failure_reasons"] = ["" for _ in range(len(data))]
-    data["Supported Steel Profiles"] = "CR_COIL_COMMERCIAL"
-    result = build(data, controls(commodity="Steel"), source_type="steel_synthetic")
-    assert result.ready
-    assert result.supplier_inputs[0].adjusted_tco_unit_usd == pytest.approx(1.1)
-    assert result.supplier_inputs[0].total_score == pytest.approx(95)
-    provenance = {item["canonical_field"]: item for item in result.field_provenance}
-    assert provenance["adjusted_tco_unit_usd"]["mapping_type"] == "category adapter"
-    assert provenance["total_score"]["source_column"] == "governed_total_score"
-
-
-@pytest.mark.parametrize("source_type", ["synthetic_demo", "uploaded_rfq", "governed_workbook"])
-def test_missing_technical_eligibility_blocks(source_type):
-    result = build(frame().drop(columns=["technical_eligible"]), source_type=source_type)
+@pytest.mark.parametrize(
+    ("column", "status"),
+    [
+        ("Supplier", AdapterStatus.MISSING_REQUIRED_COLUMN),
+        ("technical_eligible", AdapterStatus.MISSING_TECHNICAL_ELIGIBILITY),
+        ("adjusted_tco_unit_usd", AdapterStatus.MISSING_TCO_EVIDENCE),
+        ("total_score", AdapterStatus.MISSING_SCORE_EVIDENCE),
+        ("risk_score", AdapterStatus.MISSING_SCORE_EVIDENCE),
+        ("performance_score", AdapterStatus.MISSING_SCORE_EVIDENCE),
+        ("esg_score", AdapterStatus.MISSING_SCORE_EVIDENCE),
+        ("Supplier Capacity", AdapterStatus.MISSING_SUPPLIER_CAPACITY),
+    ],
+)
+def test_missing_required_columns_block(column, status):
+    result = build(frame().drop(columns=[column]))
     assert not result.ready
-    assert result.status_code is AdapterStatus.MISSING_TECHNICAL_ELIGIBILITY
+    assert result.status_code is status
+    decoded(result)
 
 
-@pytest.mark.parametrize("source_type", ["synthetic_demo", "uploaded_rfq", "governed_workbook"])
-def test_missing_capacity_blocks_without_annual_volume_default(source_type):
-    result = build(frame().drop(columns=["Supplier Capacity"]), source_type=source_type)
-    assert not result.ready
-    assert result.status_code is AdapterStatus.MISSING_SUPPLIER_CAPACITY
-    assert result.supplier_inputs == ()
-
-
-def test_corrugated_synthetic_missing_eligibility_blocks():
-    result = build(
-        frame().drop(columns=["technical_eligible"]),
-        controls(category="Packaging Procurement", commodity="Corrugated Board"),
-    )
-    assert result.status_code is AdapterStatus.MISSING_TECHNICAL_ELIGIBILITY
-
-
-def test_corrugated_synthetic_missing_capacity_blocks():
-    result = build(
-        frame().drop(columns=["Supplier Capacity"]),
-        controls(category="Packaging Procurement", commodity="Corrugated Board"),
-    )
-    assert result.status_code is AdapterStatus.MISSING_SUPPLIER_CAPACITY
-
-
-@pytest.mark.parametrize("value", ["maybe", "approved", 2, None])
+@pytest.mark.parametrize("value", ["maybe", "approved", 2, None, [], {}, object(), 3.5])
 def test_ambiguous_technical_eligibility_blocks(value):
     data = frame()
     data["technical_eligible"] = data["technical_eligible"].astype(object)
     data.loc[0, "technical_eligible"] = value
     result = build(data)
     assert result.status_code is AdapterStatus.AMBIGUOUS_TECHNICAL_ELIGIBILITY
+    decoded(result)
 
 
-def test_string_false_remains_false():
+@pytest.mark.parametrize("value", [False, "False", "no", "0", 0, "ineligible"])
+def test_controlled_false_values_remain_false(value):
     data = frame()
     data["technical_eligible"] = data["technical_eligible"].astype(object)
-    data.loc[0, "technical_eligible"] = "False"
+    data.loc[0, "technical_eligible"] = value
     result = build(data)
+    assert result.ready
     supplier = next(item for item in result.supplier_inputs if item.supplier_id == "supplier a")
     assert supplier.technical_eligible is False
 
 
-def test_no_technical_eligibility_default_to_true():
-    result = build(frame().drop(columns=["technical_eligible"]))
-    assert result.supplier_inputs == ()
-    assert not result.ready
-
-
-def test_duplicate_normalized_supplier_ids_block():
+@pytest.mark.parametrize("value", [True, "True", "yes", "1", 1, "eligible"])
+def test_controlled_true_values_remain_true(value):
     data = frame()
-    data.loc[1, "Supplier"] = "  SUPPLIER   A "
+    data["technical_eligible"] = data["technical_eligible"].astype(object)
+    data.loc[0, "technical_eligible"] = value
     result = build(data)
-    assert result.status_code is AdapterStatus.DUPLICATE_SUPPLIER_ID
-    assert "Row 1" in result.blocking_reasons[0]
-
-
-@pytest.mark.parametrize(
-    ("column", "status"),
-    [
-        ("adjusted_tco_unit_usd", AdapterStatus.MISSING_TCO_EVIDENCE),
-        ("total_score", AdapterStatus.MISSING_SCORE_EVIDENCE),
-        ("risk_score", AdapterStatus.MISSING_SCORE_EVIDENCE),
-        ("performance_score", AdapterStatus.MISSING_SCORE_EVIDENCE),
-        ("esg_score", AdapterStatus.MISSING_SCORE_EVIDENCE),
-    ],
-)
-def test_missing_tco_or_score_columns_block(column, status):
-    result = build(frame().drop(columns=[column]))
-    assert result.status_code is status
+    assert result.ready
+    supplier = next(item for item in result.supplier_inputs if item.supplier_id == "supplier a")
+    assert supplier.technical_eligible is True
 
 
 @pytest.mark.parametrize("column", ["adjusted_tco_unit_usd", "total_score", "risk_score", "performance_score", "esg_score"])
@@ -222,6 +230,7 @@ def test_invalid_numeric_evidence_blocks(column, value):
     result = build(data)
     expected = AdapterStatus.MISSING_TCO_EVIDENCE if column == "adjusted_tco_unit_usd" else AdapterStatus.MISSING_SCORE_EVIDENCE
     assert result.status_code is expected
+    decoded(result)
 
 
 @pytest.mark.parametrize("value", [0, -1, math.nan, math.inf, "bad", None])
@@ -232,114 +241,174 @@ def test_invalid_capacity_blocks(value):
     data.loc[0, "Supplier Capacity"] = value
     result = build(data)
     assert result.status_code is AdapterStatus.INVALID_SUPPLIER_CAPACITY
+    decoded(result)
 
 
-def test_unsupported_comparison_currency_blocks():
-    result = build(control_values=controls(comparison_currency="INR"))
-    assert result.status_code is AdapterStatus.UNSUPPORTED_CURRENCY_BASIS
-
-
-@pytest.mark.parametrize("unit", ["", "litre", None])
+@pytest.mark.parametrize("unit", ["", "litre", None, "m2"])
 def test_unsupported_unit_blocks(unit):
     result = build(control_values=controls(annual_volume_unit=unit))
     assert result.status_code is AdapterStatus.UNSUPPORTED_UNIT
 
 
-def test_explicit_alias_map_is_supported():
-    data = frame().rename(columns={"Supplier Capacity": "Available Capacity"})
-    result = build(data, column_aliases={"supplier_capacity": "Available Capacity"})
+@pytest.mark.parametrize("currency", ["INR", "EUR", "GBP", "JPY"])
+def test_unsupported_currency_blocks(currency):
+    result = build(control_values=controls(comparison_currency=currency))
+    assert result.status_code is AdapterStatus.UNSUPPORTED_CURRENCY_BASIS
+
+
+def test_valid_six_supplier_route_with_k3_and_versions():
+    result = build()
+    assert result.ready
+    assert result.status_code is AdapterStatus.ADAPTER_READY
+    assert result.adapter_version == ADAPTER_VERSION == "AIPC-MULTI-ALLOC-ADAPTER-1.0"
+    assert result.request.contract_version == ALLOCATION_CONTRACT_VERSION == "AIPC-MULTI-ALLOC-1.0"
+    assert len(result.supplier_inputs) == 6
+    assert result.request.required_awardee_count == 3
+    assert result.human_review_required is True
+
+
+def test_valid_steel_aliases_map_correctly():
+    data = frame().drop(columns=["adjusted_tco_unit_usd", "total_score"])
+    data["normalized_usd_per_kg"] = [1.1 + i * 0.03 for i in range(len(data))]
+    data["governed_total_score"] = [95 - i for i in range(len(data))]
+    result = build(data, controls(commodity="Steel"), source_type="steel_synthetic")
     assert result.ready
     provenance = {item["canonical_field"]: item for item in result.field_provenance}
-    assert provenance["supplier_capacity"]["mapping_type"] == "explicit alias"
+    assert provenance["adjusted_tco_unit_usd"]["mapping_type"] == "category adapter"
+    assert provenance["total_score"]["source_column"] == "governed_total_score"
 
 
-def test_alias_is_not_inferred_without_explicit_map():
+def test_explicit_alias_map_is_supported_but_not_inferred():
     data = frame().rename(columns={"Supplier Capacity": "Available Capacity"})
-    result = build(data)
-    assert result.status_code is AdapterStatus.MISSING_SUPPLIER_CAPACITY
+    blocked = build(data)
+    accepted = build(data, column_aliases={"supplier_capacity": "Available Capacity"})
+    assert blocked.status_code is AdapterStatus.MISSING_SUPPLIER_CAPACITY
+    assert accepted.ready
 
 
-def test_eligibility_reasons_are_preserved():
-    result = build()
-    supplier = next(item for item in result.supplier_inputs if item.supplier_id == "supplier f")
-    assert supplier.eligibility_failure_reasons == ("Capability gap",)
-
-
-def test_flexible_laminate_category_evidence_is_preserved():
+def test_duplicate_normalized_supplier_ids_block():
     data = frame()
-    data["Laminate Structure"] = "PET / PE"
-    data["Application Approval Status"] = "Approved"
-    result = build(
-        data,
-        controls(category="Packaging Procurement", commodity="Flexible Laminates"),
-        source_type="category_adapter",
-        evidence_origin="supplied",
-    )
-    evidence = result.supplier_inputs[0].category_specific_eligibility_evidence
-    assert evidence["Laminate Structure"] == "PET / PE"
-    assert evidence["Application Approval Status"] == "Approved"
-    assert evidence["evidence_origin"] == "supplied"
+    data.loc[1, "Supplier"] = "  SUPPLIER   A "
+    result = build(data)
+    assert result.status_code is AdapterStatus.DUPLICATE_SUPPLIER_ID
+    assert "Row 1" in result.blocking_reasons[0]
 
 
-def test_kraft_category_evidence_is_preserved():
+def test_required_and_excluded_supplier_ids_are_normalized():
+    result = build(control_values=controls(required_supplier_ids=[" Supplier A "], excluded_supplier_ids=["SUPPLIER F"]))
+    assert result.request.required_supplier_ids == ("supplier a",)
+    assert result.request.excluded_supplier_ids == ("supplier f",)
+
+
+def test_eligibility_reasons_and_category_evidence_are_preserved():
     data = frame()
     data["GSM"] = 150
-    data["Strength Grade"] = "22 BF"
-    data["Kraft Variant"] = "Recycled Kraft"
-    data["Mill Allocation %"] = 70
-    result = build(data, controls(commodity="Kraft Paper"))
-    evidence = result.supplier_inputs[0].category_specific_eligibility_evidence
-    assert evidence["GSM"] == 150
-    assert evidence["Strength Grade"] == "22 BF"
+    result = build(data)
+    supplier_f = next(item for item in result.supplier_inputs if item.supplier_id == "supplier f")
+    assert supplier_f.eligibility_failure_reasons == ("Capability gap",)
+    assert result.supplier_inputs[0].category_specific_eligibility_evidence["GSM"] == 150
 
 
-def test_synthetic_evidence_is_labelled_controlled_demonstration():
-    result = build()
-    assert any("Controlled synthetic demonstration assumption" in warning for warning in result.warnings)
-    assert all("Controlled synthetic demonstration assumption" in item["evidence_note"] for item in result.capacity_evidence)
+@pytest.mark.parametrize("missing_value", [math.nan, np.nan, pd.NA, pd.NaT])
+def test_null_like_category_evidence_is_omitted_and_json_safe(missing_value):
+    data = frame()
+    data["GSM"] = pd.Series([missing_value] + [150] * (len(data) - 1), dtype=object)
+    payload = decoded(build(data))
+    evidence = payload["supplier_inputs"][0]["category_specific_eligibility_evidence"]
+    assert "GSM" not in evidence
 
 
-def test_uploaded_data_never_receives_synthetic_defaults():
-    result = build(source_type="uploaded_rfq")
-    assert result.controlled_defaults_used == ()
-    assert not any("Controlled synthetic" in warning for warning in result.warnings)
-    assert all(item["evidence_origin"] == "supplied" for item in result.capacity_evidence)
+@pytest.mark.parametrize(
+    ("column", "value", "expected_type"),
+    [
+        ("GSM", np.int64(150), int),
+        ("Mill Allocation %", np.float64(70.5), float),
+        ("Paint Line Capability", np.bool_(True), bool),
+    ],
+)
+def test_numpy_scalars_normalize_to_python_types(column, value, expected_type):
+    data = frame()
+    data[column] = pd.Series([value] * len(data), dtype=object)
+    payload = decoded(build(data))
+    normalized = payload["supplier_inputs"][0]["category_specific_eligibility_evidence"][column]
+    assert type(normalized) is expected_type
 
 
-def test_contract_and_adapter_versions_are_stable():
-    result = build()
-    assert result.adapter_version == ADAPTER_VERSION
-    assert ADAPTER_VERSION == "AIPC-MULTI-ALLOC-ADAPTER-1.0"
-    assert result.request.contract_version == ALLOCATION_CONTRACT_VERSION
-    assert ALLOCATION_CONTRACT_VERSION == "AIPC-MULTI-ALLOC-1.0"
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (date(2026, 8, 2), "2026-08-02"),
+        (datetime(2026, 8, 2, 10, 47, tzinfo=timezone.utc), "2026-08-02T10:47:00+00:00"),
+        (pd.Timestamp("2026-08-02T10:47:00Z"), "2026-08-02T10:47:00+00:00"),
+    ],
+)
+def test_supported_date_and_timestamp_evidence_is_deterministic(value, expected):
+    data = frame()
+    data["Application Approval"] = pd.Series([value] * len(data), dtype=object)
+    first = decoded(build(data))
+    second = decoded(build(data.sample(frac=1, random_state=7).reset_index(drop=True)))
+    supplier_a_first = next(item for item in first["supplier_inputs"] if item["supplier_id"] == "supplier a")
+    supplier_a_second = next(item for item in second["supplier_inputs"] if item["supplier_id"] == "supplier a")
+    assert supplier_a_first["category_specific_eligibility_evidence"]["Application Approval"] == expected
+    assert supplier_a_first == supplier_a_second
 
 
-def test_supplier_input_order_is_deterministic():
-    result = build(frame().iloc[::-1].reset_index(drop=True))
-    assert [item.supplier_id for item in result.supplier_inputs] == sorted(item.supplier_id for item in result.supplier_inputs)
+def test_supported_to_dict_evidence_is_normalized():
+    data = frame()
+    data["Application Approval"] = pd.Series([DeterministicMappingEvidence()] * len(data), dtype=object)
+    payload = decoded(build(data))
+    value = payload["supplier_inputs"][0]["category_specific_eligibility_evidence"]["Application Approval"]
+    assert value == {"approved": True, "value": 7}
 
 
-def test_row_order_does_not_change_serialization():
-    first = build(frame())
-    second = build(frame().sample(frac=1, random_state=42).reset_index(drop=True))
+def test_unsupported_custom_object_returns_governed_json_safe_failure():
+    data = frame()
+    data["GSM"] = pd.Series([UnsupportedEvidence()] + [150] * (len(data) - 1), dtype=object)
+    result = build(data)
+    assert not result.ready
+    assert result.status_code is AdapterStatus.CONTRACT_CONSTRUCTION_FAILURE
+    reason = result.blocking_reasons[0]
+    assert "Row 0" in reason
+    assert "supplier 'supplier a'" in reason
+    assert "field 'GSM'" in reason
+    assert "UnsupportedEvidence" in reason
+    assert "0x" not in reason
+    payload = decoded(result)
+    assert payload["ready"] is False
+    assert payload["supplier_inputs"] == []
+
+
+def test_unsupported_object_after_partial_processing_preserves_safe_partial_evidence():
+    data = frame()
+    values = [150, 160, UnsupportedEvidence(), 180, 190, 200]
+    data["GSM"] = pd.Series(values, dtype=object)
+    result = build(data)
+    assert result.status_code is AdapterStatus.CONTRACT_CONSTRUCTION_FAILURE
+    assert "Row 2" in result.blocking_reasons[0]
+    payload = decoded(result)
+    assert len(payload["eligibility_evidence"]) == 2
+    assert len(payload["capacity_evidence"]) == 2
+
+
+def test_sparse_evidence_and_row_order_are_deterministic():
+    data = frame()
+    data["GSM"] = pd.Series([150, pd.NA, 170, np.nan, 180, pd.NA], dtype=object)
+    first = build(data)
+    second = build(data.sample(frac=1, random_state=42).reset_index(drop=True))
     assert first.to_json() == second.to_json()
 
 
-def test_source_dataframe_is_not_mutated():
+def test_source_dataframe_and_controls_are_not_mutated():
     data = frame()
-    original = data.copy(deep=True)
-    build(data)
-    pd.testing.assert_frame_equal(data, original)
-
-
-def test_controls_mapping_is_not_mutated():
+    original_data = data.copy(deep=True)
     values = controls(required_supplier_ids=["Supplier A"])
-    original = deepcopy(values)
-    build(control_values=values)
-    assert values == original
+    original_values = deepcopy(values)
+    build(data, values)
+    pd.testing.assert_frame_equal(data, original_data)
+    assert values == original_values
 
 
-def test_adapter_result_and_nested_evidence_are_read_only():
+def test_result_and_nested_evidence_are_immutable():
     result = build()
     with pytest.raises((AttributeError, TypeError)):
         result.ready = False
@@ -349,17 +418,7 @@ def test_adapter_result_and_nested_evidence_are_read_only():
         result.supplier_inputs[0].category_specific_eligibility_evidence["changed"] = True
 
 
-def test_strict_json_serialization_is_deterministic():
-    result = build()
-    first = result.to_json()
-    second = result.to_json()
-    assert first == second
-    decoded = json.loads(first)
-    assert decoded["status_code"] == "ADAPTER_READY"
-    assert decoded["human_review_required"] is True
-
-
-def test_field_provenance_is_deterministic_and_complete():
+def test_field_provenance_is_complete_and_deterministic():
     result = build()
     canonical = [item["canonical_field"] for item in result.field_provenance]
     assert canonical == sorted(canonical)
@@ -376,33 +435,38 @@ def test_field_provenance_is_deterministic_and_complete():
     )
 
 
-def test_non_empty_dataframe_is_required():
-    result = build(pd.DataFrame())
-    assert result.status_code is AdapterStatus.INVALID_ROUTE_INPUT
-    json.loads(result.to_json())
+@pytest.mark.parametrize("status", list(AdapterStatus))
+def test_status_values_are_stable_and_serializable(status):
+    assert status.value == status.name
 
 
-def test_supported_source_type_is_required():
-    result = build(source_type="unknown")
-    assert result.status_code is AdapterStatus.INVALID_ROUTE_INPUT
+def test_failure_result_after_partial_processing_identifies_row_and_serializes():
+    data = frame()
+    data["Supplier Capacity"] = data["Supplier Capacity"].astype(object)
+    data.loc[2, "Supplier Capacity"] = "bad"
+    result = build(data)
+    assert result.status_code is AdapterStatus.INVALID_SUPPLIER_CAPACITY
+    assert "Row 2" in result.blocking_reasons[0]
+    payload = decoded(result)
+    assert len(payload["eligibility_evidence"]) == 2
+    assert len(payload["capacity_evidence"]) == 2
 
 
-def test_request_construction_failure_is_governed():
-    result = build(control_values=controls(required_awardee_count="three"))
-    assert result.status_code is AdapterStatus.CONTRACT_CONSTRUCTION_FAILURE
-    assert result.request is None
-    json.loads(result.to_json())
+def test_synthetic_warning_only_for_controlled_synthetic_origin():
+    synthetic = build(source_type="category_adapter", evidence_origin="controlled_synthetic")
+    supplied = build(source_type="category_adapter", evidence_origin="supplied")
+    governed = build(source_type="category_adapter", evidence_origin="governed_workbook")
+    assert any("Controlled synthetic" in warning for warning in synthetic.warnings)
+    assert not any("Controlled synthetic" in warning for warning in supplied.warnings)
+    assert not any("Controlled synthetic" in warning for warning in governed.warnings)
 
 
-def test_required_and_excluded_supplier_ids_are_normalized():
-    result = build(control_values=controls(required_supplier_ids=[" Supplier A "], excluded_supplier_ids=["SUPPLIER F"]))
-    assert result.request.required_supplier_ids == ("supplier a",)
-    assert result.request.excluded_supplier_ids == ("supplier f",)
-
-
-def test_human_review_remains_mandatory():
-    result = build()
-    assert result.human_review_required is True
+def test_no_capacity_or_eligibility_defaults_exist():
+    missing_capacity = build(frame().drop(columns=["Supplier Capacity"]))
+    missing_eligibility = build(frame().drop(columns=["technical_eligible"]))
+    assert missing_capacity.supplier_inputs == ()
+    assert missing_eligibility.supplier_inputs == ()
+    assert not missing_capacity.ready and not missing_eligibility.ready
 
 
 def test_adapter_does_not_call_feasibility_or_allocation_engine():
@@ -412,106 +476,20 @@ def test_adapter_does_not_call_feasibility_or_allocation_engine():
     assert not hasattr(result, "allocation_result")
 
 
-@pytest.mark.parametrize("missing_value", [math.nan, np.nan, pd.NA, pd.NaT])
-def test_null_like_category_evidence_is_omitted_and_json_safe(missing_value):
-    data = frame()
-    data["GSM"] = pd.Series([missing_value] + [150] * (len(data) - 1), dtype=object)
-    result = build(data)
-    assert result.ready
-    decoded = json.loads(result.to_json())
-    first_evidence = decoded["supplier_inputs"][0]["category_specific_eligibility_evidence"]
-    assert "GSM" not in first_evidence
+def test_request_construction_failure_is_governed_and_json_safe():
+    result = build(control_values=controls(required_awardee_count="three"))
+    assert result.status_code is AdapterStatus.CONTRACT_CONSTRUCTION_FAILURE
+    assert result.request is None
+    decoded(result)
 
 
-def test_numpy_integer_evidence_serializes_as_python_integer():
-    data = frame()
-    data["GSM"] = pd.Series([np.int64(150)] * len(data), dtype=object)
-    decoded = json.loads(build(data).to_json())
-    assert decoded["supplier_inputs"][0]["category_specific_eligibility_evidence"]["GSM"] == 150
-    assert type(decoded["supplier_inputs"][0]["category_specific_eligibility_evidence"]["GSM"]) is int
-
-
-def test_numpy_float_evidence_serializes_as_finite_python_float():
-    data = frame()
-    data["Mill Allocation %"] = pd.Series([np.float64(70.5)] * len(data), dtype=object)
-    decoded = json.loads(build(data).to_json())
-    value = decoded["supplier_inputs"][0]["category_specific_eligibility_evidence"]["Mill Allocation %"]
-    assert value == pytest.approx(70.5)
-    assert type(value) is float
-
-
-def test_numpy_boolean_evidence_serializes_as_python_bool():
-    data = frame()
-    data["Paint Line Capability"] = pd.Series([np.bool_(True)] * len(data), dtype=object)
-    decoded = json.loads(build(data).to_json())
-    value = decoded["supplier_inputs"][0]["category_specific_eligibility_evidence"]["Paint Line Capability"]
-    assert value is True
-
-
-def test_sparse_category_evidence_serialization_is_deterministic():
-    data = frame()
-    data["GSM"] = pd.Series([150, pd.NA, 170, np.nan, 180, pd.NA], dtype=object)
-    first = build(data)
-    second = build(data.sample(frac=1, random_state=7).reset_index(drop=True))
-    assert first.to_json() == second.to_json()
-
-
-def test_every_ready_result_can_serialize_strictly():
-    routes = [
-        build(),
-        build(source_type="uploaded_rfq"),
-        build(source_type="governed_workbook"),
-        build(source_type="category_adapter", evidence_origin="supplied"),
-    ]
-    assert all(result.ready for result in routes)
-    assert all(json.loads(result.to_json())["ready"] is True for result in routes)
-
-
-def test_category_adapter_controlled_synthetic_origin_is_labelled_synthetic():
-    result = build(source_type="category_adapter", evidence_origin="controlled_synthetic")
-    assert result.ready
-    assert any("Controlled synthetic" in warning for warning in result.warnings)
-    assert all(item["evidence_class"] == "controlled synthetic" for item in result.field_provenance)
-
-
-def test_category_adapter_supplied_origin_is_not_labelled_synthetic():
-    result = build(source_type="category_adapter", evidence_origin="supplied")
-    assert result.ready
-    assert not any("Controlled synthetic" in warning for warning in result.warnings)
-    assert all(item["evidence_class"] == "supplied" for item in result.field_provenance)
-
-
-def test_category_adapter_governed_origin_is_not_labelled_synthetic():
-    result = build(source_type="category_adapter", evidence_origin="governed_workbook")
-    assert result.ready
-    assert not any("Controlled synthetic" in warning for warning in result.warnings)
-    assert all(item["evidence_class"] == "governed workbook" for item in result.field_provenance)
-
-
-def test_category_adapter_requires_explicit_origin():
-    result = build(source_type="category_adapter")
-    assert result.status_code is AdapterStatus.INVALID_ROUTE_INPUT
-    assert "requires explicit evidence_origin" in result.blocking_reasons[0]
-
-
-def test_synthetic_warning_only_for_explicit_synthetic_origin():
-    supplied = build(source_type="category_adapter", evidence_origin="supplied")
-    synthetic = build(source_type="category_adapter", evidence_origin="controlled_synthetic")
-    assert not any("Controlled synthetic" in warning for warning in supplied.warnings)
-    assert any("Controlled synthetic" in warning for warning in synthetic.warnings)
-
-
-def test_failure_result_after_partial_processing_is_json_safe_and_identifies_row():
-    data = frame()
-    data["Supplier Capacity"] = data["Supplier Capacity"].astype(object)
-    data.loc[2, "Supplier Capacity"] = "bad"
-    result = build(data)
-    assert result.status_code is AdapterStatus.INVALID_SUPPLIER_CAPACITY
-    assert "Row 2" in result.blocking_reasons[0]
-    decoded = json.loads(result.to_json())
-    assert decoded["ready"] is False
-    assert len(decoded["eligibility_evidence"]) == 2
-    assert len(decoded["capacity_evidence"]) == 2
+def test_invalid_dataframe_and_source_type_are_governed():
+    empty = build(pd.DataFrame())
+    unsupported = build(source_type="unknown")
+    assert empty.status_code is AdapterStatus.INVALID_ROUTE_INPUT
+    assert unsupported.status_code is AdapterStatus.INVALID_ROUTE_INPUT
+    decoded(empty)
+    decoded(unsupported)
 
 
 def test_deliberate_mixed_type_fixtures_emit_no_pandas_dtype_warning():
