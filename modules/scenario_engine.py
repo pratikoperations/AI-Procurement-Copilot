@@ -4,10 +4,9 @@ from copy import deepcopy
 
 import pandas as pd
 
-from modules.allocation import recommend_allocation
-from modules.allocation_optimizer import optimize_allocation
 from modules.decision_engine import generate_decision
 from modules.flexible_laminate_cost import SUPPORTED_STRUCTURES
+from modules.multi_supplier_allocation_scenario import run_scenario_allocation
 from modules.scoring import enrich_supplier_scores
 
 SCENARIOS = {
@@ -81,6 +80,7 @@ def apply_flexible_laminate_scenario(
             "Synthetic controlled C2 scenario assumptions; not a market forecast "
             "or audited supplier evidence."
         ),
+        "evidence_origin": "controlled_synthetic",
     }
 
     if scenario_name == "Polymer Index +20%":
@@ -181,6 +181,22 @@ def _no_winner_decision(scenario_name: str) -> dict:
     }
 
 
+def _blocked_route_decision(scenario_name: str, scenario_allocation) -> dict:
+    route = scenario_allocation.route_result
+    reasons = "; ".join(route.blocking_reasons) if route is not None else "Scenario is not applicable."
+    return {
+        "scenario": scenario_name,
+        "recommended_supplier": "No canonical allocation available",
+        "recommendation": "No canonical allocation available",
+        "award_confidence": 0.0,
+        "confidence_governance": reasons,
+        "governance": (
+            "Canonical scenario allocation is blocked. No legacy fallback or supplier award is permitted; "
+            "human procurement review is mandatory."
+        ),
+    }
+
+
 def _ineligibility_reasons(scored: pd.DataFrame) -> str:
     reasons = []
     if "technical_ineligibility_reasons" in scored.columns:
@@ -197,7 +213,7 @@ def run_flexible_laminate_scenario(
     assumptions: dict,
     scenario_name: str,
 ) -> dict:
-    """Run one complete C2 scenario through scoring, decision, and allocation."""
+    """Run one C2 scenario through scoring and the canonical allocation route."""
     scenario_df, scenario_assumptions, metadata = apply_flexible_laminate_scenario(
         suppliers_df,
         assumptions,
@@ -208,13 +224,20 @@ def run_flexible_laminate_scenario(
     annual_volume = float(scenario_assumptions["annual_volume"]) * (
         1 + float(scenario_assumptions.get("demand_change", 0.0))
     )
+    scenario_allocation = run_scenario_allocation(
+        scored,
+        scenario_assumptions,
+        scenario_name=scenario_name,
+        effective_annual_volume=annual_volume,
+        scenario_applicable=bool(metadata["applicable"]),
+        scenario_assumption_version=metadata["scenario_assumption_version"],
+        scenario_metadata=metadata,
+        evidence_origin=metadata.get("evidence_origin"),
+    )
+    canonical_allocation = scenario_allocation.allocation_df.copy(deep=True)
+    compatibility_allocation = scenario_allocation.compatibility_allocation()
 
     if not metadata["applicable"]:
-        standard_allocation = pd.DataFrame()
-        optimized = {
-            "allocation_df": pd.DataFrame(),
-            "explanation": "Scenario is not applicable to the selected laminate structure.",
-        }
         decision = {
             "scenario": scenario_name,
             "recommended_supplier": "Not applicable",
@@ -224,22 +247,13 @@ def run_flexible_laminate_scenario(
         }
         winner = None
     elif eligible.empty:
-        standard_allocation = pd.DataFrame()
-        optimized = {
-            "allocation_df": pd.DataFrame(),
-            "explanation": "No technically eligible suppliers are available for allocation.",
-        }
         decision = _no_winner_decision(scenario_name)
         winner = None
+    elif not scenario_allocation.allocation_available:
+        decision = _blocked_route_decision(scenario_name, scenario_allocation)
+        winner = None
     else:
-        standard_allocation = recommend_allocation(
-            scored,
-            annual_volume,
-            min_risk_score=0,
-            min_esg_score=0,
-        )
-        optimized = optimize_allocation(scored, annual_volume)
-        decision = generate_decision(eligible, optimized["allocation_df"])
+        decision = generate_decision(eligible, canonical_allocation)
         if len(eligible) == 1:
             decision["award_confidence"] = min(float(decision.get("award_confidence", 60.0)), 60.0)
             decision["confidence_governance"] = (
@@ -259,8 +273,10 @@ def run_flexible_laminate_scenario(
         "scored_df": scored,
         "eligible_df": eligible,
         "winner": winner,
-        "standard_allocation_df": standard_allocation,
-        "optimized_allocation": optimized,
+        "scenario_allocation": scenario_allocation,
+        "canonical_allocation_df": canonical_allocation,
+        "standard_allocation_df": canonical_allocation.copy(deep=True),
+        "optimized_allocation": compatibility_allocation,
         "decision": decision,
         "effective_annual_volume": annual_volume,
         "ineligibility_reasons": _ineligibility_reasons(scored) if eligible.empty else "",
@@ -309,11 +325,38 @@ def run_intelligence_scenario(suppliers_df, assumptions, scenario_name):
         settings.get("freight_shock_delta", 0)
     )
     scored = enrich_supplier_scores(scenario_df, scenario_assumptions)
-    allocation = optimize_allocation(scored, scenario_assumptions["annual_volume"])
-    decision = generate_decision(scored, allocation["allocation_df"])
+    annual_volume = float(scenario_assumptions["annual_volume"]) * (
+        1 + float(scenario_assumptions.get("demand_change", 0.0))
+    )
+    scenario_allocation = run_scenario_allocation(
+        scored,
+        scenario_assumptions,
+        scenario_name=scenario_name,
+        effective_annual_volume=annual_volume,
+        scenario_applicable=True,
+        scenario_assumption_version="GENERIC-SCENARIO-v1",
+        scenario_metadata={
+            "scenario": scenario_name,
+            "settings": dict(settings),
+            "evidence_origin": "controlled_synthetic",
+        },
+        evidence_origin="controlled_synthetic",
+    )
+    eligible = (
+        scored[scored["technical_eligible"].astype(bool)].copy()
+        if "technical_eligible" in scored.columns
+        else scored.copy()
+    )
+    if scenario_allocation.allocation_available and not eligible.empty:
+        decision = generate_decision(eligible, scenario_allocation.allocation_df)
+    elif eligible.empty:
+        decision = _no_winner_decision(scenario_name)
+    else:
+        decision = _blocked_route_decision(scenario_name, scenario_allocation)
     return {
         "scenario": scenario_name,
         "scored_df": scored,
-        "allocation": allocation,
+        "scenario_allocation": scenario_allocation,
+        "allocation": scenario_allocation.compatibility_allocation(),
         "decision": decision,
     }
