@@ -180,14 +180,20 @@ def test_explicit_supported_evidence_origin_is_retained(origin):
 
 
 def test_unsupported_explicit_evidence_origin_remains_rejected():
-    with pytest.raises(ValueError, match="Unsupported evidence_origin"):
-        run_scenario_allocation(
-            scored_frame(),
-            assumptions(),
-            scenario_name="Unsupported Evidence",
-            effective_annual_volume=1000.0,
-            evidence_origin="unverified_external",
-        )
+    result = run_scenario_allocation(
+        scored_frame(),
+        assumptions(),
+        scenario_name="Unsupported Evidence",
+        effective_annual_volume=1000.0,
+        evidence_origin="unverified_external",
+    )
+    assert result.route_result is not None
+    assert result.route_result.allocation_result is None
+    assert result.allocation_df.empty
+    assert result.allocation_available is False
+    assert result.human_review_required is True
+    assert result.legacy_fallback_used is False
+    assert any("Unsupported evidence_origin" in reason for reason in result.route_result.blocking_reasons)
 
 
 def test_non_applicable_scenario_does_not_invoke_route(monkeypatch):
