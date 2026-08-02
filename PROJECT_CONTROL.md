@@ -16,9 +16,20 @@ This document is the current operational index for `pratikoperations/AI-Procurem
 
 When sources conflict, the higher source prevails. A narrative statement cannot override an exact ref, executable behaviour or CI result.
 
+### Temporary `AI_HANDOFF_GUIDE.md` Transition Rule
+
+Until `AI_HANDOFF_GUIDE.md` is reconciled in Gate 0F:
+
+- Git objects, exact CI evidence, executable contracts and this `PROJECT_CONTROL.md` hierarchy govern current repository state.
+- `AI_HANDOFF_GUIDE.md` remains applicable for protected areas, secrets, scope discipline and change protocol.
+- Its historical baseline, frozen-v1.0.0 branch statements and mandatory current-document list must be independently reverified before use.
+- Conflicts concerning current state are resolved using the hierarchy in this file.
+
 ## Staleness Rule
 
 Any change to the current `main` SHA, active branch, active PR, base SHA, head SHA, merge-test SHA, accepted CI run or current gate invalidates the affected current-state fields until they are independently reverified. Estimates are not machine-verifiable facts.
+
+Active branch heads and pull-request merge-test SHAs are moving Git references. The identifiers below are evidence snapshots, not self-updating values. Any later correction commit, CI dispatch, ready transition or merge invalidates the affected snapshot until refreshed through governed verification.
 
 ## Identity and Classification
 
@@ -30,21 +41,34 @@ Any change to the current `main` SHA, active branch, active PR, base SHA, head S
 - Default branch: `main`
 - Human procurement approval: mandatory.
 
-## Current Verified Git State
+## Stable Allocation-Programme State
 
 - Current verified `main` SHA: `2896b1e36e66a65638f73e3f40dbfac96cd9f5b8`
-- Current active programme: Shared Cross-Category Multi-Supplier Award and Allocation.
-- Completed programme gate: Gate 3A — Common Route Adapter and Contract Construction.
-- Current active implementation gate: none; Gate 3B is not authorized.
-- Active implementation branch: none; stable operational ref is `main`.
+- Current allocation programme: Shared Cross-Category Multi-Supplier Award and Allocation.
+- Completed allocation gate: Gate 3A — Common Route Adapter and Contract Construction.
+- Current allocation implementation gate: none.
+- Gate 3B: not authorized.
+- Active allocation implementation branch: none; stable operational ref is `main`.
 - Active allocation-programme PR: none.
 - Latest merged allocation PR: `#47`.
-- Required implementation base SHA: not applicable until a new gate is authorized.
-- Current implementation head SHA: not applicable.
-- Current implementation merge-test SHA: not applicable.
-- Governance working branch: `governance/project-control-foundation`.
-- Governance gate: Gate 0B — Minimum Governance Foundation.
-- Latest verified timestamp: `2026-08-02T11:35:00+05:30`.
+- Required allocation implementation base SHA: not applicable until a new gate is authorized.
+- Current allocation implementation head SHA: not applicable.
+- Current allocation implementation merge-test SHA: not applicable.
+
+## Active Governance State
+
+- Active governance programme: Governed AI-Assisted Development Operating Method.
+- Active governance gate: Gate 0B — Minimum Governance Foundation.
+- Active governance branch: `governance/project-control-foundation`.
+- Active governance PR: `#48`.
+- Gate 0B base SHA: `2896b1e36e66a65638f73e3f40dbfac96cd9f5b8`.
+- Gate 0B reviewed head SHA before Correction 1: `45a5c2edf619db09337f0e9f24bf8fe26102934a`.
+- Gate 0B reviewed merge-test SHA before Correction 1: `37c787b324c35ba31bd9632f085387681336386d`.
+- PR state at Correction 1 authorization: open, draft, unmerged and mergeable.
+- Correction 1 scope: modify only `PROJECT_CONTROL.md`; retain the four-file PR boundary.
+- Latest verified timestamp: `2026-08-02T11:46:00+05:30`.
+
+The current branch head after this correction commit and its resulting merge-test SHA must be taken from GitHub and recorded in the governed review evidence. A Git commit cannot safely embed its own resulting SHA as an authoritative self-reference.
 
 ## Accepted Contract Versions
 
@@ -52,7 +76,7 @@ Any change to the current `main` SHA, active branch, active PR, base SHA, head S
 - Gate 2 allocation engine: `AIPC-MULTI-ALLOC-ENGINE-1.0`
 - Gate 3A route adapter: `AIPC-MULTI-ALLOC-ADAPTER-1.0`
 
-## Accepted Assurance Evidence
+## Accepted Gate 3A Assurance Evidence
 
 - Workflow: Quality Checks.
 - Accepted run number: `845`.
@@ -66,6 +90,20 @@ Any change to the current `main` SHA, active branch, active PR, base SHA, head S
 - Warning boundary: one pre-existing pandas `FutureWarning`; no Gate 3A warning.
 - Post-merge CI: no pull-request-triggered workflow dispatch was observed for merge commit `2896b1e36e66a65638f73e3f40dbfac96cd9f5b8`.
 - Manual browser/mobile validation: not performed for Gate 3A; automated tests and smoke do not constitute device certification.
+
+## Gate 0B Assurance Evidence Before Correction 1
+
+- Workflow: Quality Checks.
+- Run number: `847`.
+- Run ID: `30735353967`.
+- Job ID: `91463054993`.
+- Merge-test SHA: `37c787b324c35ba31bd9632f085387681336386d`.
+- Python: `3.11.15`.
+- Test result: `1319 passed`, `0 failures`, `0 errors`.
+- Python compilation: passed.
+- Streamlit smoke: passed.
+- Warning boundary: one pre-existing pandas `FutureWarning`; no new Gate 0B warning.
+- Applicability: this evidence applies to the reviewed pre-correction head `45a5c2edf619db09337f0e9f24bf8fe26102934a`; fresh CI is required for the Correction 1 head.
 
 ## Completed Scope
 
@@ -82,7 +120,8 @@ Gate 0B only:
 - create `DEFINITION_OF_DONE.md`;
 - create `SIMPLICITY_GATE.md`;
 - create `VERIFICATION_POLICY.md`;
-- preserve a documentation-only four-file boundary.
+- correct the current Gate 0B state in `PROJECT_CONTROL.md`;
+- preserve a documentation-only four-file PR boundary.
 
 ## Deferred Scope
 
@@ -128,6 +167,7 @@ Gate 0B only:
 - PR `#45`: Gate 1 contract and feasibility.
 - PR `#46`: Gate 2 deterministic exactly-K engine.
 - PR `#47`: Gate 3A governed route adapter.
+- PR `#48`: Gate 0B minimum governance foundation, active draft PR.
 - `PROJECT_ARCHITECTURE.md`
 - `BUSINESS_RULES.md`
 - `FORMULA_TRACEABILITY_REGISTER.md`
@@ -138,6 +178,7 @@ Gate 0B only:
 ## Current Risks
 
 - Repository historical status documents contain older baselines and must not be used as the current operational state without re-verification.
+- `AI_HANDOFF_GUIDE.md` contains historical current-state and branch statements pending Gate 0F reconciliation.
 - Future Gate 3B must not mix Gate 2 visible allocation with legacy intelligence allocation.
 - Partial adapter evidence must be clearly labelled before UI display.
 - `evidence_origin` may need promotion to a first-class route/result field during Gate 3B design.
@@ -145,13 +186,14 @@ Gate 0B only:
 
 ## Next Authorized Action
 
-Complete Gate 0B through a draft documentation-only PR and governed review. Do not begin Gate 3B until Gate 0B is accepted and merged or separately reprioritized by explicit authorization.
+Complete Gate 0B Correction 1 through fresh Quality Checks and renewed governed review. Do not mark PR `#48` ready, merge it, or begin Gate 3B until the correction is accepted.
 
-## Planning Estimates
+## Planning and Effort Evidence
 
-- Estimated Gate 0B effort: `4–7 engineering-equivalent hours`.
+- Original pre-build Gate 0B estimate: `4–7 engineering-equivalent hours`.
+- Gate 0B implementation evidence after initial build and CI: `5.5–9 engineering-equivalent hours`.
 - Estimated remaining multi-supplier integration effort: `18–30 engineering-equivalent hours`.
-- Gate 0B completion at document creation: implementation in progress; not accepted or merged.
+- Gate 0B state: implementation and initial CI completed; Correction 1 and renewed review pending; not merged.
 - Multi-supplier programme completion estimate: approximately `78–81%`.
-- Overall project completion estimate: approximately `80%` of the current governed portfolio roadmap.
+- Overall project completion estimate: approximately `81–83%` of the current governed portfolio roadmap.
 - Last verification date: `2026-08-02`.
