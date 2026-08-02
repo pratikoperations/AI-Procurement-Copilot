@@ -6,13 +6,19 @@ from dataclasses import asdict, dataclass, field
 from enum import Enum
 import json
 import math
+from types import MappingProxyType
 from typing import Any, Mapping, Sequence
 
 ALLOCATION_CONTRACT_VERSION = "AIPC-MULTI-ALLOC-1.0"
+CONTINUITY_SHARE_INTERPRETATION = (
+    "minimum share per continuity supplier; for K greater than 1, at least K-1 awarded suppliers "
+    "must each be capable of this share"
+)
 
 
 class FeasibilityStatus(str, Enum):
     FEASIBLE = "FEASIBLE"
+    ENUMERATION_LIMIT_REACHED = "ENUMERATION_LIMIT_REACHED"
     INVALID_REQUEST = "INVALID_REQUEST"
     INSUFFICIENT_ELIGIBLE_SUPPLIERS = "INSUFFICIENT_ELIGIBLE_SUPPLIERS"
     SHARE_CONSTRAINT_CONFLICT = "SHARE_CONSTRAINT_CONFLICT"
@@ -25,11 +31,25 @@ class FeasibilityStatus(str, Enum):
 
 
 def normalize_supplier_id(value: Any) -> str:
-    """Return a deterministic supplier identifier suitable for matching and ordering."""
     text = " ".join(str(value or "").strip().split())
     if not text:
         raise ValueError("supplier_id or supplier name is required")
     return text.casefold()
+
+
+def normalize_controlled_bool(value: Any, label: str = "technical_eligible") -> bool:
+    """Normalize only explicit governed boolean representations."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int) and not isinstance(value, bool) and value in {0, 1}:
+        return bool(value)
+    if isinstance(value, str):
+        normalized = " ".join(value.strip().casefold().split())
+        if normalized in {"true", "yes", "1", "eligible"}:
+            return True
+        if normalized in {"false", "no", "0", "ineligible"}:
+            return False
+    raise ValueError(f"{label} must be an explicit governed boolean value")
 
 
 def _finite_number(value: Any, label: str, *, positive: bool = False, non_negative: bool = False) -> float:
@@ -47,6 +67,24 @@ def _finite_number(value: Any, label: str, *, positive: bool = False, non_negati
 
 def _normalized_ids(values: Sequence[str] | None) -> tuple[str, ...]:
     return tuple(sorted({normalize_supplier_id(item) for item in (values or ())}))
+
+
+def _deep_freeze(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return MappingProxyType({str(key): _deep_freeze(item) for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))})
+    if isinstance(value, (list, tuple, set, frozenset)):
+        return tuple(_deep_freeze(item) for item in value)
+    return value
+
+
+def _thaw(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {str(key): _thaw(item) for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))}
+    if isinstance(value, tuple):
+        return [_thaw(item) for item in value]
+    if isinstance(value, Enum):
+        return value.value
+    return value
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,12 +110,8 @@ class MultiSupplierAllocationRequest:
         if isinstance(self.required_awardee_count, bool) or not isinstance(self.required_awardee_count, int):
             raise ValueError("required_awardee_count must be an integer")
         for name in (
-            "minimum_awarded_share_pct",
-            "maximum_supplier_share_pct",
-            "minimum_continuity_share_pct",
-            "minimum_risk_score",
-            "minimum_esg_score",
-            "capacity_utilization_ceiling_pct",
+            "minimum_awarded_share_pct", "maximum_supplier_share_pct", "minimum_continuity_share_pct",
+            "minimum_risk_score", "minimum_esg_score", "capacity_utilization_ceiling_pct",
         ):
             object.__setattr__(self, name, _finite_number(getattr(self, name), name, non_negative=True))
         for name in ("annual_volume_unit", "category", "commodity", "comparison_currency"):
@@ -115,14 +149,14 @@ class SupplierAllocationInput:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "supplier_id", normalize_supplier_id(self.supplier_id))
-        object.__setattr__(self, "technical_eligible", bool(self.technical_eligible))
+        object.__setattr__(self, "technical_eligible", normalize_controlled_bool(self.technical_eligible))
         for name in ("adjusted_tco_unit_usd", "total_score", "risk_score", "performance_score", "esg_score"):
             object.__setattr__(self, name, _finite_number(getattr(self, name), name, non_negative=True))
         if self.supplier_capacity is not None:
             object.__setattr__(self, "supplier_capacity", _finite_number(self.supplier_capacity, "supplier_capacity", non_negative=True))
         reasons = tuple(sorted({" ".join(str(item).strip().split()) for item in self.eligibility_failure_reasons if str(item).strip()}))
         object.__setattr__(self, "eligibility_failure_reasons", reasons)
-        object.__setattr__(self, "category_specific_eligibility_evidence", dict(self.category_specific_eligibility_evidence or {}))
+        object.__setattr__(self, "category_specific_eligibility_evidence", _deep_freeze(self.category_specific_eligibility_evidence or {}))
 
     @classmethod
     def from_mapping(cls, record: Mapping[str, Any]) -> "SupplierAllocationInput":
@@ -164,6 +198,12 @@ class MultiSupplierFeasibilityResult:
     enumeration_policy: str = "complete_deterministic_enumeration"
     combinations_evaluated: int = 0
     combinations_truncated: bool = False
+    decision_complete: bool = True
+    continuity_share_interpretation: str = CONTINUITY_SHARE_INTERPRETATION
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "supplier_capacity_evidence", tuple(_deep_freeze(item) for item in self.supplier_capacity_evidence))
+        object.__setattr__(self, "maximum_feasible_share_by_supplier", _deep_freeze(self.maximum_feasible_share_by_supplier))
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -173,8 +213,8 @@ class MultiSupplierFeasibilityResult:
             "eligible_supplier_count": self.eligible_supplier_count,
             "required_awardee_count": self.required_awardee_count,
             "feasible_supplier_count": self.feasible_supplier_count,
-            "supplier_capacity_evidence": [dict(item) for item in self.supplier_capacity_evidence],
-            "maximum_feasible_share_by_supplier": dict(sorted(self.maximum_feasible_share_by_supplier.items())),
+            "supplier_capacity_evidence": [_thaw(item) for item in self.supplier_capacity_evidence],
+            "maximum_feasible_share_by_supplier": _thaw(self.maximum_feasible_share_by_supplier),
             "blocking_reasons": list(self.blocking_reasons),
             "warnings": list(self.warnings),
             "feasible_supplier_combinations": [list(item) for item in self.feasible_supplier_combinations],
@@ -184,6 +224,8 @@ class MultiSupplierFeasibilityResult:
             "enumeration_policy": self.enumeration_policy,
             "combinations_evaluated": self.combinations_evaluated,
             "combinations_truncated": self.combinations_truncated,
+            "decision_complete": self.decision_complete,
+            "continuity_share_interpretation": self.continuity_share_interpretation,
         }
 
     def to_json(self) -> str:
