@@ -196,7 +196,7 @@ def _exclusion_reasons(request: MultiSupplierAllocationRequest, suppliers: Seque
         if sid in request.excluded_supplier_ids:
             items.append("Explicitly excluded by the allocation request.")
         if not supplier.technical_eligible:
-            items.append("Technically ineligible.")
+            items.append("Technically ineligible")
         if supplier.risk_score < request.minimum_risk_score:
             items.append("Below the minimum risk-score threshold.")
         if supplier.esg_score < request.minimum_esg_score:
