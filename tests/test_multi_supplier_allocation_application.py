@@ -122,7 +122,7 @@ def test_projection_uses_engine_values_without_recalculation():
     assert allocation is not None
     projected = bundle.allocation_df.set_index("Supplier")
     for supplier_id in allocation.selected_supplier_ids:
-        display_name = supplier_id.replace("supplier ", "Supplier ")
+        display_name = next(name for name in projected.index if str(name).casefold() == supplier_id)
         row = projected.loc[display_name]
         assert row["Recommended Allocation %"] == allocation.allocation_pct_by_supplier[supplier_id]
         assert row["Advanced TCO Unit USD"] == allocation.unit_tco_by_supplier[supplier_id]
