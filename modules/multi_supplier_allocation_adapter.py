@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date, datetime
 from enum import Enum
 import json
 import math
+from numbers import Integral, Real
 from types import MappingProxyType
 from typing import Any, Mapping, Sequence
 
@@ -22,8 +24,18 @@ ADAPTER_VERSION = "AIPC-MULTI-ALLOC-ADAPTER-1.0"
 SUPPORTED_SOURCE_TYPES = frozenset(
     {"synthetic_demo", "uploaded_rfq", "governed_workbook", "steel_synthetic", "category_adapter"}
 )
-SYNTHETIC_SOURCE_TYPES = frozenset({"synthetic_demo", "steel_synthetic", "category_adapter"})
-SUPPORTED_UNITS = frozenset({"unit", "units", "piece", "pieces", "kg", "kilogram", "kilograms", "mt", "tonne", "tonnes"})
+SUPPORTED_EVIDENCE_ORIGINS = frozenset({"controlled_synthetic", "supplied", "governed_workbook"})
+DEFAULT_EVIDENCE_ORIGIN_BY_SOURCE = MappingProxyType(
+    {
+        "synthetic_demo": "controlled_synthetic",
+        "steel_synthetic": "controlled_synthetic",
+        "uploaded_rfq": "supplied",
+        "governed_workbook": "governed_workbook",
+    }
+)
+SUPPORTED_UNITS = frozenset(
+    {"unit", "units", "piece", "pieces", "kg", "kilogram", "kilograms", "mt", "tonne", "tonnes"}
+)
 
 CANONICAL_COLUMNS = MappingProxyType(
     {
@@ -52,6 +64,7 @@ CATEGORY_EVIDENCE_COLUMNS = (
     "Zinc Capability Max g/m²", "Paint Line Capability", "Supplier or Mill Approval",
     "Test Certificate Availability", "steel_profile", "governed_rank",
 )
+_MISSING = object()
 
 
 class AdapterStatus(str, Enum):
@@ -70,14 +83,65 @@ class AdapterStatus(str, Enum):
     CONTRACT_CONSTRUCTION_FAILURE = "CONTRACT_CONSTRUCTION_FAILURE"
 
 
-def _freeze(value: Any) -> Any:
+def _is_missing_scalar(value: Any) -> bool:
+    if value is None:
+        return True
+    try:
+        missing = pd.isna(value)
+    except (TypeError, ValueError):
+        return False
+    return isinstance(missing, bool) and missing
+
+
+def _json_safe(value: Any) -> Any:
+    """Return a deterministic strict-JSON-compatible representation."""
     if isinstance(value, Mapping):
-        return MappingProxyType(
-            {str(key): _freeze(item) for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))}
-        )
+        normalized: dict[str, Any] = {}
+        for key, item in sorted(value.items(), key=lambda pair: str(pair[0])):
+            safe_item = _json_safe(item)
+            if safe_item is not _MISSING:
+                normalized[str(key)] = safe_item
+        return normalized
     if isinstance(value, (list, tuple, set, frozenset)):
-        return tuple(_freeze(item) for item in value)
-    return value
+        items = [_json_safe(item) for item in value]
+        filtered = [item for item in items if item is not _MISSING]
+        if isinstance(value, (set, frozenset)):
+            return sorted(filtered, key=lambda item: json.dumps(item, sort_keys=True, default=str))
+        return filtered
+    if isinstance(value, Enum):
+        return value.value
+    if _is_missing_scalar(value):
+        return _MISSING
+    if isinstance(value, bool):
+        return bool(value)
+    if isinstance(value, Integral):
+        return int(value)
+    if isinstance(value, Real):
+        number = float(value)
+        return number if math.isfinite(number) else _MISSING
+    if isinstance(value, (datetime, date, pd.Timestamp)):
+        return value.isoformat()
+    if isinstance(value, str):
+        return value
+    if hasattr(value, "item"):
+        try:
+            return _json_safe(value.item())
+        except (TypeError, ValueError):
+            pass
+    if hasattr(value, "to_dict"):
+        return _json_safe(value.to_dict())
+    return " ".join(str(value).strip().split())
+
+
+def _freeze(value: Any) -> Any:
+    safe = _json_safe(value)
+    if safe is _MISSING:
+        return None
+    if isinstance(safe, Mapping):
+        return MappingProxyType({str(key): _freeze(item) for key, item in safe.items()})
+    if isinstance(safe, list):
+        return tuple(_freeze(item) for item in safe)
+    return safe
 
 
 def _thaw(value: Any) -> Any:
@@ -88,8 +152,9 @@ def _thaw(value: Any) -> Any:
     if isinstance(value, Enum):
         return value.value
     if hasattr(value, "to_dict"):
-        return value.to_dict()
-    return value
+        return _json_safe(value.to_dict())
+    safe = _json_safe(value)
+    return None if safe is _MISSING else safe
 
 
 def _clean_text(value: Any) -> str:
@@ -97,7 +162,7 @@ def _clean_text(value: Any) -> str:
 
 
 def _finite(value: Any, label: str, *, positive: bool = False, non_negative: bool = False) -> float:
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
+    if isinstance(value, bool) or not isinstance(value, Real):
         raise ValueError(f"{label} must be a finite numeric value")
     result = float(value)
     if not math.isfinite(result):
@@ -110,10 +175,37 @@ def _finite(value: Any, label: str, *, positive: bool = False, non_negative: boo
 
 
 def _reason_tuple(value: Any) -> tuple[str, ...]:
-    if value is None or (isinstance(value, float) and math.isnan(value)):
+    if _is_missing_scalar(value):
         return ()
     values = value if isinstance(value, (list, tuple, set, frozenset)) else (value,)
-    return tuple(sorted({_clean_text(item) for item in values if _clean_text(item)}))
+    return tuple(sorted({_clean_text(item) for item in values if not _is_missing_scalar(item) and _clean_text(item)}))
+
+
+def _resolve_evidence_origin(source_type: str, evidence_origin: str | None) -> str:
+    supplied = _clean_text(evidence_origin).casefold().replace(" ", "_") if evidence_origin is not None else ""
+    if supplied:
+        if supplied not in SUPPORTED_EVIDENCE_ORIGINS:
+            raise ValueError(f"Unsupported evidence_origin '{supplied}'")
+        return supplied
+    if source_type == "category_adapter":
+        raise ValueError("category_adapter requires explicit evidence_origin")
+    return DEFAULT_EVIDENCE_ORIGIN_BY_SOURCE[source_type]
+
+
+def _evidence_class(origin: str) -> str:
+    return {
+        "controlled_synthetic": "controlled synthetic",
+        "supplied": "supplied",
+        "governed_workbook": "governed workbook",
+    }[origin]
+
+
+def _evidence_note(origin: str, subject: str = "route") -> str:
+    if origin == "controlled_synthetic":
+        return "Controlled synthetic demonstration assumption; not verified supplier evidence."
+    if origin == "governed_workbook":
+        return f"Governed-workbook {subject} evidence; independent verification is not claimed."
+    return f"Supplied {subject} evidence; independent verification is not claimed."
 
 
 @dataclass(frozen=True, slots=True)
@@ -143,12 +235,12 @@ class MultiSupplierAllocationAdapterResult:
         object.__setattr__(self, "field_provenance", tuple(_freeze(item) for item in self.field_provenance))
         object.__setattr__(self, "eligibility_evidence", tuple(_freeze(item) for item in self.eligibility_evidence))
         object.__setattr__(self, "capacity_evidence", tuple(_freeze(item) for item in self.capacity_evidence))
-        object.__setattr__(self, "blocking_reasons", tuple(sorted(set(self.blocking_reasons))))
-        object.__setattr__(self, "warnings", tuple(sorted(set(self.warnings))))
-        object.__setattr__(self, "controlled_defaults_used", tuple(sorted(set(self.controlled_defaults_used))))
+        object.__setattr__(self, "blocking_reasons", tuple(sorted(set(str(item) for item in self.blocking_reasons))))
+        object.__setattr__(self, "warnings", tuple(sorted(set(str(item) for item in self.warnings))))
+        object.__setattr__(self, "controlled_defaults_used", tuple(sorted(set(str(item) for item in self.controlled_defaults_used))))
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        payload = {
             "adapter_version": self.adapter_version,
             "ready": self.ready,
             "status_code": self.status_code.value,
@@ -181,6 +273,10 @@ class MultiSupplierAllocationAdapterResult:
             "controlled_defaults_used": list(self.controlled_defaults_used),
             "human_review_required": self.human_review_required,
         }
+        safe = _json_safe(payload)
+        if safe is _MISSING:
+            raise ValueError("Adapter result could not be normalized for strict JSON serialization")
+        return safe
 
     def to_json(self) -> str:
         return json.dumps(self.to_dict(), sort_keys=True, separators=(",", ":"), allow_nan=False)
@@ -228,6 +324,7 @@ def _resolve_columns(
     dataframe: pd.DataFrame,
     source_type: str,
     aliases: Mapping[str, str] | None,
+    evidence_origin: str,
 ) -> tuple[dict[str, str], tuple[Mapping[str, Any], ...], tuple[str, ...]]:
     explicit_aliases = dict(aliases or {})
     resolved: dict[str, str] = {}
@@ -256,13 +353,9 @@ def _resolve_columns(
                 "source_column": source_column,
                 "source_type": source_type,
                 "mapping_type": mapping_type,
-                "evidence_class": "controlled synthetic" if source_type in SYNTHETIC_SOURCE_TYPES else "supplied",
+                "evidence_class": _evidence_class(evidence_origin),
                 "blocking_state": False,
-                "evidence_note": (
-                    "Controlled synthetic demonstration assumption; not verified supplier evidence."
-                    if source_type in SYNTHETIC_SOURCE_TYPES
-                    else "Supplied route evidence; independent verification is not claimed."
-                ),
+                "evidence_note": _evidence_note(evidence_origin),
             }
         )
     return resolved, tuple(sorted(provenance, key=lambda item: item["canonical_field"])), tuple(sorted(missing))
@@ -288,6 +381,7 @@ def build_multi_supplier_allocation_adapter(
     route_name: str,
     source_type: str,
     column_aliases: Mapping[str, str] | None = None,
+    evidence_origin: str | None = None,
 ) -> MultiSupplierAllocationAdapterResult:
     """Construct Gate 1 contracts without inferring missing eligibility, capacity, TCO, or scores."""
     route = _clean_text(route_name)
@@ -315,6 +409,18 @@ def build_multi_supplier_allocation_adapter(
             source_type=source,
             blocking_reasons=("Invalid route_name, source_type, or controls mapping",),
         )
+    try:
+        origin = _resolve_evidence_origin(source, evidence_origin)
+    except ValueError as exc:
+        return _result(
+            AdapterStatus.INVALID_ROUTE_INPUT,
+            "A supported explicit evidence origin is required.",
+            route_name=route,
+            category=category,
+            commodity=commodity,
+            source_type=source,
+            blocking_reasons=(str(exc),),
+        )
 
     currency = _clean_text(controls.get("comparison_currency", "USD")).upper()
     if currency != "USD":
@@ -333,7 +439,7 @@ def build_multi_supplier_allocation_adapter(
             blocking_reasons=(f"Unsupported annual_volume_unit '{unit}'",),
         )
 
-    resolved, provenance, missing = _resolve_columns(scored_df, source, column_aliases)
+    resolved, provenance, missing = _resolve_columns(scored_df, source, column_aliases, origin)
     if missing:
         status = _missing_status(missing)
         reasons = tuple(f"Missing canonical field '{field}'" for field in missing)
@@ -375,7 +481,6 @@ def build_multi_supplier_allocation_adapter(
     capacity_evidence: list[Mapping[str, Any]] = []
     seen: set[str] = set()
     warnings: list[str] = []
-    synthetic_note = "Controlled synthetic demonstration assumption; not verified supplier evidence."
 
     rows = scored_df.to_dict(orient="records")
     for row_index, row in enumerate(rows):
@@ -387,6 +492,7 @@ def build_multi_supplier_allocation_adapter(
                 "A supplier identifier is missing or invalid.",
                 route_name=route, category=category, commodity=commodity, source_type=source,
                 request=request, field_provenance=provenance,
+                eligibility_evidence=eligibility_evidence, capacity_evidence=capacity_evidence,
                 blocking_reasons=(f"Row {row_index}: {exc}",),
             )
         if supplier_id in seen:
@@ -395,7 +501,8 @@ def build_multi_supplier_allocation_adapter(
                 "Duplicate normalized supplier identifiers are not permitted.",
                 route_name=route, category=category, commodity=commodity, source_type=source,
                 request=request, field_provenance=provenance,
-                blocking_reasons=(f"Duplicate supplier identifier '{supplier_id}'",),
+                eligibility_evidence=eligibility_evidence, capacity_evidence=capacity_evidence,
+                blocking_reasons=(f"Row {row_index}, supplier '{supplier_id}': duplicate normalized identifier",),
             )
         seen.add(supplier_id)
 
@@ -410,35 +517,43 @@ def build_multi_supplier_allocation_adapter(
                 "Technical eligibility contains an ambiguous value.",
                 route_name=route, category=category, commodity=commodity, source_type=source,
                 request=request, field_provenance=provenance,
-                blocking_reasons=(str(exc),),
+                eligibility_evidence=eligibility_evidence, capacity_evidence=capacity_evidence,
+                blocking_reasons=(f"Row {row_index}, supplier '{supplier_id}': {exc}",),
             )
 
-        capacity_raw = row.get(resolved["supplier_capacity"])
         try:
-            capacity = _finite(capacity_raw, f"supplier_capacity for {supplier_id}", positive=True)
+            capacity = _finite(
+                row.get(resolved["supplier_capacity"]),
+                f"supplier_capacity for {supplier_id}",
+                positive=True,
+            )
         except ValueError as exc:
             return _result(
                 AdapterStatus.INVALID_SUPPLIER_CAPACITY,
                 "Supplier capacity must be explicit, finite, and greater than zero.",
                 route_name=route, category=category, commodity=commodity, source_type=source,
                 request=request, field_provenance=provenance,
-                blocking_reasons=(str(exc),),
+                eligibility_evidence=eligibility_evidence, capacity_evidence=capacity_evidence,
+                blocking_reasons=(f"Row {row_index}, supplier '{supplier_id}': {exc}",),
             )
 
         numeric_values: dict[str, float] = {}
         for canonical in ("adjusted_tco_unit_usd", "total_score", "risk_score", "performance_score", "esg_score"):
             try:
-                numeric_values[canonical] = _finite(
-                    row.get(resolved[canonical]), canonical, non_negative=True
-                )
+                numeric_values[canonical] = _finite(row.get(resolved[canonical]), canonical, non_negative=True)
             except ValueError as exc:
-                status = AdapterStatus.MISSING_TCO_EVIDENCE if canonical == "adjusted_tco_unit_usd" else AdapterStatus.MISSING_SCORE_EVIDENCE
+                status = (
+                    AdapterStatus.MISSING_TCO_EVIDENCE
+                    if canonical == "adjusted_tco_unit_usd"
+                    else AdapterStatus.MISSING_SCORE_EVIDENCE
+                )
                 return _result(
                     status,
                     "Required TCO or score evidence is invalid.",
                     route_name=route, category=category, commodity=commodity, source_type=source,
                     request=request, field_provenance=provenance,
-                    blocking_reasons=(f"{supplier_id}: {exc}",),
+                    eligibility_evidence=eligibility_evidence, capacity_evidence=capacity_evidence,
+                    blocking_reasons=(f"Row {row_index}, supplier '{supplier_id}': {exc}",),
                 )
 
         reason_values: list[str] = []
@@ -446,16 +561,19 @@ def build_multi_supplier_allocation_adapter(
             if reason_column in row:
                 reason_values.extend(_reason_tuple(row.get(reason_column)))
         reasons = tuple(sorted(set(reason_values)))
-        category_evidence = {
-            column: row.get(column)
-            for column in CATEGORY_EVIDENCE_COLUMNS
-            if column in row and row.get(column) is not None
-        }
+        category_evidence: dict[str, Any] = {}
+        for column in CATEGORY_EVIDENCE_COLUMNS:
+            if column not in row:
+                continue
+            safe_value = _json_safe(row.get(column))
+            if safe_value is not _MISSING:
+                category_evidence[column] = safe_value
         category_evidence.update(
             {
                 "route_name": route,
                 "source_type": source,
-                "evidence_class": "controlled synthetic" if source in SYNTHETIC_SOURCE_TYPES else "supplied",
+                "evidence_origin": origin,
+                "evidence_class": _evidence_class(origin),
             }
         )
         supplier = SupplierAllocationInput(
@@ -477,7 +595,8 @@ def build_multi_supplier_allocation_adapter(
                 "technical_eligible": eligible,
                 "failure_reasons": reasons,
                 "source_column": resolved["technical_eligible"],
-                "evidence_note": synthetic_note if source in SYNTHETIC_SOURCE_TYPES else "Supplied eligibility evidence; independent verification is not claimed.",
+                "evidence_origin": origin,
+                "evidence_note": _evidence_note(origin, "eligibility"),
             }
         )
         capacity_evidence.append(
@@ -486,15 +605,16 @@ def build_multi_supplier_allocation_adapter(
                 "supplier_capacity": capacity,
                 "annual_volume_unit": request.annual_volume_unit,
                 "source_column": resolved["supplier_capacity"],
-                "evidence_note": synthetic_note if source in SYNTHETIC_SOURCE_TYPES else "Supplied capacity evidence; independent verification is not claimed.",
+                "evidence_origin": origin,
+                "evidence_note": _evidence_note(origin, "capacity"),
             }
         )
 
     suppliers = sorted(suppliers, key=lambda item: item.supplier_id)
     eligibility_evidence = sorted(eligibility_evidence, key=lambda item: item["supplier_id"])
     capacity_evidence = sorted(capacity_evidence, key=lambda item: item["supplier_id"])
-    if source in SYNTHETIC_SOURCE_TYPES:
-        warnings.append(synthetic_note)
+    if origin == "controlled_synthetic":
+        warnings.append(_evidence_note(origin))
     warnings.append("Adapter construction is decision support only; human procurement approval remains mandatory.")
 
     return _result(
