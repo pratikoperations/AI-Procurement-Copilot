@@ -36,7 +36,6 @@ DEFAULT_EVIDENCE_ORIGIN_BY_SOURCE = MappingProxyType(
 SUPPORTED_UNITS = frozenset(
     {"unit", "units", "piece", "pieces", "kg", "kilogram", "kilograms", "mt", "tonne", "tonnes"}
 )
-
 CANONICAL_COLUMNS = MappingProxyType(
     {
         "supplier_id": "Supplier",
@@ -83,6 +82,15 @@ class AdapterStatus(str, Enum):
     CONTRACT_CONSTRUCTION_FAILURE = "CONTRACT_CONSTRUCTION_FAILURE"
 
 
+class EvidenceNormalizationError(ValueError):
+    """Raised when category evidence cannot be represented deterministically."""
+
+    def __init__(self, value: Any) -> None:
+        value_type = f"{type(value).__module__}.{type(value).__qualname__}"
+        super().__init__(f"unsupported evidence type '{value_type}'")
+        self.value_type = value_type
+
+
 def _is_missing_scalar(value: Any) -> bool:
     if value is None:
         return True
@@ -90,11 +98,15 @@ def _is_missing_scalar(value: Any) -> bool:
         missing = pd.isna(value)
     except (TypeError, ValueError):
         return False
-    return isinstance(missing, bool) and missing
+    if isinstance(missing, bool):
+        return missing
+    if type(missing).__module__.startswith("numpy") and type(missing).__name__ == "bool_":
+        return bool(missing)
+    return False
 
 
 def _json_safe(value: Any) -> Any:
-    """Return a deterministic strict-JSON-compatible representation."""
+    """Return a deterministic strict-JSON representation or raise for unsupported evidence."""
     if isinstance(value, Mapping):
         normalized: dict[str, Any] = {}
         for key, item in sorted(value.items(), key=lambda pair: str(pair[0])):
@@ -106,7 +118,7 @@ def _json_safe(value: Any) -> Any:
         items = [_json_safe(item) for item in value]
         filtered = [item for item in items if item is not _MISSING]
         if isinstance(value, (set, frozenset)):
-            return sorted(filtered, key=lambda item: json.dumps(item, sort_keys=True, default=str))
+            return sorted(filtered, key=lambda item: json.dumps(item, sort_keys=True, separators=(",", ":")))
         return filtered
     if isinstance(value, Enum):
         return value.value
@@ -125,12 +137,18 @@ def _json_safe(value: Any) -> Any:
         return value
     if hasattr(value, "item"):
         try:
-            return _json_safe(value.item())
+            scalar = value.item()
         except (TypeError, ValueError):
-            pass
+            scalar = value
+        if scalar is not value:
+            return _json_safe(scalar)
     if hasattr(value, "to_dict"):
-        return _json_safe(value.to_dict())
-    return " ".join(str(value).strip().split())
+        try:
+            mapped = value.to_dict()
+        except (TypeError, ValueError, AttributeError) as exc:
+            raise EvidenceNormalizationError(value) from exc
+        return _json_safe(mapped)
+    raise EvidenceNormalizationError(value)
 
 
 def _freeze(value: Any) -> Any:
@@ -183,13 +201,16 @@ def _reason_tuple(value: Any) -> tuple[str, ...]:
 
 def _resolve_evidence_origin(source_type: str, evidence_origin: str | None) -> str:
     supplied = _clean_text(evidence_origin).casefold().replace(" ", "_") if evidence_origin is not None else ""
-    if supplied:
-        if supplied not in SUPPORTED_EVIDENCE_ORIGINS:
-            raise ValueError(f"Unsupported evidence_origin '{supplied}'")
-        return supplied
+    if supplied and supplied not in SUPPORTED_EVIDENCE_ORIGINS:
+        raise ValueError(f"Unsupported evidence_origin '{supplied}'")
     if source_type == "category_adapter":
-        raise ValueError("category_adapter requires explicit evidence_origin")
-    return DEFAULT_EVIDENCE_ORIGIN_BY_SOURCE[source_type]
+        if not supplied:
+            raise ValueError("category_adapter requires explicit evidence_origin")
+        return supplied
+    required = DEFAULT_EVIDENCE_ORIGIN_BY_SOURCE[source_type]
+    if supplied and supplied != required:
+        raise ValueError(f"source_type '{source_type}' requires evidence_origin '{required}'")
+    return required
 
 
 def _evidence_class(origin: str) -> str:
@@ -414,7 +435,7 @@ def build_multi_supplier_allocation_adapter(
     except ValueError as exc:
         return _result(
             AdapterStatus.INVALID_ROUTE_INPUT,
-            "A supported explicit evidence origin is required.",
+            "A supported and source-consistent evidence origin is required.",
             route_name=route,
             category=category,
             commodity=commodity,
@@ -542,11 +563,7 @@ def build_multi_supplier_allocation_adapter(
             try:
                 numeric_values[canonical] = _finite(row.get(resolved[canonical]), canonical, non_negative=True)
             except ValueError as exc:
-                status = (
-                    AdapterStatus.MISSING_TCO_EVIDENCE
-                    if canonical == "adjusted_tco_unit_usd"
-                    else AdapterStatus.MISSING_SCORE_EVIDENCE
-                )
+                status = AdapterStatus.MISSING_TCO_EVIDENCE if canonical == "adjusted_tco_unit_usd" else AdapterStatus.MISSING_SCORE_EVIDENCE
                 return _result(
                     status,
                     "Required TCO or score evidence is invalid.",
@@ -561,11 +578,24 @@ def build_multi_supplier_allocation_adapter(
             if reason_column in row:
                 reason_values.extend(_reason_tuple(row.get(reason_column)))
         reasons = tuple(sorted(set(reason_values)))
+
         category_evidence: dict[str, Any] = {}
         for column in CATEGORY_EVIDENCE_COLUMNS:
             if column not in row:
                 continue
-            safe_value = _json_safe(row.get(column))
+            try:
+                safe_value = _json_safe(row.get(column))
+            except EvidenceNormalizationError as exc:
+                return _result(
+                    AdapterStatus.CONTRACT_CONSTRUCTION_FAILURE,
+                    "Category evidence contains an unsupported value type.",
+                    route_name=route, category=category, commodity=commodity, source_type=source,
+                    request=request, field_provenance=provenance,
+                    eligibility_evidence=eligibility_evidence, capacity_evidence=capacity_evidence,
+                    blocking_reasons=(
+                        f"Row {row_index}, supplier '{supplier_id}', field '{column}': {exc}",
+                    ),
+                )
             if safe_value is not _MISSING:
                 category_evidence[column] = safe_value
         category_evidence.update(
@@ -576,6 +606,7 @@ def build_multi_supplier_allocation_adapter(
                 "evidence_class": _evidence_class(origin),
             }
         )
+
         supplier = SupplierAllocationInput(
             supplier_id=supplier_id,
             technical_eligible=eligible,
