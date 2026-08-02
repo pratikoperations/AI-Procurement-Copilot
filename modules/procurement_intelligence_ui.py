@@ -1,4 +1,4 @@
-"""Streamlit renderer for Build 0.9.3 procurement intelligence outputs."""
+"""Streamlit renderer for governed procurement intelligence outputs."""
 
 import pandas as pd
 import streamlit as st
@@ -29,9 +29,28 @@ def render_procurement_intelligence(
     st.write(f"**Recommended term:** {strategy['recommended_term']}")
     st.caption(strategy["governance_note"])
 
-    st.subheader("Optimized Allocation")
-    st.dataframe(optimized_allocation["allocation_df"], width="stretch", hide_index=True)
+    st.subheader("Governed Multi-Supplier Allocation")
+    route_status = optimized_allocation.get("route_status", "UNKNOWN")
+    if route_status == "READY":
+        st.success("Canonical allocation route completed. Human procurement approval remains mandatory.")
+    elif route_status == "WARNING":
+        st.warning("Canonical allocation route completed with warnings. Human procurement review is mandatory.")
+    else:
+        st.error(f"Canonical allocation route is blocked: {route_status}")
+    allocation_df = optimized_allocation["allocation_df"]
+    if allocation_df.empty:
+        st.info("No allocation recommendation is available for this governed route state.")
+    else:
+        st.dataframe(allocation_df, width="stretch", hide_index=True)
     st.write(optimized_allocation["explanation"])
+    for warning in optimized_allocation.get("warnings", ()):
+        st.warning(warning)
+    for reason in optimized_allocation.get("blocking_reasons", ()):
+        st.write(f"- {reason}")
+    st.caption(
+        "This is a recommendation for human procurement review. It is not an autonomous award, "
+        "approval record or ERP authorization."
+    )
 
     st.subheader("Negotiation Intelligence")
     st.dataframe(negotiation_df, width="stretch", hide_index=True)
@@ -46,14 +65,9 @@ def render_procurement_intelligence(
 
     st.subheader("Scenario Simulation")
     st.write(f"**Scenario:** {scenario_result['scenario']}")
-    st.write(
-        f"Recommended supplier under scenario: **{scenario_result['decision']['recommended_supplier']}** "
-        f"with confidence **{scenario_result['decision']['award_confidence']}/100**."
-    )
-    st.dataframe(
-        scenario_result["allocation"]["allocation_df"],
-        width="stretch",
-        hide_index=True,
+    st.info(
+        "Scenario-specific supplier allocation is deferred until the canonical route is governed for "
+        "scenario inputs. No legacy scenario allocation is displayed as an award recommendation."
     )
 
     st.subheader("AI Explainability 2.0")
