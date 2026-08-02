@@ -25,11 +25,11 @@ Until `AI_HANDOFF_GUIDE.md` is reconciled in Gate 0F:
 - Its historical baseline, frozen-v1.0.0 branch statements and mandatory current-document list must be independently reverified before use.
 - Conflicts concerning current state are resolved using the hierarchy in this file.
 
-## Staleness Rule
+## Staleness and Self-Reference Rule
 
 Any change to the current `main` SHA, active branch, active PR, base SHA, head SHA, merge-test SHA, accepted CI run or current gate invalidates the affected current-state fields until they are independently reverified. Estimates are not machine-verifiable facts.
 
-Active branch heads and pull-request merge-test SHAs are moving Git references. The identifiers below are evidence snapshots, not self-updating values. Any later correction commit, CI dispatch, ready transition or merge invalidates the affected snapshot until refreshed through governed verification.
+This closure document records the verified Gate 0B merge SHA. The closure branch head, closure PR merge-test SHA and any later resulting `main` SHA remain externally governed by Git and CI. This file must not attempt to embed the SHA of the commit currently modifying it. Merging a later closure PR triggers this staleness rule for affected moving identifiers.
 
 ## Identity and Classification
 
@@ -38,12 +38,20 @@ Active branch heads and pull-request merge-test SHAs are moving Git references. 
 - Engineering classification: modular deterministic decision-support application with governed AI-assisted development.
 - Portfolio classification: governed interview showcase / portfolio decision-support prototype.
 - Production classification: not a production system and not currently a production candidate.
-- Default branch: `main`
+- Default branch: `main`.
 - Human procurement approval: mandatory.
+
+## Current Verified Repository State
+
+- Current verified `main` SHA: `c5b420c0eb21c957593c6042ce30b1dc18da8f2a`.
+- Gate 0B status: accepted, merged and post-merge verified.
+- Merged governance PR: `#48`.
+- Gate 0B merge commit: `c5b420c0eb21c957593c6042ce30b1dc18da8f2a`.
+- Gate 0B merged at: `2026-08-02T06:27:47Z`.
+- Latest verified timestamp: `2026-08-02T12:03:00+05:30`.
 
 ## Stable Allocation-Programme State
 
-- Current verified `main` SHA: `2896b1e36e66a65638f73e3f40dbfac96cd9f5b8`
 - Current allocation programme: Shared Cross-Category Multi-Supplier Award and Allocation.
 - Completed allocation gate: Gate 3A — Common Route Adapter and Contract Construction.
 - Current allocation implementation gate: none.
@@ -55,26 +63,23 @@ Active branch heads and pull-request merge-test SHAs are moving Git references. 
 - Current allocation implementation head SHA: not applicable.
 - Current allocation implementation merge-test SHA: not applicable.
 
-## Active Governance State
+## Governance State After Gate 0B Merge
 
-- Active governance programme: Governed AI-Assisted Development Operating Method.
-- Active governance gate: Gate 0B — Minimum Governance Foundation.
-- Active governance branch: `governance/project-control-foundation`.
-- Active governance PR: `#48`.
-- Gate 0B base SHA: `2896b1e36e66a65638f73e3f40dbfac96cd9f5b8`.
-- Gate 0B reviewed head SHA before Correction 1: `45a5c2edf619db09337f0e9f24bf8fe26102934a`.
-- Gate 0B reviewed merge-test SHA before Correction 1: `37c787b324c35ba31bd9632f085387681336386d`.
-- PR state at Correction 1 authorization: open, draft, unmerged and mergeable.
-- Correction 1 scope: modify only `PROJECT_CONTROL.md`; retain the four-file PR boundary.
-- Latest verified timestamp: `2026-08-02T11:46:00+05:30`.
-
-The current branch head after this correction commit and its resulting merge-test SHA must be taken from GitHub and recorded in the governed review evidence. A Git commit cannot safely embed its own resulting SHA as an authoritative self-reference.
+- Governance programme: Governed AI-Assisted Development Operating Method.
+- Completed governance gate: Gate 0B — Minimum Governance Foundation.
+- Active governance implementation gate: none.
+- Active governance implementation branch: none.
+- Active governance PR: none after PR `#48` merge.
+- Latest merged governance PR: `#48`.
+- Retained governance branch: `governance/project-control-foundation`.
+- Gate 0C: not authorized.
+- Gate 0B closure branch: `governance/gate-0b-control-closure`; its current head and future PR merge-test remain external Git/CI evidence.
 
 ## Accepted Contract Versions
 
-- Gate 1 allocation contract: `AIPC-MULTI-ALLOC-1.0`
-- Gate 2 allocation engine: `AIPC-MULTI-ALLOC-ENGINE-1.0`
-- Gate 3A route adapter: `AIPC-MULTI-ALLOC-ADAPTER-1.0`
+- Gate 1 allocation contract: `AIPC-MULTI-ALLOC-1.0`.
+- Gate 2 allocation engine: `AIPC-MULTI-ALLOC-ENGINE-1.0`.
+- Gate 3A route adapter: `AIPC-MULTI-ALLOC-ADAPTER-1.0`.
 
 ## Accepted Gate 3A Assurance Evidence
 
@@ -88,22 +93,25 @@ The current branch head after this correction commit and its resulting merge-tes
 - Python compilation: passed.
 - Streamlit smoke: passed.
 - Warning boundary: one pre-existing pandas `FutureWarning`; no Gate 3A warning.
-- Post-merge CI: no pull-request-triggered workflow dispatch was observed for merge commit `2896b1e36e66a65638f73e3f40dbfac96cd9f5b8`.
+- Post-merge CI: no pull-request-triggered workflow dispatch was observed for Gate 3A merge commit `2896b1e36e66a65638f73e3f40dbfac96cd9f5b8`.
 - Manual browser/mobile validation: not performed for Gate 3A; automated tests and smoke do not constitute device certification.
 
-## Gate 0B Assurance Evidence Before Correction 1
+## Accepted Gate 0B Assurance Evidence
 
 - Workflow: Quality Checks.
-- Run number: `847`.
-- Run ID: `30735353967`.
-- Job ID: `91463054993`.
-- Merge-test SHA: `37c787b324c35ba31bd9632f085387681336386d`.
+- Accepted run number: `848`.
+- Run ID: `30735635178`.
+- Job ID: `91463833522`.
+- Accepted merge-test SHA: `1601b4296aaf7781a4b85b408e3c7f591331a7db`.
+- Accepted head SHA: `f7bce982fc814d56b817b6dab24f96fe368607f9`.
 - Python: `3.11.15`.
 - Test result: `1319 passed`, `0 failures`, `0 errors`.
 - Python compilation: passed.
 - Streamlit smoke: passed.
 - Warning boundary: one pre-existing pandas `FutureWarning`; no new Gate 0B warning.
-- Applicability: this evidence applies to the reviewed pre-correction head `45a5c2edf619db09337f0e9f24bf8fe26102934a`; fresh CI is required for the Correction 1 head.
+- Post-merge CI: no pull-request-triggered workflow dispatch was observed for Gate 0B merge commit `c5b420c0eb21c957593c6042ce30b1dc18da8f2a`.
+
+Historical Gate 0B run `847` remains pre-correction evidence only and is subordinate to accepted run `848`.
 
 ## Completed Scope
 
@@ -111,26 +119,31 @@ The current branch head after this correction commit and its resulting merge-tes
 - Gate 2 isolated deterministic exactly-K allocation recommendation engine.
 - Gate 3A isolated governed route adapter with explicit eligibility, capacity, TCO, score and evidence-origin controls.
 - Strict deterministic JSON, source/provenance controls, unsupported-evidence failure and mandatory human review.
+- Gate 0B governance foundation merged on `main`:
+  - `PROJECT_CONTROL.md`;
+  - `DEFINITION_OF_DONE.md`;
+  - `SIMPLICITY_GATE.md`;
+  - `VERIFICATION_POLICY.md`.
+- Gate 0B introduced no executable, architecture, test, CI, dependency, deployment or hosted-behaviour change.
 
 ## Currently Authorized Scope
 
-Gate 0B only:
+Gate 0B closure only:
 
-- create `PROJECT_CONTROL.md`;
-- create `DEFINITION_OF_DONE.md`;
-- create `SIMPLICITY_GATE.md`;
-- create `VERIFICATION_POLICY.md`;
-- correct the current Gate 0B state in `PROJECT_CONTROL.md`;
-- preserve a documentation-only four-file PR boundary.
+- reconcile the merged Gate 0B state in `PROJECT_CONTROL.md`;
+- preserve a one-file documentation-only boundary;
+- run the existing Quality Checks through a draft PR;
+- keep the closure PR draft and unmerged until governed review.
 
 ## Deferred Scope
 
+- Gate 0C critical ADR foundation.
 - Gate 3B sidebar controls and application-route integration.
 - Gate 3C Procurement Intelligence and risk unification.
 - Gate 3D export and executive-output unification.
 - Gate 3E Steel and mandatory category adapters.
 - Gate 3F full regression and physical browser/mobile validation.
-- ADR foundation, test-risk register, component explainers and historical-document reconciliation.
+- Test-risk register, component explainers and historical-document reconciliation.
 - Power BI until authoritative export unification is accepted.
 - Production authentication, database, ERP integration, persistence, observability, high availability and disaster-recovery infrastructure.
 
@@ -167,13 +180,13 @@ Gate 0B only:
 - PR `#45`: Gate 1 contract and feasibility.
 - PR `#46`: Gate 2 deterministic exactly-K engine.
 - PR `#47`: Gate 3A governed route adapter.
-- PR `#48`: Gate 0B minimum governance foundation, active draft PR.
-- `PROJECT_ARCHITECTURE.md`
-- `BUSINESS_RULES.md`
-- `FORMULA_TRACEABILITY_REGISTER.md`
-- `DATA_DICTIONARY.md`
-- `docs/07_GOVERNANCE_AND_LIMITATIONS.md`
-- `docs/EAS_BIV_FINAL_CLOSURE.md`
+- PR `#48`: Gate 0B minimum governance foundation, closed and merged.
+- `PROJECT_ARCHITECTURE.md`.
+- `BUSINESS_RULES.md`.
+- `FORMULA_TRACEABILITY_REGISTER.md`.
+- `DATA_DICTIONARY.md`.
+- `docs/07_GOVERNANCE_AND_LIMITATIONS.md`.
+- `docs/EAS_BIV_FINAL_CLOSURE.md`.
 
 ## Current Risks
 
@@ -184,16 +197,21 @@ Gate 0B only:
 - `evidence_origin` may need promotion to a first-class route/result field during Gate 3B design.
 - Export and Power BI work remain blocked until one authoritative allocation result drives every consumer.
 
-## Next Authorized Action
+## Next Recommended Decision
 
-Complete Gate 0B Correction 1 through fresh Quality Checks and renewed governed review. Do not mark PR `#48` ready, merge it, or begin Gate 3B until the correction is accepted.
+After this closure update is accepted and merged, explicitly prioritize one of:
+
+1. Gate 0C — critical ADR foundation; or
+2. Gate 3B — governed application-route and sidebar planning.
+
+Neither gate is currently authorized. Power BI remains blocked until authoritative export unification.
 
 ## Planning and Effort Evidence
 
-- Original pre-build Gate 0B estimate: `4–7 engineering-equivalent hours`.
-- Gate 0B implementation evidence after initial build and CI: `5.5–9 engineering-equivalent hours`.
-- Estimated remaining multi-supplier integration effort: `18–30 engineering-equivalent hours`.
-- Gate 0B state: implementation and initial CI completed; Correction 1 and renewed review pending; not merged.
+- Gate 0B completion estimate: `100%`.
+- Governance-integration completion estimate: approximately `70%`.
 - Multi-supplier programme completion estimate: approximately `78–81%`.
-- Overall project completion estimate: approximately `81–83%` of the current governed portfolio roadmap.
+- Overall project completion estimate: approximately `83–85%` of the current governed portfolio roadmap.
+- Gate 0B cumulative engineering-equivalent effort estimate: approximately `13.65–23.6 hours`.
+- Estimated remaining multi-supplier integration effort: `18–30 engineering-equivalent hours`.
 - Last verification date: `2026-08-02`.
