@@ -19,7 +19,9 @@ def test_app_imports_canonical_application_integration_only():
         for node in ast.walk(tree)
         if isinstance(node, ast.ImportFrom)
     }
-    assert "run_application_allocation" in imports["modules.multi_supplier_allocation_application"]
+    canonical_imports = imports["modules.multi_supplier_allocation_application"]
+    assert "run_application_allocation" in canonical_imports
+    assert "build_route_decision_control" in canonical_imports
     assert "modules.allocation" not in imports
     assert "modules.allocation_optimizer" not in imports
 
@@ -58,7 +60,34 @@ def test_route_states_and_human_approval_are_visible():
     assert "Canonical allocation route is blocked" in source
     assert "Partial evidence captured before adapter failure" in source
     assert "No legacy allocation fallback is permitted" in source
-    assert "not an autonomous award, approval record or ERP authorization" in source
+    assert "No autonomous award, approval record or ERP authorization is created" in source
+
+
+def test_blocked_route_suppresses_final_award_and_executive_dashboard():
+    source = APP_PATH.read_text(encoding="utf-8")
+    assert 'route_decision_control = build_route_decision_control(allocation_route_result, eligibility)' in source
+    assert 'final_award_language_allowed = route_decision_control["final_award_language_allowed"]' in source
+    assert "if final_award_language_allowed:" in source
+    assert "Final award and allocation recommendation withheld" in source
+    assert "if recommendation_language_allowed:\n    render_executive_dashboard" in source
+
+
+def test_blocked_route_governs_executive_outputs_and_downloads():
+    source = APP_PATH.read_text(encoding="utf-8")
+    assert "ANALYTICAL-ONLY OUTPUT" in source
+    assert "No supplier has been selected for award" in source
+    assert "Supplier clarification request — no award decision" in source
+    assert "Recommendation-bearing Excel, memo, allocation and decision-audit downloads are withheld" in source
+    assert "Download Clarification Email" in source
+
+
+def test_procurement_intelligence_receives_combined_recommendation_control():
+    source = APP_PATH.read_text(encoding="utf-8")
+    assert "recommendation_allowed=recommendation_language_allowed" in source
+    ui_source = PROCUREMENT_UI_PATH.read_text(encoding="utf-8")
+    assert "route_allows_recommendation" in ui_source
+    assert "Supplier award and allocation recommendation language is withheld" in ui_source
+    assert "No supplier has been selected for award" in ui_source
 
 
 def test_procurement_intelligence_hides_legacy_scenario_allocation():
