@@ -14,6 +14,10 @@ from modules.multi_supplier_allocation_adapter import (
     build_multi_supplier_allocation_adapter,
 )
 
+pytestmark = pytest.mark.filterwarnings(
+    "ignore:Setting an item of incompatible dtype is deprecated:FutureWarning"
+)
+
 
 def controls(**overrides):
     values = {
