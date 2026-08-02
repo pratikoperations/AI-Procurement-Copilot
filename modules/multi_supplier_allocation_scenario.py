@@ -21,6 +21,10 @@ from modules.multi_supplier_allocation_route import (
 )
 
 SCENARIO_ALLOCATION_VERSION = "AIPC-MULTI-ALLOC-SCENARIO-1.0"
+MISSING_EVIDENCE_ORIGIN_STATUS = "BLOCKED_MISSING_EVIDENCE_ORIGIN"
+MISSING_EVIDENCE_ORIGIN_REASON = (
+    "Scenario evidence origin is required before canonical allocation can run."
+)
 
 
 def _freeze(value: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -68,6 +72,7 @@ class ScenarioAllocationResult:
     route_result: GovernedMultiSupplierAllocationRouteResult | None
     allocation_df: pd.DataFrame
     scenario_metadata: Mapping[str, Any]
+    integration_blocking_reasons: tuple[str, ...] = ()
     human_review_required: bool = True
     legacy_fallback_used: bool = False
 
@@ -80,6 +85,14 @@ class ScenarioAllocationResult:
             raise ValueError("Legacy scenario allocation fallback is prohibited")
         if not self.scenario_applicable and self.route_result is not None:
             raise ValueError("A non-applicable scenario must not invoke the allocation route")
+        if not self.scenario_applicable and self.integration_blocking_reasons:
+            raise ValueError("A non-applicable scenario must not be represented as an integration block")
+        if self.scenario_applicable and self.route_result is None and not self.integration_blocking_reasons:
+            raise ValueError("An applicable scenario without a route result must expose an integration block")
+        if self.route_result is not None and self.integration_blocking_reasons:
+            raise ValueError("Route and integration blocking evidence cannot both be authoritative")
+        if self.integration_blocking_reasons and not self.allocation_df.empty:
+            raise ValueError("Integration-blocked scenarios cannot expose allocation rows")
         if self.route_result is not None:
             if self.route_result.human_review_required is not True:
                 raise ValueError("Canonical route must retain human review")
@@ -89,10 +102,19 @@ class ScenarioAllocationResult:
                 raise ValueError("Blocked scenario routes cannot expose allocation rows")
         object.__setattr__(self, "allocation_df", self.allocation_df.copy(deep=True))
         object.__setattr__(self, "scenario_metadata", _freeze(self.scenario_metadata))
+        object.__setattr__(
+            self,
+            "integration_blocking_reasons",
+            tuple(str(reason).strip() for reason in self.integration_blocking_reasons if str(reason).strip()),
+        )
 
     @property
     def route_status(self) -> str:
-        return self.route_result.route_status.value if self.route_result is not None else "NOT_APPLICABLE"
+        if self.route_result is not None:
+            return self.route_result.route_status.value
+        if self.scenario_applicable and self.integration_blocking_reasons:
+            return MISSING_EVIDENCE_ORIGIN_STATUS
+        return "NOT_APPLICABLE"
 
     @property
     def allocation_available(self) -> bool:
@@ -106,17 +128,25 @@ class ScenarioAllocationResult:
     def compatibility_allocation(self) -> dict[str, Any]:
         """Temporary Gate 3C1 shape for unchanged read-only scenario consumers."""
         route = self.route_result
+        if route is not None:
+            explanation = route.route_summary
+            blocking_reasons = tuple(route.blocking_reasons)
+            evidence_origin = route.evidence_origin
+        elif self.scenario_applicable:
+            explanation = "; ".join(self.integration_blocking_reasons)
+            blocking_reasons = self.integration_blocking_reasons
+            evidence_origin = ""
+        else:
+            explanation = "Scenario is not applicable; the canonical allocation route was not invoked."
+            blocking_reasons = ()
+            evidence_origin = ""
         return {
             "allocation_df": self.allocation_df.copy(deep=True),
-            "explanation": (
-                route.route_summary
-                if route is not None
-                else "Scenario is not applicable; the canonical allocation route was not invoked."
-            ),
+            "explanation": explanation,
             "route_status": self.route_status,
             "warnings": tuple(route.warnings) if route is not None else (),
-            "blocking_reasons": tuple(route.blocking_reasons) if route is not None else (),
-            "evidence_origin": route.evidence_origin if route is not None else "",
+            "blocking_reasons": blocking_reasons,
+            "evidence_origin": evidence_origin,
             "human_review_required": True,
             "legacy_fallback_used": False,
         }
@@ -149,8 +179,24 @@ def run_scenario_allocation(
             legacy_fallback_used=False,
         )
 
+    origin_value = evidence_origin if evidence_origin is not None else metadata.get("evidence_origin")
+    origin = str(origin_value).strip() if origin_value is not None else ""
+    if not origin:
+        return ScenarioAllocationResult(
+            scenario_allocation_version=SCENARIO_ALLOCATION_VERSION,
+            scenario_name=str(scenario_name),
+            scenario_applicable=True,
+            scenario_assumption_version=str(scenario_assumption_version),
+            effective_annual_volume=float(effective_annual_volume),
+            route_result=None,
+            allocation_df=pd.DataFrame(),
+            scenario_metadata=metadata,
+            integration_blocking_reasons=(MISSING_EVIDENCE_ORIGIN_REASON,),
+            human_review_required=True,
+            legacy_fallback_used=False,
+        )
+
     controls = _scenario_controls(assumptions, effective_annual_volume)
-    origin = str(evidence_origin or metadata.get("evidence_origin") or "controlled_synthetic")
     route_result = run_multi_supplier_allocation_route(
         scored_df,
         controls,
