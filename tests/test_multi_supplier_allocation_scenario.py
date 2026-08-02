@@ -4,10 +4,14 @@ import ast
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 from modules.data_loader import get_flexible_laminate_demo_suppliers
+import modules.multi_supplier_allocation_scenario as scenario_module
 from modules.multi_supplier_allocation_route import RouteStatus
 from modules.multi_supplier_allocation_scenario import (
+    MISSING_EVIDENCE_ORIGIN_REASON,
+    MISSING_EVIDENCE_ORIGIN_STATUS,
     SCENARIO_ALLOCATION_VERSION,
     run_scenario_allocation,
 )
@@ -100,6 +104,7 @@ def test_scenario_projection_contains_exact_gate2_values():
         assumptions(),
         scenario_name="Base Case",
         effective_annual_volume=1000.0,
+        evidence_origin="controlled_synthetic",
     )
     allocation = result.route_result.allocation_result
     assert allocation is not None
@@ -119,6 +124,7 @@ def test_missing_capacity_fails_closed_without_legacy_fallback():
         assumptions(),
         scenario_name="Capacity Missing",
         effective_annual_volume=1000.0,
+        evidence_origin="controlled_synthetic",
     )
     assert result.route_result is not None
     assert result.route_result.route_status is RouteStatus.BLOCKED_MISSING_CAPACITY
@@ -129,7 +135,66 @@ def test_missing_capacity_fails_closed_without_legacy_fallback():
     assert result.compatibility_allocation()["allocation_df"].empty
 
 
-def test_non_applicable_scenario_does_not_invoke_route():
+@pytest.mark.parametrize("origin", [None, "", "   "])
+def test_applicable_scenario_without_explicit_evidence_origin_fails_closed(monkeypatch, origin):
+    def unexpected_route_call(*args, **kwargs):
+        raise AssertionError("Canonical route must not be invoked without scenario evidence origin")
+
+    monkeypatch.setattr(scenario_module, "run_multi_supplier_allocation_route", unexpected_route_call)
+    metadata = {} if origin is None else {"evidence_origin": origin}
+    result = run_scenario_allocation(
+        scored_frame(),
+        assumptions(),
+        scenario_name="Missing Evidence Origin",
+        effective_annual_volume=1000.0,
+        scenario_metadata=metadata,
+    )
+    assert result.scenario_applicable is True
+    assert result.route_result is None
+    assert result.route_status == MISSING_EVIDENCE_ORIGIN_STATUS
+    assert result.integration_blocking_reasons == (MISSING_EVIDENCE_ORIGIN_REASON,)
+    assert result.allocation_df.empty
+    assert result.allocation_available is False
+    assert result.human_review_required is True
+    assert result.legacy_fallback_used is False
+    compatibility = result.compatibility_allocation()
+    assert compatibility["allocation_df"].empty
+    assert compatibility["blocking_reasons"] == (MISSING_EVIDENCE_ORIGIN_REASON,)
+    assert compatibility["evidence_origin"] == ""
+
+
+@pytest.mark.parametrize("origin", ["controlled_synthetic", "supplied", "governed_workbook"])
+def test_explicit_supported_evidence_origin_is_retained(origin):
+    result = run_scenario_allocation(
+        scored_frame(),
+        assumptions(),
+        scenario_name="Explicit Evidence",
+        effective_annual_volume=1000.0,
+        evidence_origin=f"  {origin}  ",
+    )
+    assert result.route_result is not None
+    assert result.route_result.evidence_origin == origin
+    assert result.compatibility_allocation()["evidence_origin"] == origin
+    assert result.human_review_required is True
+    assert result.legacy_fallback_used is False
+
+
+def test_unsupported_explicit_evidence_origin_remains_rejected():
+    with pytest.raises(ValueError, match="Unsupported evidence_origin"):
+        run_scenario_allocation(
+            scored_frame(),
+            assumptions(),
+            scenario_name="Unsupported Evidence",
+            effective_annual_volume=1000.0,
+            evidence_origin="unverified_external",
+        )
+
+
+def test_non_applicable_scenario_does_not_invoke_route(monkeypatch):
+    def unexpected_route_call(*args, **kwargs):
+        raise AssertionError("Non-applicable scenario must not invoke canonical route")
+
+    monkeypatch.setattr(scenario_module, "run_multi_supplier_allocation_route", unexpected_route_call)
     result = run_scenario_allocation(
         scored_frame(),
         assumptions(),
@@ -147,13 +212,25 @@ def test_non_applicable_scenario_does_not_invoke_route():
 
 def test_display_currency_never_changes_scenario_allocation():
     usd = run_scenario_allocation(
-        scored_frame(), assumptions(display_currency="USD"), scenario_name="Base", effective_annual_volume=1000.0
+        scored_frame(),
+        assumptions(display_currency="USD"),
+        scenario_name="Base",
+        effective_annual_volume=1000.0,
+        evidence_origin="controlled_synthetic",
     )
     inr = run_scenario_allocation(
-        scored_frame(), assumptions(display_currency="INR"), scenario_name="Base", effective_annual_volume=1000.0
+        scored_frame(),
+        assumptions(display_currency="INR"),
+        scenario_name="Base",
+        effective_annual_volume=1000.0,
+        evidence_origin="controlled_synthetic",
     )
     both = run_scenario_allocation(
-        scored_frame(), assumptions(display_currency="Both"), scenario_name="Base", effective_annual_volume=1000.0
+        scored_frame(),
+        assumptions(display_currency="Both"),
+        scenario_name="Base",
+        effective_annual_volume=1000.0,
+        evidence_origin="controlled_synthetic",
     )
     assert usd.route_result.to_json() == inr.route_result.to_json()
     assert usd.route_result.to_json() == both.route_result.to_json()
