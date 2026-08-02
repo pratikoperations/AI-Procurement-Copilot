@@ -81,7 +81,7 @@ Primary sources include `PROJECT_CONTROL.md`, `DEFINITION_OF_DONE.md`, `SIMPLICI
 - **Authoritative component:** Eligibility contracts and allocation engine.
 - **Existing preventive control:** ADR-004 and allocation contract validation.
 - **Existing test evidence:** `tests/test_multi_supplier_allocation_engine.py`, `tests/test_recommendation_eligibility.py`, `tests/test_multi_supplier_allocation_adapter.py`.
-- **Coverage state:** Covered.
+- **Coverage state:** Partially Covered.
 - **Required Gate 3B validation:** Route-level assertion that exclusions remain explicit and receive no allocation.
 - **Severity / Likelihood / Detectability:** Critical / Low / Easy.
 - **Overall priority:** Blocker.
@@ -96,7 +96,7 @@ Primary sources include `PROJECT_CONTROL.md`, `DEFINITION_OF_DONE.md`, `SIMPLICI
 - **Authoritative component:** Allocation adapter and supplier input contract.
 - **Existing preventive control:** ADR-004 and fail-closed adapter statuses.
 - **Existing test evidence:** `tests/test_multi_supplier_allocation_adapter.py` and `tests/test_multi_supplier_allocation_engine.py` directly reject missing or ambiguous eligibility.
-- **Coverage state:** Covered.
+- **Coverage state:** Partially Covered.
 - **Required Gate 3B validation:** Application route must surface blocked status and must not substitute a default.
 - **Severity / Likelihood / Detectability:** Critical / Low / Easy.
 - **Overall priority:** Blocker.
@@ -111,7 +111,7 @@ Primary sources include `PROJECT_CONTROL.md`, `DEFINITION_OF_DONE.md`, `SIMPLICI
 - **Authoritative component:** Adapter capacity evidence and feasibility engine.
 - **Existing preventive control:** ADR-004 and explicit capacity requirement.
 - **Existing test evidence:** `tests/test_multi_supplier_allocation_adapter.py` blocks missing/invalid capacity; feasibility and engine tests enforce capacity ceilings.
-- **Coverage state:** Covered.
+- **Coverage state:** Partially Covered.
 - **Required Gate 3B validation:** Confirm every route supplies explicit capacity evidence and blocked state is visible.
 - **Severity / Likelihood / Detectability:** Critical / Medium / Easy.
 - **Overall priority:** Blocker.
@@ -156,7 +156,7 @@ Primary sources include `PROJECT_CONTROL.md`, `DEFINITION_OF_DONE.md`, `SIMPLICI
 - **Authoritative component:** Adapter contract construction versus Gate 2 engine execution.
 - **Existing preventive control:** ADR-001 and ADR-006.
 - **Existing test evidence:** `tests/test_multi_supplier_allocation_adapter.py` validates construction, versions and human review without allocation execution.
-- **Coverage state:** Covered.
+- **Coverage state:** Partially Covered.
 - **Required Gate 3B validation:** Spy or contract test showing the route invokes the shared engine after adapter readiness and uses its result unchanged.
 - **Severity / Likelihood / Detectability:** Critical / Low / Easy.
 - **Overall priority:** Blocker.
@@ -171,7 +171,7 @@ Primary sources include `PROJECT_CONTROL.md`, `DEFINITION_OF_DONE.md`, `SIMPLICI
 - **Authoritative component:** `modules/multi_supplier_allocation.py`.
 - **Existing preventive control:** Engine contract and ADR-006.
 - **Existing test evidence:** `tests/test_multi_supplier_allocation_engine.py` directly tests K=1, K=2, K=3, positive-share identity and 100% reconciliation.
-- **Coverage state:** Covered.
+- **Coverage state:** Partially Covered.
 - **Required Gate 3B validation:** Route-level assertion preserving selected IDs and exactly-K semantics.
 - **Severity / Likelihood / Detectability:** Critical / Low / Easy.
 - **Overall priority:** Blocker.
@@ -186,7 +186,7 @@ Primary sources include `PROJECT_CONTROL.md`, `DEFINITION_OF_DONE.md`, `SIMPLICI
 - **Authoritative component:** Allocation engine deterministic ordering.
 - **Existing preventive control:** ADR-006.
 - **Existing test evidence:** `tests/test_multi_supplier_allocation_engine.py` tests lexical tie-breaking, reversed inputs and repeated execution.
-- **Coverage state:** Covered.
+- **Coverage state:** Partially Covered.
 - **Required Gate 3B validation:** Repeat application-route execution with shuffled rows and compare serialized result.
 - **Severity / Likelihood / Detectability:** High / Low / Medium.
 - **Overall priority:** High.
@@ -201,7 +201,7 @@ Primary sources include `PROJECT_CONTROL.md`, `DEFINITION_OF_DONE.md`, `SIMPLICI
 - **Authoritative component:** Feasibility and allocation status contracts.
 - **Existing preventive control:** Explicit feasibility and failure statuses.
 - **Existing test evidence:** `tests/test_multi_supplier_allocation_feasibility.py` and `tests/test_multi_supplier_allocation_engine.py` test insufficient capacity, indeterminate feasibility and no exact allocation.
-- **Coverage state:** Covered.
+- **Coverage state:** Partially Covered.
 - **Required Gate 3B validation:** Route must preserve blocked status, reasons and absence of recommendation.
 - **Severity / Likelihood / Detectability:** Critical / Medium / Easy.
 - **Overall priority:** Blocker.
@@ -231,7 +231,7 @@ Primary sources include `PROJECT_CONTROL.md`, `DEFINITION_OF_DONE.md`, `SIMPLICI
 - **Authoritative component:** Adapter evidence-origin governance.
 - **Existing preventive control:** ADR-007 and source-type/origin rules.
 - **Existing test evidence:** `tests/test_multi_supplier_allocation_adapter.py` directly tests fixed origins, contradictory origins, category-adapter explicit origin and deterministic reasons.
-- **Coverage state:** Covered.
+- **Coverage state:** Partially Covered.
 - **Required Gate 3B validation:** Preserve origin fields through route and visible evidence views.
 - **Severity / Likelihood / Detectability:** Critical / Medium / Easy.
 - **Overall priority:** Blocker.
@@ -291,7 +291,7 @@ Primary sources include `PROJECT_CONTROL.md`, `DEFINITION_OF_DONE.md`, `SIMPLICI
 - **Authoritative component:** Allocation result contract and presentation.
 - **Existing preventive control:** ADR-003 and contract warnings.
 - **Existing test evidence:** Adapter and engine tests assert `human_review_required`; governed recommendation tests cover approval language.
-- **Coverage state:** Covered.
+- **Coverage state:** Partially Covered.
 - **Required Gate 3B validation:** Verify visible approval notice in successful, warning and blocked states.
 - **Severity / Likelihood / Detectability:** Critical / Medium / Easy.
 - **Overall priority:** Blocker.
@@ -485,9 +485,9 @@ Primary sources include `PROJECT_CONTROL.md`, `DEFINITION_OF_DONE.md`, `SIMPLICI
 - **Failure mode:** Engine ownership, approval, eligibility, currency, allocation, precedence or trace boundary changes without ADR review.
 - **Authoritative component:** `docs/adr/README.md`, ADR-001 through ADR-008 and `VERIFICATION_POLICY.md`.
 - **Existing preventive control:** ADR reverification triggers and change control.
-- **Existing test evidence:** This is primarily a governed-review control; exact Git/CI evidence validates affected implementation.
+- **Existing test evidence:** The covered boundary is the existing ADR and change-control mechanism established by accepted governance files; exact Git/CI evidence validates affected implementation. This does not claim that future Gate 3B compliance is already proven.
 - **Coverage state:** Covered.
-- **Required Gate 3B validation:** Review changed files against all eight ADR triggers and record affected/not-affected determination.
+- **Required Gate 3B validation:** Review changed files against all eight ADR triggers and record affected/not-affected determination; Gate 3B compliance remains subject to that future governed review.
 - **Severity / Likelihood / Detectability:** Medium / Low / Medium.
 - **Overall priority:** Medium.
 - **Blocking behaviour:** Unreviewed conflict with an accepted ADR blocks merge.
@@ -511,8 +511,8 @@ Primary sources include `PROJECT_CONTROL.md`, `DEFINITION_OF_DONE.md`, `SIMPLICI
 
 | Coverage state | Count |
 |---|---:|
-| Covered | 11 |
-| Partially Covered | 12 |
+| Covered | 2 |
+| Partially Covered | 21 |
 | Gap | 6 |
 | Not Applicable | 0 |
 | Deferred with Rationale | 1 |
