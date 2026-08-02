@@ -608,12 +608,13 @@ else:
             "Recommendation-bearing Excel, memo, allocation and decision-audit downloads are withheld while the "
             "canonical allocation route or validation controls are blocked."
         )
+        analytical_download = st.download_button
         c1, c2 = st.columns(2)
-        c1.download_button("Download Supplier Scores Report", dataframe_to_csv_bytes(readable_scores), "supplier_scores_report.csv", "text/csv", use_container_width=True)
-        c2.download_button("Download Supplier Comparison Report", dataframe_to_csv_bytes(readable_comparison), "supplier_comparison_report.csv", "text/csv", use_container_width=True)
+        analytical_download("Download Supplier Scores Report", dataframe_to_csv_bytes(readable_scores), "supplier_scores_report.csv", "text/csv", use_container_width=True)
+        analytical_download("Download Supplier Comparison Report", dataframe_to_csv_bytes(readable_comparison), "supplier_comparison_report.csv", "text/csv", use_container_width=True)
         c3, c4 = st.columns(2)
-        c3.download_button("Download Clarification Email", text_to_bytes(supplier_email), "supplier_clarification_email.txt", "text/plain", use_container_width=True)
-        c4.download_button("Supplier 360 Audit Data", supplier_profiles_json, "supplier_360_audit.json", "application/json", use_container_width=True)
+        analytical_download("Download Clarification Email", text_to_bytes(supplier_email), "supplier_clarification_email.txt", "text/plain", use_container_width=True)
+        analytical_download("Supplier 360 Audit Data", supplier_profiles_json, "supplier_360_audit.json", "application/json", use_container_width=True)
     st.caption("Business-readable reports are separated from machine-readable audit data.")
 
 st.markdown("---")
