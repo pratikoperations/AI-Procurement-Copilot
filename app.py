@@ -22,7 +22,10 @@ from modules.exports import (
     build_readable_allocation, build_readable_supplier_comparison,
     build_readable_supplier_scores, dataframe_to_csv_bytes, text_to_bytes,
 )
-from modules.multi_supplier_allocation_application import run_application_allocation
+from modules.multi_supplier_allocation_application import (
+    build_route_decision_control,
+    run_application_allocation,
+)
 from modules.negotiation import generate_negotiation_playbook, govern_negotiation_brief, simulate_negotiation
 from modules.negotiation_engine import build_negotiation_intelligence
 from modules.procurement_intelligence_ui import render_procurement_intelligence
@@ -351,6 +354,9 @@ assurance = run_validation_assurance(
 data_confidence = assurance["data_confidence"]
 business_rules = assurance["business_rules"]
 eligibility = assurance["eligibility"]
+route_decision_control = build_route_decision_control(allocation_route_result, eligibility)
+recommendation_language_allowed = route_decision_control["recommendation_language_allowed"]
+final_award_language_allowed = route_decision_control["final_award_language_allowed"]
 playbook_text = govern_negotiation_brief(playbook_text, eligibility)
 
 raw_executive_memo = generate_executive_memo(
@@ -361,6 +367,15 @@ executive_narrative = safe_executive_text(eligibility, provisional_executive_nar
 supplier_narrative = safe_executive_text(
     eligibility, supplier_intelligence["executive_narrative"], supplier_intelligence["executive_narrative"]
 )
+if not recommendation_language_allowed:
+    analytical_notice = (
+        "ANALYTICAL-ONLY OUTPUT — Canonical allocation is unavailable or validation controls do not permit "
+        "recommendation language. No supplier has been selected for award. Cost, risk, scoring and supplier "
+        "analysis remain available for human procurement review."
+    )
+    executive_memo = analytical_notice
+    executive_narrative = analytical_notice
+    supplier_narrative = analytical_notice
 supplier_intelligence["executive_narrative"] = supplier_narrative
 unit = assumptions["annual_volume_unit"]
 supplier_email = generate_supplier_email(
@@ -372,6 +387,12 @@ supplier_email = generate_supplier_email(
     unit,
     eligibility,
 )
+if not recommendation_language_allowed:
+    supplier_email = (
+        "Subject: Supplier clarification request — no award decision\n\n"
+        "This communication requests clarification of commercial, technical, capacity and evidence inputs. "
+        "It does not communicate supplier selection, allocation, award approval or intent to award."
+    )
 explainability_text = generate_explainability_panel(recommended)
 display_currency = assumptions["display_currency"]
 fx_rate = assumptions["fx_rate"]
@@ -419,7 +440,7 @@ json_package = build_decision_package_json(
 )
 supplier_profiles_json = json.dumps(supplier_intelligence["profiles"], indent=2, default=str).encode("utf-8")
 
-route_blocked = allocation_route_result.allocation_result is None
+route_blocked = not route_decision_control["route_allows_allocation"]
 with st.expander("Governed Multi-Supplier Allocation Route", expanded=route_blocked):
     route_status = allocation_route_result.route_status.value
     if route_status == "READY":
@@ -441,9 +462,10 @@ with st.expander("Governed Multi-Supplier Allocation Route", expanded=route_bloc
         st.write(f"- {reason}")
     if allocation_route_result.partial_evidence:
         st.warning("Partial evidence captured before adapter failure")
+    st.caption(route_decision_control["message"])
     st.caption(
-        "No legacy allocation fallback is permitted. This output is a recommendation for human procurement review, "
-        "not an autonomous award, approval record or ERP authorization."
+        "No legacy allocation fallback is permitted. Human procurement approval remains mandatory. "
+        "No autonomous award, approval record or ERP authorization is created."
     )
 
 with st.expander("Validation Assurance Gate", expanded=True):
@@ -477,7 +499,10 @@ with st.expander("Validation Assurance Gate", expanded=True):
     for action in eligibility["required_remediation"]:
         st.write(f"- {action}")
 
-render_executive_dashboard(scored_df, assumptions, confidence)
+if recommendation_language_allowed:
+    render_executive_dashboard(scored_df, assumptions, confidence)
+else:
+    st.warning(route_decision_control["message"])
 st.markdown("---")
 
 sections = [
@@ -498,11 +523,12 @@ selected_section = st.selectbox(
 
 if selected_section == sections[0]:
     st.header("Lowest Price vs Best Value Decision")
-    if eligibility["final_award_language_allowed"]:
+    if final_award_language_allowed:
         st.write(decision["message"])
         render_executive_value(value_metrics, assumptions)
     else:
-        st.error(f"Final award recommendation withheld: {eligibility['reason']}")
+        st.error("Final award and allocation recommendation withheld.")
+        st.write(route_decision_control["message"])
         for issue in eligibility["failed_checks"]:
             st.write(f"- {issue}")
     render_supplier_snapshot(scored_df, assumptions)
@@ -518,23 +544,24 @@ elif selected_section == sections[1]:
             st.write("Risk includes payment terms, incoterms, lead time, MOQ, OTIF, quality, and packaging continuity exposure.")
 
 elif selected_section == sections[2]:
+    if not recommendation_language_allowed:
+        st.warning("Allocation is unavailable; scenario cost analysis and negotiation preparation are analytical only.")
     render_allocation(allocation_df, assumptions)
     render_scenario_table(scenario_df, assumptions)
     render_negotiation(playbook_text, negotiation_result, assumptions)
 
 elif selected_section == sections[3]:
-    if eligibility["recommendation_allowed"]:
-        render_procurement_intelligence(
-            intelligence_decision, strategy_result, optimized_allocation,
-            negotiation_intelligence, risk_result, intelligence_scenario_result,
-            executive_narrative,
-        )
-    else:
-        st.error("Procurement award recommendation is blocked until validation issues are corrected.")
-        st.text_area("Validation outcome", executive_narrative, height=380)
+    render_procurement_intelligence(
+        intelligence_decision, strategy_result, optimized_allocation,
+        negotiation_intelligence, risk_result, intelligence_scenario_result,
+        executive_narrative,
+        recommendation_allowed=recommendation_language_allowed,
+    )
 
 elif selected_section == sections[4]:
-    if eligibility["status"] != "Eligible":
+    if not recommendation_language_allowed:
+        st.warning("Supplier Intelligence is analytical only; no supplier award or allocation recommendation is permitted.")
+    elif eligibility["status"] != "Eligible":
         st.warning(f"Supplier Intelligence is analytical and provisional. Eligibility status: {eligibility['status']}.")
     render_supplier_intelligence(
         supplier_intelligence,
@@ -543,33 +570,50 @@ elif selected_section == sections[4]:
     )
 
 elif selected_section == sections[5]:
+    if not recommendation_language_allowed:
+        st.warning("Recommendation-bearing executive outputs are withheld; the content below is analytical only.")
     st.header("Executive Sourcing Memo")
     st.text_area("Generated executive sourcing memo", executive_memo, height=520)
     st.header("Supplier Clarification Email")
     st.text_area("Generated supplier clarification email", supplier_email, height=460)
     st.header("AI-Style Explainability Panel")
-    st.write(explainability_text)
+    if recommendation_language_allowed:
+        st.write(explainability_text)
+    else:
+        st.write("Scoring explainability remains analytical evidence and does not constitute supplier selection.")
     st.caption("Transparent, rule-guided, auditable, procurement-controlled, and not a black-box award decision.")
 
 else:
     st.header("Download Decision Package")
-    st.subheader("Business-facing outputs")
-    c1, c2 = st.columns(2)
-    c1.download_button("Download Excel Analysis", excel_package, "ai_procurement_copilot_analysis.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
-    c2.download_button("Download Executive Memo", text_to_bytes(executive_memo), "executive_sourcing_memo.txt", "text/plain", use_container_width=True)
-    c3, c4 = st.columns(2)
-    c3.download_button("Download Supplier Email", text_to_bytes(supplier_email), "supplier_clarification_email.txt", "text/plain", use_container_width=True)
-    c4.download_button("Download Supplier Scores Report", dataframe_to_csv_bytes(readable_scores), "supplier_scores_report.csv", "text/csv", use_container_width=True)
-    c5, c6 = st.columns(2)
-    c5.download_button("Download Allocation Report", dataframe_to_csv_bytes(readable_allocation), "supplier_allocation_report.csv", "text/csv", use_container_width=True)
-    c6.download_button("Download Supplier Comparison Report", dataframe_to_csv_bytes(readable_comparison), "supplier_comparison_report.csv", "text/csv", use_container_width=True)
-    c7, _ = st.columns(2)
-    c7.download_button("Download Supplier Narrative", text_to_bytes(supplier_narrative), "executive_supplier_narrative.txt", "text/plain", use_container_width=True)
+    if recommendation_language_allowed:
+        st.subheader("Business-facing outputs")
+        c1, c2 = st.columns(2)
+        c1.download_button("Download Excel Analysis", excel_package, "ai_procurement_copilot_analysis.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
+        c2.download_button("Download Executive Memo", text_to_bytes(executive_memo), "executive_sourcing_memo.txt", "text/plain", use_container_width=True)
+        c3, c4 = st.columns(2)
+        c3.download_button("Download Supplier Email", text_to_bytes(supplier_email), "supplier_clarification_email.txt", "text/plain", use_container_width=True)
+        c4.download_button("Download Supplier Scores Report", dataframe_to_csv_bytes(readable_scores), "supplier_scores_report.csv", "text/csv", use_container_width=True)
+        c5, c6 = st.columns(2)
+        c5.download_button("Download Allocation Report", dataframe_to_csv_bytes(readable_allocation), "supplier_allocation_report.csv", "text/csv", use_container_width=True)
+        c6.download_button("Download Supplier Comparison Report", dataframe_to_csv_bytes(readable_comparison), "supplier_comparison_report.csv", "text/csv", use_container_width=True)
+        c7, _ = st.columns(2)
+        c7.download_button("Download Supplier Narrative", text_to_bytes(supplier_narrative), "executive_supplier_narrative.txt", "text/plain", use_container_width=True)
 
-    st.subheader("Machine-readable audit outputs")
-    c8, c9 = st.columns(2)
-    c8.download_button("Decision Audit Data", json_package, "procurement_decision_audit.json", "application/json", use_container_width=True)
-    c9.download_button("Supplier 360 Audit Data", supplier_profiles_json, "supplier_360_audit.json", "application/json", use_container_width=True)
+        st.subheader("Machine-readable audit outputs")
+        c8, c9 = st.columns(2)
+        c8.download_button("Decision Audit Data", json_package, "procurement_decision_audit.json", "application/json", use_container_width=True)
+        c9.download_button("Supplier 360 Audit Data", supplier_profiles_json, "supplier_360_audit.json", "application/json", use_container_width=True)
+    else:
+        st.warning(
+            "Recommendation-bearing Excel, memo, allocation and decision-audit downloads are withheld while the "
+            "canonical allocation route or validation controls are blocked."
+        )
+        c1, c2 = st.columns(2)
+        c1.download_button("Download Supplier Scores Report", dataframe_to_csv_bytes(readable_scores), "supplier_scores_report.csv", "text/csv", use_container_width=True)
+        c2.download_button("Download Supplier Comparison Report", dataframe_to_csv_bytes(readable_comparison), "supplier_comparison_report.csv", "text/csv", use_container_width=True)
+        c3, c4 = st.columns(2)
+        c3.download_button("Download Clarification Email", text_to_bytes(supplier_email), "supplier_clarification_email.txt", "text/plain", use_container_width=True)
+        c4.download_button("Supplier 360 Audit Data", supplier_profiles_json, "supplier_360_audit.json", "application/json", use_container_width=True)
     st.caption("Business-readable reports are separated from machine-readable audit data.")
 
 st.markdown("---")
