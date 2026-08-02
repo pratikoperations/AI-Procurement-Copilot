@@ -161,6 +161,25 @@ def _partial_evidence(adapter: MultiSupplierAllocationAdapterResult | None) -> M
     return evidence if any(evidence.values()) else {}
 
 
+def _feasibility_records(adapter: MultiSupplierAllocationAdapterResult) -> tuple[Mapping[str, Any], ...]:
+    """Project immutable adapter inputs into Gate 1's accepted mapping boundary."""
+    return tuple(
+        {
+            "supplier_id": item.supplier_id,
+            "technical_eligible": item.technical_eligible,
+            "adjusted_tco_unit_usd": item.adjusted_tco_unit_usd,
+            "total_score": item.total_score,
+            "risk_score": item.risk_score,
+            "performance_score": item.performance_score,
+            "esg_score": item.esg_score,
+            "supplier_capacity": item.supplier_capacity,
+            "eligibility_failure_reasons": tuple(item.eligibility_failure_reasons),
+            "category_specific_eligibility_evidence": _thaw(item.category_specific_eligibility_evidence),
+        }
+        for item in adapter.supplier_inputs
+    )
+
+
 def _adapter_block_status(status: AdapterStatus) -> RouteStatus:
     if status in {AdapterStatus.MISSING_TECHNICAL_ELIGIBILITY, AdapterStatus.AMBIGUOUS_TECHNICAL_ELIGIBILITY}:
         return RouteStatus.BLOCKED_MISSING_ELIGIBILITY
@@ -282,7 +301,7 @@ def run_multi_supplier_allocation_route(
     try:
         feasibility = evaluate_allocation_feasibility(
             adapter.request,
-            adapter.supplier_inputs,
+            _feasibility_records(adapter),
             max_combinations=max_combinations,
         )
     except Exception as exc:
