@@ -168,7 +168,7 @@ def test_blocked_route_overrides_otherwise_eligible_recommendation_controls():
     assert control["recommendation_language_allowed"] is False
     assert control["final_award_language_allowed"] is False
     assert control["analytical_only"] is True
-    assert "No supplier award or allocation recommendation is permitted" in control["message"]
+    assert "no supplier award or allocation recommendation is permitted" in control["message"]
 
 
 def test_ready_and_warning_routes_allow_human_reviewed_recommendation_language():
