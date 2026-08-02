@@ -271,11 +271,15 @@ def test_legacy_allocation_functions_are_never_called(monkeypatch):
 @pytest.mark.parametrize("awardee_count", [1, 2, 3])
 def test_exactly_k_and_one_hundred_percent_are_preserved(awardee_count):
     maximum_share = 100.0 if awardee_count == 1 else 60.0
+    data = frame()
+    if awardee_count == 1:
+        data["Supplier Capacity"] = 1500.0
     result = run(
+        data,
         control_values=controls(
             required_awardee_count=awardee_count,
             maximum_supplier_share_pct=maximum_share,
-        )
+        ),
     )
     allocation = result.allocation_result
     assert allocation is not None
