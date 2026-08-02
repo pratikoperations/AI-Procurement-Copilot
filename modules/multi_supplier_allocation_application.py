@@ -1,10 +1,10 @@
 """Application integration and read-only presentation for the canonical allocation route.
 
-This module is the Gate 3B2 boundary between the inactive canonical route and
-application consumers. It constructs explicit governed controls, invokes the
-accepted route exactly once, and projects the exact Gate 2 result into the
-legacy-compatible dataframe shape required by existing read-only consumers.
-It never calculates supplier selection, eligibility, ranking or allocation.
+This module is the Gate 3B2 boundary between the canonical route and application
+consumers. It constructs explicit governed controls, invokes the accepted route
+exactly once, and projects the exact Gate 2 result into the legacy-compatible
+dataframe shape required by existing read-only consumers. It never calculates
+supplier selection, eligibility, ranking or allocation.
 """
 from __future__ import annotations
 
@@ -153,6 +153,50 @@ def build_intelligence_allocation(
     }
 
 
+def route_allows_allocation(route_result: GovernedMultiSupplierAllocationRouteResult) -> bool:
+    """Return whether the canonical route permits recommendation-bearing allocation use."""
+    return (
+        route_result.route_status in {RouteStatus.READY, RouteStatus.WARNING}
+        and route_result.allocation_result is not None
+    )
+
+
+def build_route_decision_control(
+    route_result: GovernedMultiSupplierAllocationRouteResult,
+    eligibility: Mapping[str, Any],
+) -> Mapping[str, Any]:
+    """Combine canonical route state and eligibility into one fail-closed UI control."""
+    route_allowed = route_allows_allocation(route_result)
+    eligibility_recommendation = bool(eligibility.get("recommendation_allowed", False))
+    eligibility_final_award = bool(eligibility.get("final_award_language_allowed", False))
+    recommendation_allowed = route_allowed and eligibility_recommendation
+    final_award_allowed = route_allowed and eligibility_final_award
+    if not route_allowed:
+        message = (
+            "Canonical allocation is unavailable. Cost, risk, scoring and supplier analysis remain "
+            "analytical only; no supplier award or allocation recommendation is permitted."
+        )
+    elif not eligibility_recommendation:
+        message = "Allocation exists, but validation controls withhold recommendation language."
+    else:
+        message = "Canonical allocation is available for human procurement review."
+    return _freeze(
+        {
+            "route_allows_allocation": route_allowed,
+            "eligibility_allows_recommendation": eligibility_recommendation,
+            "eligibility_allows_final_award": eligibility_final_award,
+            "recommendation_language_allowed": recommendation_allowed,
+            "final_award_language_allowed": final_award_allowed,
+            "analytical_only": not recommendation_allowed,
+            "message": message,
+        }
+    )
+
+
+def _display_supplier_ids(values: tuple[str, ...]) -> str:
+    return ", ".join(values) if values else "None"
+
+
 def run_application_allocation(
     scored_df: pd.DataFrame,
     assumptions: Mapping[str, Any],
@@ -178,12 +222,15 @@ def run_application_allocation(
             "Minimum awarded share %": controls["minimum_awarded_share_pct"],
             "Maximum supplier share %": controls["maximum_supplier_share_pct"],
             "Minimum continuity share %": controls["minimum_continuity_share_pct"],
+            "Minimum risk score": controls["minimum_risk_score"],
+            "Minimum ESG score": controls["minimum_esg_score"],
             "Capacity utilization ceiling %": controls["capacity_utilization_ceiling_pct"],
+            "Required supplier IDs": _display_supplier_ids(controls["required_supplier_ids"]),
+            "Excluded supplier IDs": _display_supplier_ids(controls["excluded_supplier_ids"]),
             "Comparison currency": controls["comparison_currency"],
+            "Evidence origin": route_result.evidence_origin or "Not available",
+            "Human review required": route_result.human_review_required,
+            "Legacy fallback used": route_result.legacy_fallback_used,
         },
         scenario_allocation_deferred=True,
     )
-
-
-def route_allows_allocation(route_result: GovernedMultiSupplierAllocationRouteResult) -> bool:
-    return route_result.route_status in {RouteStatus.READY, RouteStatus.WARNING} and route_result.allocation_result is not None
