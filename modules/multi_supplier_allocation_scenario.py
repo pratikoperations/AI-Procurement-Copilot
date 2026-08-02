@@ -155,7 +155,7 @@ def run_scenario_allocation(
         scored_df,
         controls,
         route_name=f"scenario-gate-3c1:{scenario_name}",
-        source_type="scenario",
+        source_type="category_adapter",
         evidence_origin=origin,
     )
     allocation_df = project_route_allocation(route_result, scored_df)
