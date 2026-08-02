@@ -58,6 +58,12 @@ def _flexible_laminate_scenario_table(base_df, assumptions):
             status_reason=base["Scenario Status / Reason"],
         )
         row = {**base, **presentation.table_row()}
+        if not presentation.scenario_applicable:
+            row["Winning Supplier"] = "Not applicable"
+        elif result["eligible_df"].empty:
+            row["Winning Supplier"] = "No technically eligible supplier"
+        else:
+            row["Winning Supplier"] = supplier
         if leading is None or not presentation.scenario_applicable:
             row.update({
                 "Risk-Adjusted TCO per kg (USD)": None,
@@ -173,6 +179,7 @@ def run_scenario_table(base_df, assumptions):
         )
         row = presentation.table_row()
         row.update({
+            "Winning Supplier": supplier,
             f"Risk-Adjusted TCO per {unit} (USD)": leading.get("adjusted_tco_unit_usd") if leading is not None else None,
             "Annual TCO (USD)": leading.get("annual_tco_usd") if leading is not None else None,
             "Risk Resilience Score": leading.get("risk_score") if leading is not None else None,
