@@ -112,6 +112,41 @@ def build_supplier_snapshot_display(scored_df, assumptions=None):
     return build_currency_display_frame(display, currency_mapping, currency, fx_rate)
 
 
+def build_should_cost_display(should_cost_df, assumptions=None):
+    """Return a display-only should-cost frame without mutating authoritative values."""
+    currency, fx_rate = _display_settings(assumptions)
+    return build_currency_display_frame(
+        should_cost_df,
+        {"Unit Cost USD": "Unit Cost"},
+        currency,
+        fx_rate,
+    )
+
+
+def build_should_cost_column_config(display):
+    """Return explicit compact columns so component values remain visible on narrow viewports."""
+    config = {
+        "Component": st.column_config.TextColumn(
+            "Component",
+            width="small",
+            help="Should-cost component from the authoritative category engine.",
+        )
+    }
+    if "Unit Cost (USD)" in display.columns:
+        config["Unit Cost (USD)"] = st.column_config.NumberColumn(
+            "Unit Cost (USD)",
+            format="$%.4f",
+            width="small",
+        )
+    if "Unit Cost (INR)" in display.columns:
+        config["Unit Cost (INR)"] = st.column_config.NumberColumn(
+            "Unit Cost (INR)",
+            format="₹%.2f",
+            width="small",
+        )
+    return config
+
+
 def resolve_scenario_column(columns, candidates, field_name):
     for candidate in candidates:
         if candidate in columns:
@@ -175,8 +210,14 @@ def render_should_cost_section(should_cost_df, target_unit_cost, assumptions):
     chart_title = "Packaging Should-Cost Component Build-Up" if category == "Packaging Procurement" else f"{commodity} Should-Cost Component Build-Up"
     st.header(heading)
     st.metric("Should-Cost Target", unit_cost(target_unit_cost, currency, fx_rate))
-    display = build_currency_display_frame(should_cost_df, {"Unit Cost USD": "Unit Cost"}, currency, fx_rate)
-    st.dataframe(display, width="stretch", hide_index=True)
+    display = build_should_cost_display(should_cost_df, assumptions)
+    st.dataframe(
+        display,
+        width="stretch",
+        hide_index=True,
+        column_order=list(display.columns),
+        column_config=build_should_cost_column_config(display),
+    )
     chart_currency = _chart_currency(currency)
     chart_df = should_cost_df.copy()
     chart_column = f"Unit Cost ({chart_currency})"
