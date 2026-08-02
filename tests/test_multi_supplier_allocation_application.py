@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pandas as pd
 
 from modules.multi_supplier_allocation_application import (
     ALLOCATION_COLUMNS,
     APPLICATION_INTEGRATION_VERSION,
     build_application_route_controls,
+    build_route_decision_control,
     resolve_application_source_type,
+    route_allows_allocation,
     run_application_allocation,
 )
 from modules.multi_supplier_allocation_route import RouteStatus
@@ -67,6 +71,15 @@ def scored_frame():
             },
         ]
     )
+
+
+def eligible_validation(**overrides):
+    values = {
+        "recommendation_allowed": True,
+        "final_award_language_allowed": True,
+    }
+    values.update(overrides)
+    return values
 
 
 def test_controls_are_explicit_and_use_canonical_comparison_currency():
@@ -146,6 +159,47 @@ def test_missing_capacity_fails_closed_for_every_consumer():
     assert bundle.intelligence_allocation["human_review_required"] is True
 
 
+def test_blocked_route_overrides_otherwise_eligible_recommendation_controls():
+    data = scored_frame().drop(columns=["Supplier Capacity"])
+    bundle = run_application_allocation(data, assumptions())
+    control = build_route_decision_control(bundle.route_result, eligible_validation())
+    assert control["route_allows_allocation"] is False
+    assert control["eligibility_allows_recommendation"] is True
+    assert control["recommendation_language_allowed"] is False
+    assert control["final_award_language_allowed"] is False
+    assert control["analytical_only"] is True
+    assert "No supplier award or allocation recommendation is permitted" in control["message"]
+
+
+def test_ready_and_warning_routes_allow_human_reviewed_recommendation_language():
+    bundle = run_application_allocation(scored_frame(), assumptions())
+    assert route_allows_allocation(bundle.route_result) is True
+    ready = build_route_decision_control(bundle.route_result, eligible_validation())
+    assert ready["recommendation_language_allowed"] is True
+    assert ready["final_award_language_allowed"] is True
+
+    warning_result = replace(
+        bundle.route_result,
+        route_status=RouteStatus.WARNING,
+        warnings=("Human review warning",),
+    )
+    warning = build_route_decision_control(warning_result, eligible_validation())
+    assert route_allows_allocation(warning_result) is True
+    assert warning["recommendation_language_allowed"] is True
+    assert warning["final_award_language_allowed"] is True
+
+
+def test_eligibility_can_still_withhold_language_when_route_is_ready():
+    bundle = run_application_allocation(scored_frame(), assumptions())
+    control = build_route_decision_control(
+        bundle.route_result,
+        eligible_validation(recommendation_allowed=False, final_award_language_allowed=False),
+    )
+    assert control["route_allows_allocation"] is True
+    assert control["recommendation_language_allowed"] is False
+    assert control["final_award_language_allowed"] is False
+
+
 def test_display_currency_is_not_an_allocation_input():
     usd = run_application_allocation(scored_frame(), assumptions(display_currency="USD"))
     inr = run_application_allocation(scored_frame(), assumptions(display_currency="INR"))
@@ -154,13 +208,31 @@ def test_display_currency_is_not_an_allocation_input():
     assert usd.route_result.allocation_result.to_json() == both.route_result.allocation_result.to_json()
 
 
-def test_control_summary_discloses_fixed_and_visible_inputs():
-    bundle = run_application_allocation(scored_frame(), assumptions())
-    assert dict(bundle.control_summary) == {
+def test_control_summary_discloses_all_material_route_controls():
+    bundle = run_application_allocation(
+        scored_frame(),
+        assumptions(required_supplier_ids=("supplier a",), excluded_supplier_ids=("supplier c",)),
+    )
+    summary = dict(bundle.control_summary)
+    assert summary == {
         "Required awardees": 2,
         "Minimum awarded share %": 10.0,
         "Maximum supplier share %": 60.0,
         "Minimum continuity share %": 20.0,
+        "Minimum risk score": 55.0,
+        "Minimum ESG score": 50.0,
         "Capacity utilization ceiling %": 90.0,
+        "Required supplier IDs": "supplier a",
+        "Excluded supplier IDs": "supplier c",
         "Comparison currency": "USD",
+        "Evidence origin": "controlled_synthetic",
+        "Human review required": True,
+        "Legacy fallback used": False,
     }
+
+
+def test_control_summary_uses_none_for_empty_supplier_constraints():
+    bundle = run_application_allocation(scored_frame(), assumptions())
+    summary = dict(bundle.control_summary)
+    assert summary["Required supplier IDs"] == "None"
+    assert summary["Excluded supplier IDs"] == "None"
