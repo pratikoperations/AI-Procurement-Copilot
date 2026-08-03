@@ -4,8 +4,6 @@ from pathlib import Path
 
 import pandas as pd
 
-from modules.allocation import recommend_allocation
-from modules.allocation_optimizer import optimize_allocation
 from modules.dashboard import (
     C2_SYNTHETIC_DISCLOSURE,
     build_flexible_laminate_context,
@@ -13,12 +11,14 @@ from modules.dashboard import (
 )
 from modules.data_loader import get_demo_data, get_flexible_laminate_demo_suppliers
 from modules.exports import (
+    C2_EXPORT_CONTRACT_VERSION,
     C2_EXPORT_DISCLAIMER,
     build_c2_export_manifest,
     build_decision_package_json,
     build_excel_workbook,
     build_readable_supplier_scores,
 )
+from modules.multi_supplier_allocation_application import run_application_allocation
 from modules.scenario import run_scenario_table
 from modules.scoring import enrich_supplier_scores
 
@@ -36,6 +36,14 @@ def _assumptions(structure="PET / PE"):
         "demand_change": 0.0,
         "fx_rate": 83.0,
         "display_currency": "USD",
+        "data_source": "Synthetic Demo",
+        "required_awardee_count": 2,
+        "minimum_awarded_share_pct": 10.0,
+        "max_supplier_share": 75.0,
+        "min_backup_share": 25.0,
+        "min_risk_score": 0.0,
+        "min_esg_score": 0.0,
+        "capacity_utilization_ceiling_pct": 90.0,
         "category_profile": {"unit": "kg"},
     }
 
@@ -44,10 +52,9 @@ def _outputs():
     assumptions = _assumptions()
     data = get_flexible_laminate_demo_suppliers("PET / PE")
     scored = enrich_supplier_scores(data, assumptions)
-    standard = recommend_allocation(scored, 500000, min_risk_score=0, min_esg_score=0)
-    optimized = optimize_allocation(scored, 500000)["allocation_df"]
+    canonical = run_application_allocation(scored, assumptions).allocation_df
     scenarios = run_scenario_table(data, assumptions)
-    return assumptions, data, scored, standard, optimized, scenarios
+    return assumptions, data, scored, canonical, scenarios
 
 
 def test_c2_context_discloses_structure_unit_micron_and_claim_boundaries():
@@ -62,7 +69,7 @@ def test_c2_context_discloses_structure_unit_micron_and_claim_boundaries():
 
 
 def test_supplier_snapshot_contains_required_c2_decision_fields():
-    assumptions, _, scored, _, _, _ = _outputs()
+    assumptions, _, scored, _, _ = _outputs()
     display = build_supplier_snapshot_display(scored, assumptions)
     required = {
         "Technical Eligibility",
@@ -76,44 +83,51 @@ def test_supplier_snapshot_contains_required_c2_decision_fields():
     assert required.issubset(display.columns)
 
 
-def test_scenario_table_separates_status_and_confidence_and_exposes_tooling_metadata():
-    _, _, _, _, _, scenarios = _outputs()
+def test_scenario_table_exposes_canonical_status_and_tooling_metadata():
+    _, _, _, _, scenarios = _outputs()
     assert len(scenarios) == 7
-    assert "Scenario Status / Reason" in scenarios.columns
-    assert "Confidence Governance" in scenarios.columns
-    assert "Scenario Assumption Version" in scenarios.columns
-    assert "Tooling Replacement Applied" in scenarios.columns
-    assert "Already New Tooling" in scenarios.columns
-    assert "Tooling Not Applicable" in scenarios.columns
-    tooling = scenarios.loc[scenarios["Scenario"] == "Tooling Replacement Scenario"].iloc[0]
-    assert tooling["Tooling Replacement Applied"] == 0
-    assert tooling["Already New Tooling"] == 3
-    assert "No replacement applied" in tooling["Scenario Status / Reason"]
-
-
-def test_non_applicable_and_no_winner_scenario_ux_are_explicit():
-    _, _, _, _, _, scenarios = _outputs()
-    metpet = scenarios.loc[scenarios["Scenario"] == "MetPET Availability Stress"].iloc[0]
-    assert metpet["Scenario Applicable"] == False
-    assert metpet["Winning Supplier"] == "Not applicable"
-    assert metpet["Scenario Route Status"] == "NOT_APPLICABLE"
-    assert metpet["Canonical Allocation Status"] == "No allocation"
-    assert metpet["Allocation Available"] == False
-    assert metpet["Confidence"] == "Not applicable"
-    capacity = scenarios.loc[scenarios["Scenario"] == "Press and Lamination Capacity Stress"].iloc[0]
-    assert capacity["Winning Supplier"] == "No technically eligible supplier"
-    assert capacity["Canonical Allocation Status"] == "No allocation"
-    assert capacity["Allocation Available"] == False
-    assert capacity["Scenario Route Status"] not in {"READY", "WARNING"}
-    assert capacity["Confidence"] == 0.0
-    assert capacity["Scenario Status / Reason"]
-    assert capacity["Blocking Reasons"]
+    required = {
+        "Scenario Status / Reason",
+        "Confidence Governance",
+        "Scenario Assumption Version",
+        "Scenario Route Status",
+        "Canonical Allocation Status",
+        "Allocation Available",
+        "Selected Suppliers",
+        "Allocation Shares",
+        "Allocated Volumes",
+        "Evidence Origin",
+        "Human Review Required",
+        "Legacy Fallback Used",
+        "Blocking Reasons",
+        "Analytical Leading Supplier",
+        "Tooling Replacement Applied",
+        "Already New Tooling",
+        "Tooling Not Applicable",
+    }
+    assert required.issubset(scenarios.columns)
     assert "Standard Allocation Status" not in scenarios.columns
     assert "Optimized Allocation Status" not in scenarios.columns
 
 
+def test_non_applicable_and_blocked_scenario_exports_are_fail_closed():
+    _, _, _, _, scenarios = _outputs()
+    metpet = scenarios.loc[scenarios["Scenario"] == "MetPET Availability Stress"].iloc[0]
+    assert metpet["Scenario Applicable"] == False
+    assert metpet["Scenario Route Status"] == "NOT_APPLICABLE"
+    assert metpet["Canonical Allocation Status"] == "No allocation"
+    assert metpet["Allocation Available"] == False
+    assert metpet["Selected Suppliers"] == ""
+    capacity = scenarios.loc[scenarios["Scenario"] == "Press and Lamination Capacity Stress"].iloc[0]
+    assert capacity["Canonical Allocation Status"] == "No allocation"
+    assert capacity["Allocation Available"] == False
+    assert capacity["Scenario Route Status"] not in {"READY", "WARNING"}
+    assert capacity["Selected Suppliers"] == ""
+    assert capacity["Blocking Reasons"]
+
+
 def test_supplier_export_preserves_visible_eligibility_tco_units_and_disclaimer():
-    assumptions, _, scored, _, _, _ = _outputs()
+    assumptions, _, scored, _, _ = _outputs()
     exported = build_readable_supplier_scores(
         scored,
         {"data_confidence_score": 100, "confidence_category": "Controlled"},
@@ -131,82 +145,90 @@ def test_supplier_export_preserves_visible_eligibility_tco_units_and_disclaimer(
     assert set(exported["Synthetic / Non-Certification Disclaimer"]) == {C2_EXPORT_DISCLAIMER}
 
 
-def test_c2_export_manifest_matches_visible_winner_allocations_and_scenarios():
-    _, _, scored, standard, optimized, scenarios = _outputs()
-    manifest = build_c2_export_manifest(scored, standard, optimized, scenarios)
+def test_c2_manifest_exposes_one_canonical_allocation_authority():
+    _, _, scored, canonical, scenarios = _outputs()
+    manifest = build_c2_export_manifest(scored, canonical, scenarios)
     eligible = scored[scored["technical_eligible"]]
-    assert manifest["visible_winner"] == eligible.iloc[0]["Supplier"]
-    assert manifest["commercial_basis"] == "kg"
-    assert manifest["comparison_unit"] == "USD/kg"
-    assert manifest["standard_allocation"] == standard.to_dict(orient="records")
-    assert manifest["optimized_allocation"] == optimized.to_dict(orient="records")
-    assert len(manifest["scenarios"]) == len(scenarios) == 7
-    assert [row["Scenario"] for row in manifest["scenarios"]] == scenarios["Scenario"].tolist()
-    assert [row["Winning Supplier"] for row in manifest["scenarios"]] == scenarios["Winning Supplier"].tolist()
-    assert [row["Scenario Status / Reason"] for row in manifest["scenarios"]] == scenarios["Scenario Status / Reason"].tolist()
-    assert manifest["scenario_assumption_versions"] == ["C2.5-SCENARIO-v1"]
+    assert manifest["export_contract_version"] == C2_EXPORT_CONTRACT_VERSION
+    assert manifest["analytical_leading_supplier"] == eligible.iloc[0]["Supplier"]
+    assert manifest["canonical_allocation"] == canonical.to_dict(orient="records")
+    assert len(manifest["scenario_allocations"]) == len(scenarios) == 7
+    assert manifest["human_review_required"] is True
+    assert manifest["legacy_fallback_used"] is False
+    assert "visible_winner" not in manifest
+    assert "standard_allocation" not in manifest
+    assert "optimized_allocation" not in manifest
 
 
-def test_excel_contains_standard_optimized_scenario_and_governance_sheets():
-    _, _, scored, standard, optimized, scenarios = _outputs()
-    manifest = build_c2_export_manifest(scored, standard, optimized, scenarios)
+def test_c2_workbook_contains_only_canonical_allocation_sheets():
+    _, _, scored, canonical, scenarios = _outputs()
+    manifest = build_c2_export_manifest(scored, canonical, scenarios)
     should_cost = pd.DataFrame([{"Component": "Controlled placeholder", "Unit Cost USD": 1.0}])
     workbook = build_excel_workbook(
         scored,
         should_cost,
-        standard,
+        canonical,
         scenarios,
         display_currency="USD",
         fx_rate=83,
         annual_volume=500000,
         annual_volume_unit="kg",
-        optimized_allocation_df=optimized,
         c2_manifest=manifest,
     )
     sheets = pd.ExcelFile(BytesIO(workbook)).sheet_names
-    assert {"Allocation", "Standard Allocation", "Optimized Allocation", "Scenarios", "C2 Governance"}.issubset(sheets)
+    assert {"Canonical Allocation", "Scenario Allocations", "Scenarios", "C2 Governance"}.issubset(sheets)
+    assert "Allocation" not in sheets
+    assert "Standard Allocation" not in sheets
+    assert "Optimized Allocation" not in sheets
+    exported = pd.read_excel(BytesIO(workbook), sheet_name="Canonical Allocation")
+    assert exported["Supplier"].tolist() == canonical["Supplier"].tolist()
+    assert exported["Recommended Allocation %"].tolist() == canonical["Recommended Allocation %"].tolist()
+    assert exported["Role"].tolist() == canonical["Role"].tolist()
 
 
-def test_live_app_passes_same_c2_manifest_and_canonical_allocation_to_exports():
+def test_live_app_c2_exports_share_the_canonical_allocation_compatibility_boundary():
     source = Path("app.py").read_text(encoding="utf-8")
     assert "build_c2_export_manifest" in source
     assert "c2_manifest = (" in source
-    assert "allocation_df,\n        allocation_df,\n        scenario_df" in source
-    assert "optimized_allocation_df=allocation_df" in source
-    assert 'optimized_allocation["allocation_df"]' not in source
+    assert "allocation_df" in source
     assert source.count("c2_manifest=c2_manifest") == 2
+    assert 'optimized_allocation["allocation_df"]' not in source
 
 
 def test_live_c2_excel_and_json_packages_share_governed_manifest():
-    _, _, scored, standard, optimized, scenarios = _outputs()
-    manifest = build_c2_export_manifest(scored, standard, optimized, scenarios)
+    _, _, scored, canonical, scenarios = _outputs()
+    manifest = build_c2_export_manifest(scored, canonical, scenarios)
     should_cost = pd.DataFrame([{"Component": "Controlled placeholder", "Unit Cost USD": 1.0}])
     workbook = build_excel_workbook(
         scored,
         should_cost,
-        standard,
+        canonical,
         scenarios,
         display_currency="USD",
         fx_rate=83,
         annual_volume=500000,
         annual_volume_unit="kg",
-        optimized_allocation_df=optimized,
         c2_manifest=manifest,
     )
-    optimized_sheet = pd.read_excel(BytesIO(workbook), sheet_name="Optimized Allocation")
+    canonical_sheet = pd.read_excel(BytesIO(workbook), sheet_name="Canonical Allocation")
+    scenario_sheet = pd.read_excel(BytesIO(workbook), sheet_name="Scenario Allocations")
     governance_sheet = pd.read_excel(BytesIO(workbook), sheet_name="C2 Governance")
-    assert not optimized_sheet.empty
+    assert canonical_sheet["Supplier"].tolist() == canonical["Supplier"].tolist()
+    assert len(scenario_sheet) == len(scenarios)
     assert set(governance_sheet["Field"]) >= {
+        "export_contract_version",
         "selected_structure",
         "commercial_basis",
         "comparison_unit",
-        "visible_winner",
+        "analytical_leading_supplier",
         "eligible_supplier_count",
-        "standard_allocation",
-        "optimized_allocation",
-        "scenarios",
+        "canonical_allocation",
+        "scenario_allocations",
         "scenario_assumption_versions",
+        "human_review_required",
+        "legacy_fallback_used",
         "disclaimer",
+        "schema_migration_note",
     }
 
     eligible = scored[scored["technical_eligible"]]
@@ -214,7 +236,7 @@ def test_live_c2_excel_and_json_packages_share_governed_manifest():
         build_decision_package_json(
             eligible.iloc[0],
             {"estimated_ebitda_opportunity_usd": 0.0},
-            standard,
+            canonical,
             scenarios,
             {"annual_saving_usd": 0.0},
             {"status": "Human Review Required"},
@@ -222,19 +244,19 @@ def test_live_c2_excel_and_json_packages_share_governed_manifest():
         ).decode("utf-8")
     )
     exported_manifest = payload["flexible_laminates_governance"]
-    assert json.dumps(exported_manifest, sort_keys=True, allow_nan=True) == json.dumps(
+    assert json.dumps(exported_manifest, sort_keys=True, allow_nan=False) == json.dumps(
         manifest,
         sort_keys=True,
-        allow_nan=True,
+        allow_nan=False,
     )
-    assert exported_manifest["visible_winner"] == eligible.iloc[0]["Supplier"]
-    assert exported_manifest["standard_allocation"] == standard.to_dict(orient="records")
-    assert exported_manifest["optimized_allocation"] == optimized.to_dict(orient="records")
-    assert [row["Scenario Status / Reason"] for row in exported_manifest["scenarios"]] == scenarios["Scenario Status / Reason"].tolist()
-    assert exported_manifest["scenario_assumption_versions"] == ["C2.5-SCENARIO-v1"]
+    assert payload["canonical_allocation"] == manifest["canonical_allocation"]
+    assert payload["scenario_allocations"] == manifest["scenario_allocations"]
+    assert "allocation" not in payload
+    assert "standard_allocation" not in exported_manifest
+    assert "optimized_allocation" not in exported_manifest
 
 
-def test_non_c2_json_export_remains_without_c2_governance_block():
+def test_non_c2_json_export_remains_backward_compatible():
     payload = json.loads(
         build_decision_package_json(
             {"Supplier": "Supplier A"},
@@ -246,6 +268,8 @@ def test_non_c2_json_export_remains_without_c2_governance_block():
         ).decode("utf-8")
     )
     assert "flexible_laminates_governance" not in payload
+    assert "allocation" in payload
+    assert "scenarios" in payload
 
 
 def test_existing_category_data_routes_remain_unchanged():
