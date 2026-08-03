@@ -144,10 +144,11 @@ def test_blocks_are_not_weighted_contributions_and_unverified_deviation_is_defer
     assert "approved_deviation" in DEFERRED_RULES
 
 
-def test_export_evidence_is_mapping_only_and_preserves_schema():
+def test_export_evidence_records_only_the_authorized_c2_schema_migration():
+    migration_ids = {item.evidence_id for item in EXPORT_EVIDENCE if item.schema_change}
+    assert migration_ids == {"EXP-EV-004", "EXP-EV-006"}
     for item in EXPORT_EVIDENCE:
         assert item.calculation_ids and item.location and item.source_function
-        assert item.schema_change is False
     assert tuple(STEEL_EXCEL_SHEETS) == STEEL_EXCEL_LOCATIONS
     all_locations = "; ".join(item.location for item in EXPORT_EVIDENCE)
     assert "Steel Should Cost" not in all_locations
@@ -158,11 +159,22 @@ def test_export_evidence_is_mapping_only_and_preserves_schema():
     assert "build_steel_json_export" in all_functions
 
 
-def test_registered_json_paths_match_current_generic_and_steel_contracts():
-    generic = next(x for x in EXPORT_EVIDENCE if x.evidence_id == "EXP-EV-006")
+def test_registered_json_paths_match_canonical_c2_and_existing_steel_contracts():
+    c2 = next(x for x in EXPORT_EVIDENCE if x.evidence_id == "EXP-EV-006")
     steel = next(x for x in EXPORT_EVIDENCE if x.evidence_id == "EXP-EV-007")
-    assert "optimized_allocation" not in {p.strip() for p in generic.location.split(";")}
-    assert "flexible_laminates_governance.optimized_allocation" in generic.location
+    c2_paths = {path.strip() for path in c2.location.split(";")}
+    assert {
+        "canonical_allocation",
+        "scenario_allocations",
+        "flexible_laminates_governance.export_contract_version",
+        "flexible_laminates_governance.canonical_allocation",
+        "flexible_laminates_governance.scenario_allocations",
+        "flexible_laminates_governance.human_review_required",
+        "flexible_laminates_governance.legacy_fallback_used",
+    } <= c2_paths
+    assert "optimized_allocation" not in c2_paths
+    assert "flexible_laminates_governance.optimized_allocation" not in c2_paths
+    assert "flexible_laminates_governance.standard_allocation" not in c2_paths
     for path in (
         "steel_governance.winner",
         "steel_governance.winner_state",
@@ -171,6 +183,7 @@ def test_registered_json_paths_match_current_generic_and_steel_contracts():
     ):
         assert path in steel.location
     assert "steel_governance.recommendation" not in steel.location
+    assert steel.schema_change is False
 
 
 def test_scenario_and_export_records_use_dedicated_formula_references():
