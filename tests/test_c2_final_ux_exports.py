@@ -160,7 +160,7 @@ def test_c2_manifest_exposes_one_canonical_allocation_authority():
     assert "optimized_allocation" not in manifest
 
 
-def test_c2_workbook_contains_only_canonical_allocation_sheets():
+def test_c2_workbook_contains_only_canonical_allocation_sheets_and_exact_values():
     _, _, scored, canonical, scenarios = _outputs()
     manifest = build_c2_export_manifest(scored, canonical, scenarios)
     should_cost = pd.DataFrame([{"Component": "Controlled placeholder", "Unit Cost USD": 1.0}])
@@ -180,19 +180,37 @@ def test_c2_workbook_contains_only_canonical_allocation_sheets():
     assert "Allocation" not in sheets
     assert "Standard Allocation" not in sheets
     assert "Optimized Allocation" not in sheets
+
     exported = pd.read_excel(BytesIO(workbook), sheet_name="Canonical Allocation")
-    assert exported["Supplier"].tolist() == canonical["Supplier"].tolist()
-    assert exported["Recommended Allocation %"].tolist() == canonical["Recommended Allocation %"].tolist()
-    assert exported["Role"].tolist() == canonical["Role"].tolist()
+    identity_columns = (
+        "Supplier",
+        "Recommended Allocation %",
+        "Role",
+        "Allocated Volume",
+        "Capacity Utilization %",
+        "Evidence Origin",
+        "Route Status",
+    )
+    for column in identity_columns:
+        assert column in canonical.columns
+        assert column in exported.columns
+        assert exported[column].tolist() == canonical[column].tolist()
+    assert "Estimated Annual TCO USD" in canonical.columns
+    assert "Estimated Annual TCO (USD)" in exported.columns
+    assert exported["Estimated Annual TCO (USD)"].tolist() == canonical["Estimated Annual TCO USD"].tolist()
 
 
-def test_live_app_c2_exports_share_the_canonical_allocation_compatibility_boundary():
+def test_live_app_uses_canonical_c2_export_wiring_only():
     source = Path("app.py").read_text(encoding="utf-8")
-    assert "build_c2_export_manifest" in source
-    assert "c2_manifest = (" in source
-    assert "allocation_df" in source
+    canonical_manifest_call = """build_c2_export_manifest(
+        scored_df,
+        allocation_df,
+        scenario_df,
+    )"""
+    assert canonical_manifest_call in source
+    assert "allocation_df,\n        allocation_df,\n        scenario_df" not in source
+    assert "optimized_allocation_df=allocation_df" not in source
     assert source.count("c2_manifest=c2_manifest") == 2
-    assert 'optimized_allocation["allocation_df"]' not in source
 
 
 def test_live_c2_excel_and_json_packages_share_governed_manifest():
