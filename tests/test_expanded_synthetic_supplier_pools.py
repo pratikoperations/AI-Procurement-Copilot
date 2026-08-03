@@ -1,11 +1,6 @@
 """Focused assurance for expanded synthetic supplier pools."""
 
-from modules.data_loader import (
-    get_demo_suppliers,
-    get_flexible_laminate_demo_suppliers,
-    get_kraft_paper_demo_suppliers,
-    get_steel_demo_suppliers,
-)
+from modules.data_loader import get_demo_data
 
 
 def _assert_six_distinct_suppliers(data):
@@ -16,29 +11,29 @@ def _assert_six_distinct_suppliers(data):
     assert data["OTIF %"].nunique() >= 4
 
 
-def test_general_packaging_has_six_differentiated_suppliers():
-    data = get_demo_suppliers()
+def test_general_packaging_application_route_has_six_differentiated_suppliers():
+    data = get_demo_data("Packaging Procurement", "Corrugated Board")
     _assert_six_distinct_suppliers(data)
     assert set(data["Risk Category"]) >= {"Low", "Medium"}
 
 
-def test_flexible_laminates_have_six_suppliers_for_every_supported_structure():
+def test_flexible_laminates_application_route_has_six_suppliers_for_every_structure():
     for structure in ("PET / PE", "PET / MetPET / PE", "BOPP / CPP"):
-        data = get_flexible_laminate_demo_suppliers(structure)
+        data = get_demo_data("Packaging Procurement", "Flexible Laminates", selected_structure=structure)
         _assert_six_distinct_suppliers(data)
         assert data.attrs["selected_laminate_structure"] == structure
-        assert "Conditional" in set(data["Application Approval Status"])
+        assert {"Conditional", "Not approved"} <= set(data["Application Approval Status"])
 
 
-def test_kraft_paper_has_six_differentiated_suppliers():
-    data = get_kraft_paper_demo_suppliers()
+def test_kraft_paper_application_route_has_six_differentiated_suppliers():
+    data = get_demo_data("Raw Material Procurement", "Kraft Paper")
     _assert_six_distinct_suppliers(data)
     assert set(data["Kraft Variant"]) == {"Recycled Kraft", "Virgin Kraft"}
     assert "Conditional demonstration assumption" in set(data["Corrugated Linkage"])
 
 
-def test_steel_has_six_differentiated_suppliers_and_ineligible_examples():
-    data = get_steel_demo_suppliers()
+def test_steel_application_route_has_six_suppliers_and_ineligible_examples():
+    data = get_demo_data("Raw Material Procurement", "Steel")
     _assert_six_distinct_suppliers(data)
     assert set(data["Currency"]) == {"USD", "INR"}
     assert "Not approved" in set(data["Application Approval"])
