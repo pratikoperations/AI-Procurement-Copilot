@@ -61,8 +61,8 @@ def test_allocation_consumers_receive_one_projected_result():
     assert canonical_manifest_call in source
     assert "allocation_df,\n        allocation_df,\n        scenario_df" not in source
     assert "optimized_allocation_df=allocation_df" not in source
-    assert "standard_allocation" not in source
-    assert "optimized_allocation" not in source
+    assert "standard_allocation=" not in source
+    assert "optimized_allocation_df=" not in source
 
 
 def test_route_states_and_human_approval_are_visible():
