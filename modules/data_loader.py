@@ -19,6 +19,17 @@ class RFQUploadError(ValueError):
     """Business-facing upload failure that is safe to show in the Streamlit UI."""
 
 
+def _expanded_pool_enabled(expanded_supplier_pool: bool | None) -> bool:
+    """Resolve an explicit selector, otherwise enable expansion only in Streamlit runtime."""
+    if expanded_supplier_pool is not None:
+        return bool(expanded_supplier_pool)
+    try:
+        import streamlit as st
+        return bool(st.runtime.exists())
+    except Exception:
+        return False
+
+
 def get_demo_suppliers():
     return pd.DataFrame([
         {"Supplier":"Apex Packaging Corp","Quoted Unit Price USD":0.42,"Currency":"USD","Unit":"piece","MOQ":10000,"Lead Time Days":14,"Payment Terms":"Net 30","Incoterms":"DDP","OTIF %":94,"Quality PPM":850,"Audit Score":82,"Complaint Rate %":1.5,"Capacity Buffer %":18,"Recyclability":90,"Certification":85,"Carbon Score":75,"EPR Readiness":80,"PCR Content %":20,"Risk Category":"Low"},
@@ -106,7 +117,12 @@ def get_raw_material_demo_suppliers(commodity="PET Resin"):
     ])
 
 
-def get_demo_data(category="Packaging Procurement",commodity="Corrugated Board",selected_structure: str|None=None):
+def get_demo_data(
+    category="Packaging Procurement",
+    commodity="Corrugated Board",
+    selected_structure: str | None = None,
+    expanded_supplier_pool: bool | None = None,
+):
     if category=="Raw Material Procurement":
         data=get_raw_material_demo_suppliers(commodity)
     elif category=="Packaging Procurement" and commodity=="Flexible Laminates":
@@ -115,15 +131,16 @@ def get_demo_data(category="Packaging Procurement",commodity="Corrugated Board",
     else:
         data=get_demo_suppliers()
 
-    if category == "Packaging Procurement" and commodity == "Flexible Laminates":
-        base_price = {"PET / PE":2.05,"PET / MetPET / PE":2.38,"BOPP / CPP":1.92}[selected_structure]
-        data = expand_flexible_laminates(data, base_price)
-    elif category == "Raw Material Procurement" and commodity == "Kraft Paper":
-        data = expand_kraft_paper(data)
-    elif category == "Raw Material Procurement" and commodity == "Steel":
-        data = expand_steel(data)
-    elif category == "Packaging Procurement":
-        data = expand_general_packaging(data)
+    if _expanded_pool_enabled(expanded_supplier_pool):
+        if category == "Packaging Procurement" and commodity == "Flexible Laminates":
+            base_price = {"PET / PE":2.05,"PET / MetPET / PE":2.38,"BOPP / CPP":1.92}[selected_structure]
+            data = expand_flexible_laminates(data, base_price)
+        elif category == "Raw Material Procurement" and commodity == "Kraft Paper":
+            data = expand_kraft_paper(data)
+        elif category == "Raw Material Procurement" and commodity == "Steel":
+            data = expand_steel(data)
+        elif category == "Packaging Procurement":
+            data = expand_general_packaging(data)
 
     version = "C3.1-STEEL-v1" if commodity == "Steel" else ("C2.0" if commodity=="Flexible Laminates" else ("C1.0" if commodity=="Kraft Paper" else "S1"))
     source = "Synthetic controlled demonstration data" if commodity == "Steel" else "Synthetic demonstration data"
