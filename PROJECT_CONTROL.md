@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document is the current operational index for `pratikoperations/AI-Procurement-Copilot`. It summarizes verified state and points to higher-authority Git, CI, executable and governance evidence. It does not replace Git history, CI evidence, code, tests, architecture documentation, business rules, formula traceability, programme closure records or human approval.
+This document is the current operational index for `pratikoperations/AI-Procurement-Copilot`. It records verified repository state, programme closure, accepted contracts, CI evidence, limitations and deferred work. It does not replace immutable Git objects, executed CI, executable contracts, code, tests, architecture records, business rules or human procurement approval.
 
 ## Source-of-Truth Hierarchy
 
@@ -10,208 +10,243 @@ This document is the current operational index for `pratikoperations/AI-Procurem
 2. Executed CI and validation evidence tied to exact SHAs.
 3. Executable contracts, code and tests.
 4. `PROJECT_CONTROL.md`.
-5. ADRs, architecture, business rules and recovery documents.
+5. ADRs, architecture, business rules and recovery records.
 6. PR descriptions and closure records.
 7. Conversation history.
 
 When sources conflict, the higher source prevails. A narrative statement cannot override an exact ref, executable behaviour or CI result.
 
-### Temporary `AI_HANDOFF_GUIDE.md` Transition Rule
-
-Until `AI_HANDOFF_GUIDE.md` is reconciled in Gate 0F:
-
-- Git objects, exact CI evidence, executable contracts and this `PROJECT_CONTROL.md` hierarchy govern current repository state.
-- `AI_HANDOFF_GUIDE.md` remains applicable for protected areas, secrets, scope discipline and change protocol.
-- Its historical baseline, frozen-v1.0.0 branch statements and mandatory current-document list must be independently reverified before use.
-- Conflicts concerning current state are resolved using the hierarchy in this file.
-
 ## Staleness and Self-Reference Rule
 
-Any change to the current `main` SHA, active branch, active PR, base SHA, head SHA, merge-test SHA, accepted CI run or current gate invalidates the affected current-state fields until they are independently reverified. Estimates are not machine-verifiable facts.
+Any change to `main`, an active branch, active PR, accepted head, merge-test SHA, changed-file boundary or accepted CI evidence invalidates the affected current-state statement until reverified.
 
-This closure document records the verified Gate 0B merge SHA. The closure branch head, closure PR merge-test SHA and any later resulting `main` SHA remain externally governed by Git and CI. This file must not attempt to embed the SHA of the commit currently modifying it. Merging a later closure PR triggers this staleness rule for affected moving identifiers.
+A document cannot reliably embed the SHA of the commit currently modifying itself. Therefore:
+
+- this file records the accepted programme implementation baseline and the exact evidence used to close it;
+- the governance closure branch head, closure PR merge-test SHA and resulting post-closure `main` SHA remain externally governed by Git, CI and the closure PR record until post-merge verification is complete;
+- after the closure PR merges, Git and the closure PR record govern the resulting `main` SHA even if the implementation-baseline SHA below remains unchanged.
 
 ## Identity and Classification
 
-- Repository: `pratikoperations/AI-Procurement-Copilot`
-- Project purpose: governed, explainable procurement decision support for sourcing analysis, supplier comparison, category calculations, risk, scenarios, allocation, traceability and business-readable outputs.
+- Repository: `pratikoperations/AI-Procurement-Copilot`.
+- Default branch: `main`.
+- Project purpose: governed, explainable procurement decision support for sourcing analysis, supplier comparison, category calculations, risk, scenarios, multi-supplier allocation, traceability and business-readable outputs.
 - Engineering classification: modular deterministic decision-support application with governed AI-assisted development.
 - Portfolio classification: governed interview showcase / portfolio decision-support prototype.
-- Production classification: not a production system and not currently a production candidate.
-- Default branch: `main`.
+- Enterprise-production classification: not production-ready and not represented as an enterprise production system.
 - Human procurement approval: mandatory.
+- Autonomous supplier award: prohibited.
+- ERP writeback: not implemented or authorized.
+- Realized-savings claims: prohibited without organizational evidence.
 
-## Current Verified Repository State
+## Authoritative Repository State Before Programme-Closure PR
 
-- Current verified `main` SHA: `c5b420c0eb21c957593c6042ce30b1dc18da8f2a`.
-- Gate 0B status: accepted, merged and post-merge verified.
-- Merged governance PR: `#48`.
-- Gate 0B merge commit: `c5b420c0eb21c957593c6042ce30b1dc18da8f2a`.
-- Gate 0B merged at: `2026-08-02T06:27:47Z`.
-- Latest verified timestamp: `2026-08-02T12:03:00+05:30`.
+- Verified default branch: `main`.
+- Verified `main` SHA: `71e02a4607b517e611297148cb0cd2ceb8a179d7`.
+- Latest implementation merge: PR `#56` — Gate 3C2B canonical export and decision-package reconciliation.
+- PR `#56` state: closed and merged.
+- PR `#56` feature head: `84ce2f10e4b9ab8513aeab51190a3f3cb9a94fdd`.
+- PR `#56` governing merge-test SHA: `69d6c56d5d5150870a4ef4aa4dfee3945c53b7ad`.
+- PR `#56` resulting merge commit: `71e02a4607b517e611297148cb0cd2ceb8a179d7`.
+- No later commit was present on `main` when the closure branch was created.
+- Open PR `#1` remains historical, draft and unmerged; it is not an active blocker for this programme closure and must not be represented as current architecture authority.
 
-## Stable Allocation-Programme State
+## Shared Cross-Category Multi-Supplier Award and Allocation Programme
 
-- Current allocation programme: Shared Cross-Category Multi-Supplier Award and Allocation.
-- Completed allocation gate: Gate 3A — Common Route Adapter and Contract Construction.
-- Current allocation implementation gate: none.
-- Gate 3B: not authorized.
-- Active allocation implementation branch: none; stable operational ref is `main`.
-- Active allocation-programme PR: none.
-- Latest merged allocation PR: `#47`.
-- Required allocation implementation base SHA: not applicable until a new gate is authorized.
-- Current allocation implementation head SHA: not applicable.
-- Current allocation implementation merge-test SHA: not applicable.
+### Final Status
 
-## Governance State After Gate 0B Merge
+**COMPLETE WITH DOCUMENTED DEFERRALS**
 
-- Governance programme: Governed AI-Assisted Development Operating Method.
-- Completed governance gate: Gate 0B — Minimum Governance Foundation.
-- Active governance implementation gate: none.
-- Active governance implementation branch: none.
-- Active governance PR: none after PR `#48` merge.
-- Latest merged governance PR: `#48`.
-- Retained governance branch: `governance/project-control-foundation`.
-- Gate 0C: not authorized.
-- Gate 0B closure branch: `governance/gate-0b-control-closure`; its current head and future PR merge-test remain external Git/CI evidence.
+The repository programme is complete for the governed portfolio/interview scope. All authorized allocation gates are implemented, accepted, merged and reconciled. No active technical blocker remains within the programme boundary.
 
-## Accepted Contract Versions
+The programme is not an enterprise-production implementation. Production identity, RBAC, persistent approval workflow, live ERP integration, operational monitoring, HA/DR, audited supplier evidence and production deployment remain outside this programme.
 
-- Gate 1 allocation contract: `AIPC-MULTI-ALLOC-1.0`.
-- Gate 2 allocation engine: `AIPC-MULTI-ALLOC-ENGINE-1.0`.
-- Gate 3A route adapter: `AIPC-MULTI-ALLOC-ADAPTER-1.0`.
+### Completed Gates
 
-## Accepted Gate 3A Assurance Evidence
+- Gate 1 — shared immutable allocation request, supplier-input and feasibility contracts.
+- Gate 2 — deterministic exactly-K allocation engine.
+- Gate 3A — common governed route adapter and contract.
+- Gate 3B1 — canonical application allocation route integration.
+- Gate 3B2 — governed allocation presentation and operational reconciliation.
+- Gate 3C1 — canonical scenario allocation route.
+- Gate 3C2A — canonical scenario presentation reconciliation.
+- Gate 3C2B — canonical export and decision-package reconciliation.
+
+### Accepted Contract Versions
+
+- Allocation request and feasibility contract: `AIPC-MULTI-ALLOC-1.0`.
+- Allocation engine contract: `AIPC-MULTI-ALLOC-ENGINE-1.0`.
+- Common route adapter: `AIPC-MULTI-ALLOC-ADAPTER-1.0`.
+- Scenario allocation contract: `AIPC-MULTI-ALLOC-SCENARIO-1.0`.
+- Scenario presenter contract: `AIPC-MULTI-ALLOC-SCENARIO-PRESENTER-1.0`.
+- Export contract: `AIPC-MULTI-ALLOC-EXPORT-1.0`.
+
+### Final Authority Chain
+
+Scenario or live category input
+→ governed category scoring and eligibility evidence
+→ common route adapter
+→ feasibility controls
+→ deterministic exactly-K allocation
+→ canonical application or scenario result
+→ canonical presentation projection
+→ canonical JSON and Excel export.
+
+No UI, intelligence or export layer is authorized to reconstruct allocation, infer evidence origin, create fallback allocation or act as a second allocation authority.
+
+## Gate 3C2A Closure Evidence
+
+- PR: `#55`.
+- Resulting `main` SHA: `1dbb454b0cbde0a9d2b8c2708f62199d48580872`.
+- Accepted head: `bb0768c88a2af7da01504759df53551004c80a94`.
+- Accepted merge-test SHA: `d8f2491aefeabf353f6367b77b4132133b09907e`.
+- Quality Checks run: `884`.
+- Run ID: `30759674118`.
+- Job ID: `91527833682`.
+- Python: `3.11.15`.
+- Result: `1387 passed`, `0 failures`, `0 errors`.
+- Compilation: passed.
+- Streamlit smoke: passed.
+- Warning boundary: one pre-existing pandas `FutureWarning`; no new Gate 3C2A warning.
+
+## Gate 3C2B Closure Evidence
+
+### Accepted Implementation Package
+
+Exactly eight files entered the merge:
+
+- `app.py`;
+- `modules/export_evidence_registry.py`;
+- `modules/exports.py`;
+- `tests/test_app_multi_supplier_allocation_route.py`;
+- `tests/test_c2_final_ux_exports.py`;
+- `tests/test_c2_strict_json_exports.py`;
+- `tests/test_eas_biv_gate1a_registries.py`;
+- `tests/test_eas_biv_gate3_evidence.py`.
+
+No unrelated application, category, scenario, Steel, RFQ, dependency, workflow, deployment or governance file entered PR `#56`.
+
+### Accepted Validation
 
 - Workflow: Quality Checks.
-- Accepted run number: `845`.
-- Run ID: `30734046622`.
-- Job ID: `91459345517`.
-- Accepted merge-test SHA: `f976fa6b866bce8941a6e663fee0099b4b067ed2`.
+- Run number: `893`.
+- Run ID: `30822026026`.
+- Job ID: `91714045800`.
+- Accepted feature head: `84ce2f10e4b9ab8513aeab51190a3f3cb9a94fdd`.
+- Accepted merge-test SHA: `69d6c56d5d5150870a4ef4aa4dfee3945c53b7ad`.
 - Python: `3.11.15`.
-- Test result: `1319 passed`, `0 failures`, `0 errors`.
-- Python compilation: passed.
+- Result: `1388 passed`, `0 failures`, `0 errors`.
+- Compilation: passed.
 - Streamlit smoke: passed.
-- Warning boundary: one pre-existing pandas `FutureWarning`; no Gate 3A warning.
-- Post-merge CI: no pull-request-triggered workflow dispatch was observed for Gate 3A merge commit `2896b1e36e66a65638f73e3f40dbfac96cd9f5b8`.
-- Manual browser/mobile validation: not performed for Gate 3A; automated tests and smoke do not constitute device certification.
+- Warning boundary: one pre-existing pandas `FutureWarning`; no new Gate 3C2B warning.
 
-## Accepted Gate 0B Assurance Evidence
+Runs `889`, `891` and `892` are historical or diagnostic evidence and are subordinate to successful current-head run `893`.
 
-- Workflow: Quality Checks.
-- Accepted run number: `848`.
-- Run ID: `30735635178`.
-- Job ID: `91463833522`.
-- Accepted merge-test SHA: `1601b4296aaf7781a4b85b408e3c7f591331a7db`.
-- Accepted head SHA: `f7bce982fc814d56b817b6dab24f96fe368607f9`.
-- Python: `3.11.15`.
-- Test result: `1319 passed`, `0 failures`, `0 errors`.
-- Python compilation: passed.
-- Streamlit smoke: passed.
-- Warning boundary: one pre-existing pandas `FutureWarning`; no new Gate 0B warning.
-- Post-merge CI: no pull-request-triggered workflow dispatch was observed for Gate 0B merge commit `c5b420c0eb21c957593c6042ce30b1dc18da8f2a`.
+### Post-Merge Verification
 
-Historical Gate 0B run `847` remains pre-correction evidence only and is subordinate to accepted run `848`.
+- PR `#56` was re-fetched and confirmed closed and merged.
+- Merge commit and parent package were inspected.
+- The merge boundary was confirmed as exactly the accepted eight files.
+- The feature branch was retained.
+- No pull-request-triggered workflow dispatch was returned for merge commit `71e02a4607b517e611297148cb0cd2ceb8a179d7`.
+- The governance-only closure PR is the authorized equivalent validation path for the accepted merged code plus this one-file control update.
+- The closure PR must run the existing full Quality Checks before merge.
 
-## Completed Scope
+## Functional Assurance State
 
-- Gate 1 shared immutable allocation request, supplier-input and feasibility foundation.
-- Gate 2 isolated deterministic exactly-K allocation recommendation engine.
-- Gate 3A isolated governed route adapter with explicit eligibility, capacity, TCO, score and evidence-origin controls.
-- Strict deterministic JSON, source/provenance controls, unsupported-evidence failure and mandatory human review.
-- Gate 0B governance foundation merged on `main`:
-  - `PROJECT_CONTROL.md`;
-  - `DEFINITION_OF_DONE.md`;
-  - `SIMPLICITY_GATE.md`;
-  - `VERIFICATION_POLICY.md`.
-- Gate 0B introduced no executable, architecture, test, CI, dependency, deployment or hosted-behaviour change.
+The accepted repository state confirms:
 
-## Currently Authorized Scope
+- canonical multi-supplier allocation is the sole C2 allocation authority;
+- scenario presentation uses the canonical Gate 3C1 result and Gate 3C2A presenter;
+- C2 JSON exposes `canonical_allocation` and governed `scenario_allocations`;
+- C2 Excel exposes `Canonical Allocation` and `Scenario Allocations`;
+- C2 export no longer serializes `visible_winner`, `standard_allocation` or `optimized_allocation` as allocation authorities;
+- analytical ranking remains distinct from supplier allocation and award approval;
+- blocked and non-applicable states do not expose allocation rows;
+- strict JSON rejects non-finite JSON values and normalizes unavailable values;
+- Steel export contracts remain unchanged;
+- non-C2 export behaviour remains backward compatible;
+- human procurement review remains mandatory;
+- no autonomous award, ERP writeback or realized-savings claim is created.
 
-Gate 0B closure only:
+## Definition of Done and Verification Reconciliation
 
-- reconcile the merged Gate 0B state in `PROJECT_CONTROL.md`;
-- preserve a one-file documentation-only boundary;
-- run the existing Quality Checks through a draft PR;
-- keep the closure PR draft and unmerged until governed review.
+The programme satisfies `DEFINITION_OF_DONE.md` for code-gate and programme-closure evidence because:
 
-## Deferred Scope
+- every authorized allocation gate is accepted and merged;
+- exact contracts, PRs, heads, merge-test SHAs, resulting implementation baseline and CI evidence are recorded;
+- exact merge boundaries were verified;
+- residual risks and deferred work are preserved;
+- no active programme PR is falsely represented as merged;
+- the closure update is documentation-only and must pass existing CI;
+- post-closure resulting `main` must be recorded externally in the closure PR and final verification report.
 
-- Gate 0C critical ADR foundation.
-- Gate 3B sidebar controls and application-route integration.
-- Gate 3C Procurement Intelligence and risk unification.
-- Gate 3D export and executive-output unification.
-- Gate 3E Steel and mandatory category adapters.
-- Gate 3F full regression and physical browser/mobile validation.
-- Test-risk register, component explainers and historical-document reconciliation.
-- Power BI until authoritative export unification is accepted.
-- Production authentication, database, ERP integration, persistence, observability, high availability and disaster-recovery infrastructure.
+The programme satisfies `VERIFICATION_POLICY.md` because:
 
-## Prohibited Scope
+- the changed `main` SHA was re-fetched;
+- the merge commit and exact file boundary were inspected;
+- PR state, branch, head, merge-test and CI were revalidated;
+- the absence of automatic post-merge workflow dispatch was explicitly recorded;
+- the closure PR provides fresh validation against the merged implementation plus the updated control record.
 
-- Autonomous supplier award or production allocation.
-- ERP write-back or approval persistence.
-- Realized-savings claims without organizational evidence.
-- Unverified supplier-capacity claims.
-- Silent eligibility, capacity, TCO or score inference.
-- A second scoring, allocation or business-rule authority.
-- Presentation-layer reimplementation of authoritative calculations.
-- Production infrastructure added only for portfolio appearance.
+## Governance Records Inspected
 
-## Known Limitations
+- `PROJECT_CONTROL.md` — stale before this reconciliation; updated by the closure package.
+- `DEFINITION_OF_DONE.md` — current and sufficient; no change required.
+- `VERIFICATION_POLICY.md` — current and sufficient; no change required.
+- `SIMPLICITY_GATE.md` — no new implementation complexity is introduced by closure; no change required.
+- `TEST_RISK_REGISTER.md` — no such repository file was found at closure review; no file was invented solely for closure.
+- Relevant ADR references — no new architecture decision is introduced by closure, so no ADR change is required. Existing executable contracts and merged PR records remain authoritative for the implemented allocation architecture.
 
-- The application is a governed portfolio showcase, not an enterprise production system.
+## Residual Risks and Limitations
+
+- Portfolio/interview use is supported; enterprise production readiness is not claimed.
 - Supplier, capacity, ESG, performance and risk evidence may be synthetic, supplied or incomplete unless independently verified.
-- No enterprise identity, authorization, production database, multi-user concurrency, persistent approval workflow, live ERP write-back, production observability, HA or DR is claimed.
-- Physical Android, browser and accessibility certification is not implied by automated tests.
-- Gate 3A remains isolated from application routes.
+- Human procurement approval remains outside automated execution.
+- No enterprise identity, RBAC, production database, persistent workflow, live ERP writeback, production observability, HA or DR is implemented.
+- No physical Android, browser or accessibility certification is implied by automated tests and Streamlit smoke.
+- The historical `Winning Supplier` compatibility label may remain in non-export analytical consumers and must be interpreted as an analytical ranking signal, not an approved award.
+- Open PR `#1` is historical governance debt and remains draft/unmerged; it is not part of this programme closure.
+- Post-merge workflow dispatch is limited by the repository workflow trigger; absence of a merge-commit run is documented rather than hidden.
 
-## Architecture Constraints
+## Explicit Deferrals
 
-- Existing business engines remain authoritative and separate from presentation.
-- Eligibility remains distinct from scoring and ranking.
-- Comparison calculations use a governed normalized currency basis.
-- Formula metadata and explanation layers do not execute substitute calculations.
-- Category-specific rules remain in category authorities; shared adapters do not silently reimplement them.
-- Outputs remain recommendations requiring human procurement approval.
+The following are deferred and are not blockers to closing this allocation programme:
 
-## Relevant Evidence and Records
+- Gate 0E — later governance enhancement work.
+- Gate 0F — historical-document and handoff-guide reconciliation.
+- Power BI portfolio dashboard work.
+- Facility Management Services or any additional procurement category.
+- Live ERP integration.
+- Authentication, RBAC and production approval persistence.
+- Production deployment, observability, HA and DR.
+- External supplier evidence verification and realized-savings assurance.
 
-- PR `#45`: Gate 1 contract and feasibility.
-- PR `#46`: Gate 2 deterministic exactly-K engine.
-- PR `#47`: Gate 3A governed route adapter.
-- PR `#48`: Gate 0B minimum governance foundation, closed and merged.
-- `PROJECT_ARCHITECTURE.md`.
-- `BUSINESS_RULES.md`.
-- `FORMULA_TRACEABILITY_REGISTER.md`.
-- `DATA_DICTIONARY.md`.
-- `docs/07_GOVERNANCE_AND_LIMITATIONS.md`.
-- `docs/EAS_BIV_FINAL_CLOSURE.md`.
+No deferred item is authorized by this closure record.
 
-## Current Risks
+## Programme Completion Classification
 
-- Repository historical status documents contain older baselines and must not be used as the current operational state without re-verification.
-- `AI_HANDOFF_GUIDE.md` contains historical current-state and branch statements pending Gate 0F reconciliation.
-- Future Gate 3B must not mix Gate 2 visible allocation with legacy intelligence allocation.
-- Partial adapter evidence must be clearly labelled before UI display.
-- `evidence_origin` may need promotion to a first-class route/result field during Gate 3B design.
-- Export and Power BI work remain blocked until one authoritative allocation result drives every consumer.
+- Portfolio/interview allocation capability: `100% complete` for the authorized programme scope.
+- Current repository allocation programme: `100% complete` after governance closure merge and post-merge verification.
+- Enterprise-production readiness: `not complete`; separate productization programme required.
+- Remaining active engineering hours within this allocation programme after closure merge: `0`.
+- Deferred future work is excluded from the programme completion percentage and must be separately authorized.
 
-## Next Recommended Decision
+## Closure Branch Scope
 
-After this closure update is accepted and merged, explicitly prioritize one of:
+The governance closure package is restricted to:
 
-1. Gate 0C — critical ADR foundation; or
-2. Gate 3B — governed application-route and sidebar planning.
+- `PROJECT_CONTROL.md` only;
+- one governance-only branch;
+- one draft closure PR;
+- existing full Quality Checks;
+- governed review and separately authorized irreversible merge;
+- post-merge verification and final programme freeze.
 
-Neither gate is currently authorized. Power BI remains blocked until authoritative export unification.
+No application logic, category engine, allocation engine, scenario engine, export code, RFQ contract, dependency, workflow or deployment change is authorized.
 
-## Planning and Effort Evidence
+## Final Programme Status
 
-- Gate 0B completion estimate: `100%`.
-- Governance-integration completion estimate: approximately `70%`.
-- Multi-supplier programme completion estimate: approximately `78–81%`.
-- Overall project completion estimate: approximately `83–85%` of the current governed portfolio roadmap.
-- Gate 0B cumulative engineering-equivalent effort estimate: approximately `13.65–23.6 hours`.
-- Estimated remaining multi-supplier integration effort: `18–30 engineering-equivalent hours`.
-- Last verification date: `2026-08-02`.
+**COMPLETE WITH DOCUMENTED DEFERRALS**
+
+The Shared Cross-Category Multi-Supplier Award and Allocation programme is frozen at the accepted implementation baseline `71e02a4607b517e611297148cb0cd2ceb8a179d7`, subject only to completion and merge of this governance-only closure record. Any later change to the allocation contracts, authority chain, presentation or export schema requires a new governed programme or explicitly authorized reopening decision.
