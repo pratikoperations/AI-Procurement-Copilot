@@ -7,6 +7,12 @@ import pandas as pd
 
 from modules.flexible_laminate_cost import SUPPORTED_STRUCTURES
 from modules.intelligent_rfq import normalize_rfq_dataframe
+from modules.synthetic_supplier_expansion import (
+    expand_flexible_laminates,
+    expand_general_packaging,
+    expand_kraft_paper,
+    expand_steel,
+)
 
 
 class RFQUploadError(ValueError):
@@ -14,15 +20,16 @@ class RFQUploadError(ValueError):
 
 
 def get_demo_suppliers():
-    return pd.DataFrame([
+    base = pd.DataFrame([
         {"Supplier":"Apex Packaging Corp","Quoted Unit Price USD":0.42,"Currency":"USD","Unit":"piece","MOQ":10000,"Lead Time Days":14,"Payment Terms":"Net 30","Incoterms":"DDP","OTIF %":94,"Quality PPM":850,"Audit Score":82,"Complaint Rate %":1.5,"Capacity Buffer %":18,"Recyclability":90,"Certification":85,"Carbon Score":75,"EPR Readiness":80,"PCR Content %":20,"Risk Category":"Low"},
         {"Supplier":"Vertex Global Print","Quoted Unit Price USD":0.38,"Currency":"USD","Unit":"piece","MOQ":50000,"Lead Time Days":30,"Payment Terms":"Advance 50%","Incoterms":"FOB","OTIF %":87,"Quality PPM":1600,"Audit Score":72,"Complaint Rate %":3.8,"Capacity Buffer %":8,"Recyclability":82,"Certification":70,"Carbon Score":68,"EPR Readiness":65,"PCR Content %":10,"Risk Category":"Medium"},
         {"Supplier":"Matrix Logistics & Pack","Quoted Unit Price USD":0.45,"Currency":"USD","Unit":"piece","MOQ":5000,"Lead Time Days":7,"Payment Terms":"Net 60","Incoterms":"DDP","OTIF %":97,"Quality PPM":500,"Audit Score":88,"Complaint Rate %":0.8,"Capacity Buffer %":22,"Recyclability":92,"Certification":90,"Carbon Score":82,"EPR Readiness":88,"PCR Content %":25,"Risk Category":"Low"},
     ])
+    return expand_general_packaging(base)
 
 
 def get_flexible_laminate_demo_suppliers(structure: str):
-    """Return three comparable quotations with synthetic C2 risk assumptions."""
+    """Return six differentiated quotations with synthetic C2 risk assumptions."""
     if structure not in SUPPORTED_STRUCTURES:
         raise ValueError(f"Unsupported Flexible Laminates structure '{structure}'.")
     profile = SUPPORTED_STRUCTURES[structure]
@@ -42,126 +49,43 @@ def get_flexible_laminate_demo_suppliers(structure: str):
         {**common,"Supplier":"BarrierPack Films","Quoted Unit Price USD":round(base_price*1.06,3),"MOQ":20000,"Lead Time Days":24,"Payment Terms":"Net 30","Incoterms":"CIF","OTIF %":93,"Quality PPM":480,"Audit Score":91,"Complaint Rate %":0.7,"Capacity Buffer %":14,"Supplier Capacity":1100000,"Recyclability":48,"Certification":92,"Carbon Score":70,"EPR Readiness":68,"PCR Content %":0,"Substrate Availability %":90,"Press Capacity Utilisation %":81,"Lamination Capacity Utilisation %":80,"Printing Capability Score":92,"Lamination Capability Score":94,"Bond Strength Continuity Score":92,"Seal Integrity Continuity Score":90,"Solvent Retention Control Score":91},
         {**common,"Supplier":"Circular Laminate Solutions","Quoted Unit Price USD":round(base_price*0.94,3),"MOQ":30000,"Lead Time Days":32,"Payment Terms":"Advance 20%","Incoterms":"FOB","OTIF %":86,"Quality PPM":1350,"Audit Score":76,"Complaint Rate %":2.8,"Capacity Buffer %":8,"Supplier Capacity":700000,"Recyclability":72,"Certification":76,"Carbon Score":80,"EPR Readiness":78,"PCR Content %":0,"Printing Loss %":5.5,"Lamination Loss %":4.0,"Slitting Loss %":2.0,"Substrate Availability %":58,"Press Capacity Utilisation %":92,"Lamination Capacity Utilisation %":93,"Printing Capability Score":74,"Lamination Capability Score":72,"Bond Strength Continuity Score":66,"Seal Integrity Continuity Score":64,"Solvent Retention Control Score":67},
     ]
-    data = pd.DataFrame(rows)
+    data = expand_flexible_laminates(pd.DataFrame(rows), base_price)
     data.attrs["selected_laminate_structure"] = structure
     data.attrs["risk_assumption_basis"] = "Synthetic C2 capability and continuity assumptions; not audited supplier evidence."
     return data
 
 
 def get_kraft_paper_demo_suppliers():
-    return pd.DataFrame([
+    base = pd.DataFrame([
         {"Supplier":"Western Fibre Mills","Material":"Kraft Paper","Kraft Variant":"Recycled Kraft","GSM":150,"Strength Grade":"22 BF","Quoted Unit Price USD":0.84,"Currency":"USD","Unit":"kg","MOQ":25000,"Lead Time Days":14,"Payment Terms":"Net 45","Incoterms":"DDP","OTIF %":95,"Quality PPM":700,"Audit Score":87,"Complaint Rate %":1.1,"Capacity Buffer %":20,"Supplier Capacity":900000,"Commodity Volatility %":16,"Import Dependency %":5,"Supplier Concentration %":38,"Substitute Available":"Yes","Duty %":0,"Recyclability":96,"Certification":84,"Carbon Score":77,"EPR Readiness":82,"PCR Content %":92,"Mill Allocation %":70,"Moisture %":7.5,"Fibre Availability %":78,"Quality Continuity Score":86,"Corrugated Linkage":"Approved demonstration assumption"},
         {"Supplier":"National Kraft Industries","Material":"Kraft Paper","Kraft Variant":"Virgin Kraft","GSM":150,"Strength Grade":"22 BF","Quoted Unit Price USD":0.96,"Currency":"USD","Unit":"kg","MOQ":40000,"Lead Time Days":24,"Payment Terms":"Net 30","Incoterms":"CIF","OTIF %":91,"Quality PPM":520,"Audit Score":90,"Complaint Rate %":0.8,"Capacity Buffer %":14,"Supplier Capacity":1100000,"Commodity Volatility %":18,"Import Dependency %":22,"Supplier Concentration %":52,"Substitute Available":"Yes","Duty %":3,"Recyclability":92,"Certification":90,"Carbon Score":73,"EPR Readiness":78,"PCR Content %":0,"Mill Allocation %":82,"Moisture %":6.8,"Fibre Availability %":88,"Quality Continuity Score":92,"Corrugated Linkage":"Approved demonstration assumption"},
         {"Supplier":"Circular Paperworks Ltd","Material":"Kraft Paper","Kraft Variant":"Recycled Kraft","GSM":150,"Strength Grade":"22 BF","Quoted Unit Price USD":0.80,"Currency":"USD","Unit":"kg","MOQ":50000,"Lead Time Days":32,"Payment Terms":"Advance 20%","Incoterms":"FOB","OTIF %":86,"Quality PPM":1250,"Audit Score":76,"Complaint Rate %":2.7,"Capacity Buffer %":9,"Supplier Capacity":750000,"Commodity Volatility %":24,"Import Dependency %":10,"Supplier Concentration %":68,"Substitute Available":"No","Duty %":0,"Recyclability":98,"Certification":76,"Carbon Score":81,"EPR Readiness":80,"PCR Content %":95,"Mill Allocation %":92,"Moisture %":9.2,"Fibre Availability %":58,"Quality Continuity Score":68,"Corrugated Linkage":"Conditional demonstration assumption"},
     ])
+    return expand_kraft_paper(base)
 
 
 def get_steel_demo_suppliers():
-    """Return exactly three governed synthetic Steel supplier records for C3.1."""
+    """Return six governed synthetic Steel supplier records."""
     common = {
-        "Material": "Steel",
-        "Unit": "kg",
+        "Material": "Steel", "Unit": "kg",
         "Supported Steel Profiles": "CR_COIL_COMMERCIAL|GI_COIL_Z120|PPGI_COIL_Z120",
         "Controlled Grade Families": "CR commercial demonstration|GI substrate demonstration|PPGI substrate demonstration",
-        "Thickness Min mm": 0.45,
-        "Thickness Max mm": 0.90,
-        "Width Min mm": 1000,
-        "Width Max mm": 1250,
-        "Zinc Capability Max g/m²": 180,
-        "Paint Line Capability": "Yes",
+        "Thickness Min mm": 0.45, "Thickness Max mm": 0.90,
+        "Width Min mm": 1000, "Width Max mm": 1250,
+        "Zinc Capability Max g/m²": 180, "Paint Line Capability": "Yes",
         "Surface Capability": "Controlled commercial|galvanized|pre-painted",
-        "Coil Weight Min MT": 4,
-        "Coil Weight Max MT": 15,
-        "Supplier or Mill Approval": "Approved",
-        "Application Approval": "Approved",
+        "Coil Weight Min MT": 4, "Coil Weight Max MT": 15,
+        "Supplier or Mill Approval": "Approved", "Application Approval": "Approved",
         "Test Certificate Availability": "Available — not authenticated",
         "Source Label": "Synthetic controlled demonstration data",
         "Evidence Boundary": "Not audited supplier evidence; not live market data; not technical certification",
     }
     rows = [
-        {
-            **common,
-            "Supplier": "Bharat Steelworks Ltd",
-            "Quoted Unit Price": 1.08,
-            "Currency": "USD",
-            "Quotation Currency": "USD",
-            "Quoted Unit Price USD": 1.08,
-            "MOQ": 25000,
-            "Lead Time Days": 18,
-            "Payment Terms": "Net 45",
-            "Incoterms": "DDP",
-            "OTIF %": 95,
-            "Quality PPM": 620,
-            "Audit Score": 88,
-            "Complaint Rate %": 0.9,
-            "Capacity Buffer %": 18,
-            "Supplier Capacity": 1800000,
-            "Capacity Utilisation %": 76,
-            "Mill Allocation %": 72,
-            "Import Dependency %": 12,
-            "Supplier Concentration %": 38,
-            "Quality Continuity Score": 88,
-            "Risk Category": "Low",
-            "Eligibility Design Intent": "Eligible competitive supplier",
-        },
-        {
-            **common,
-            "Supplier": "PrimeCoated Metals",
-            "Quoted Unit Price": 96.30,
-            "Currency": "INR",
-            "Quotation Currency": "INR",
-            "Quoted Unit Price USD": None,
-            "MOQ": 18000,
-            "Lead Time Days": 14,
-            "Payment Terms": "Net 60",
-            "Incoterms": "DDP",
-            "OTIF %": 97,
-            "Quality PPM": 420,
-            "Audit Score": 93,
-            "Complaint Rate %": 0.5,
-            "Capacity Buffer %": 24,
-            "Supplier Capacity": 1500000,
-            "Capacity Utilisation %": 68,
-            "Mill Allocation %": 64,
-            "Import Dependency %": 5,
-            "Supplier Concentration %": 28,
-            "Quality Continuity Score": 94,
-            "Risk Category": "Low",
-            "Eligibility Design Intent": "Eligible higher-cost lower-risk supplier",
-        },
-        {
-            **common,
-            "Supplier": "Global Coil Trading",
-            "Quoted Unit Price": 0.99,
-            "Currency": "USD",
-            "Quotation Currency": "USD",
-            "Quoted Unit Price USD": 0.99,
-            "MOQ": 50000,
-            "Lead Time Days": 42,
-            "Payment Terms": "Advance 20%",
-            "Incoterms": "CIF",
-            "OTIF %": 84,
-            "Quality PPM": 1450,
-            "Audit Score": 72,
-            "Complaint Rate %": 3.1,
-            "Capacity Buffer %": 6,
-            "Supplier Capacity": 2200000,
-            "Capacity Utilisation %": 94,
-            "Mill Allocation %": 95,
-            "Import Dependency %": 92,
-            "Supplier Concentration %": 78,
-            "Quality Continuity Score": 62,
-            "Risk Category": "High",
-            "Application Approval": "Conditional",
-            "Test Certificate Availability": "Pending",
-            "Paint Line Capability": "No",
-            "Zinc Capability Max g/m²": 100,
-            "Coil Weight Min MT": 16,
-            "Coil Weight Max MT": 25,
-            "Eligibility Design Intent": "Lower-priced technically ineligible or conditional supplier",
-        },
+        {**common,"Supplier":"Bharat Steelworks Ltd","Quoted Unit Price":1.08,"Currency":"USD","Quotation Currency":"USD","Quoted Unit Price USD":1.08,"MOQ":25000,"Lead Time Days":18,"Payment Terms":"Net 45","Incoterms":"DDP","OTIF %":95,"Quality PPM":620,"Audit Score":88,"Complaint Rate %":0.9,"Capacity Buffer %":18,"Supplier Capacity":1800000,"Capacity Utilisation %":76,"Mill Allocation %":72,"Import Dependency %":12,"Supplier Concentration %":38,"Quality Continuity Score":88,"Risk Category":"Low","Eligibility Design Intent":"Eligible competitive supplier"},
+        {**common,"Supplier":"PrimeCoated Metals","Quoted Unit Price":96.30,"Currency":"INR","Quotation Currency":"INR","Quoted Unit Price USD":None,"MOQ":18000,"Lead Time Days":14,"Payment Terms":"Net 60","Incoterms":"DDP","OTIF %":97,"Quality PPM":420,"Audit Score":93,"Complaint Rate %":0.5,"Capacity Buffer %":24,"Supplier Capacity":1500000,"Capacity Utilisation %":68,"Mill Allocation %":64,"Import Dependency %":5,"Supplier Concentration %":28,"Quality Continuity Score":94,"Risk Category":"Low","Eligibility Design Intent":"Eligible higher-cost lower-risk supplier"},
+        {**common,"Supplier":"Global Coil Trading","Quoted Unit Price":0.99,"Currency":"USD","Quotation Currency":"USD","Quoted Unit Price USD":0.99,"MOQ":50000,"Lead Time Days":42,"Payment Terms":"Advance 20%","Incoterms":"CIF","OTIF %":84,"Quality PPM":1450,"Audit Score":72,"Complaint Rate %":3.1,"Capacity Buffer %":6,"Supplier Capacity":2200000,"Capacity Utilisation %":94,"Mill Allocation %":95,"Import Dependency %":92,"Supplier Concentration %":78,"Quality Continuity Score":62,"Risk Category":"High","Application Approval":"Conditional","Test Certificate Availability":"Pending","Paint Line Capability":"No","Zinc Capability Max g/m²":100,"Coil Weight Min MT":16,"Coil Weight Max MT":25,"Eligibility Design Intent":"Lower-priced technically ineligible or conditional supplier"},
     ]
-    data = pd.DataFrame(rows)
+    data = expand_steel(pd.DataFrame(rows))
     data.attrs.update({
         "source_label": "Synthetic controlled demonstration data",
         "assumption_profile_version": "C3.1-STEEL-v1",
