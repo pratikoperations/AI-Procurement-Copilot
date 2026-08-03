@@ -10,6 +10,11 @@ import streamlit as st
 from modules.unit_display import add_annual_volume_metadata
 from modules.utils import build_currency_display_frame, normalize_display_currency
 
+C2_EXPORT_CONTRACT_VERSION = "AIPC-MULTI-ALLOC-EXPORT-1.0"
+C2_SCHEMA_MIGRATION_NOTE = (
+    "Legacy Standard Allocation, Optimized Allocation and Visible Winner fields were removed because "
+    "they no longer represented independent governed authorities after canonical allocation reconciliation."
+)
 C2_EXPORT_DISCLAIMER = (
     "Synthetic controlled demonstration assumptions only; not audited supplier evidence, laboratory "
     "results, technical certification, market forecast, production-readiness claim or realized savings."
@@ -30,6 +35,26 @@ READABLE_SCORE_COLUMNS = {
     "total_score": "Overall Decision Score",
 }
 SCENARIO_ANNUAL_TCO_CANDIDATES = ("Annual TCO (USD)", "Annual TCO USD", "annual_tco_usd")
+SCENARIO_ALLOCATION_EXPORT_COLUMNS = (
+    "Scenario",
+    "Scenario Applicable",
+    "Scenario Assumption Version",
+    "Scenario Route Status",
+    "Canonical Allocation Status",
+    "Allocation Available",
+    "Selected Suppliers",
+    "Allocation Shares",
+    "Allocated Volumes",
+    "Primary Supplier",
+    "Continuity Supplier",
+    "Evidence Origin",
+    "Human Review Required",
+    "Legacy Fallback Used",
+    "Warnings",
+    "Blocking Reasons",
+    "Analytical Leading Supplier",
+    "Analytical Leading Score",
+)
 EXPORT_CACHE_MAX_ENTRIES = 16
 
 
@@ -93,6 +118,12 @@ def _normalize_strict_json(value):
     except (TypeError, ValueError):
         pass
     return value
+
+
+def _scenario_allocation_frame(scenario_df):
+    """Project existing Gate 3C2A fields without reconstructing scenario allocation."""
+    available = [column for column in SCENARIO_ALLOCATION_EXPORT_COLUMNS if column in scenario_df.columns]
+    return scenario_df[available].copy() if available else pd.DataFrame()
 
 
 @st.cache_data(show_spinner=False, max_entries=EXPORT_CACHE_MAX_ENTRIES)
@@ -161,21 +192,31 @@ def build_readable_scenarios(scenario_df, display_currency="USD", fx_rate=83, an
     return add_annual_volume_metadata(report, annual_volume, annual_volume_unit)
 
 
-def build_c2_export_manifest(scored_df, standard_allocation_df, optimized_allocation_df, scenario_df):
-    """Build a deterministic, strict-JSON-safe manifest from governed visible dataframes."""
+def build_c2_export_manifest(scored_df, canonical_allocation_df, scenario_df, legacy_scenario_df=None):
+    """Build the strict-JSON C2 manifest from one canonical allocation authority.
+
+    ``legacy_scenario_df`` temporarily accepts the previous four-argument application
+    call shape. The third allocation argument is never serialized or treated as an
+    authority; the fourth argument is used only as the scenario dataframe.
+    """
+    scenario_source = legacy_scenario_df if legacy_scenario_df is not None else scenario_df
     eligible = scored_df[scored_df.get("technical_eligible", False).astype(bool)] if "technical_eligible" in scored_df.columns else scored_df.iloc[0:0]
-    winner = eligible.iloc[0]["Supplier"] if not eligible.empty else "No technically eligible supplier"
+    analytical_leader = eligible.iloc[0]["Supplier"] if not eligible.empty else "No technically eligible supplier"
+    scenario_allocations = _scenario_allocation_frame(scenario_source)
     manifest = {
+        "export_contract_version": C2_EXPORT_CONTRACT_VERSION,
         "selected_structure": str(scored_df.iloc[0].get("Laminate Structure", "Not assessed")) if not scored_df.empty else "Not assessed",
         "commercial_basis": "kg",
         "comparison_unit": "USD/kg",
-        "visible_winner": winner,
+        "analytical_leading_supplier": analytical_leader,
         "eligible_supplier_count": int(len(eligible)),
-        "standard_allocation": standard_allocation_df.to_dict(orient="records"),
-        "optimized_allocation": optimized_allocation_df.to_dict(orient="records"),
-        "scenarios": scenario_df.to_dict(orient="records"),
-        "scenario_assumption_versions": sorted(set(scenario_df.get("Scenario Assumption Version", pd.Series(dtype=str)).dropna().astype(str))),
+        "canonical_allocation": canonical_allocation_df.to_dict(orient="records"),
+        "scenario_allocations": scenario_allocations.to_dict(orient="records"),
+        "scenario_assumption_versions": sorted(set(scenario_source.get("Scenario Assumption Version", pd.Series(dtype=str)).dropna().astype(str))),
+        "human_review_required": True,
+        "legacy_fallback_used": False,
         "disclaimer": C2_EXPORT_DISCLAIMER,
+        "schema_migration_note": C2_SCHEMA_MIGRATION_NOTE,
     }
     return _normalize_strict_json(manifest)
 
@@ -185,12 +226,16 @@ def build_decision_package_json(recommended_supplier, value_metrics, allocation_
     payload = {
         "recommended_supplier": recommended_supplier.to_dict() if hasattr(recommended_supplier, "to_dict") else dict(recommended_supplier),
         "value_metrics": dict(value_metrics),
-        "allocation": allocation_df.to_dict(orient="records"),
-        "scenarios": scenario_df.to_dict(orient="records"),
         "negotiation": dict(negotiation_result),
         "eligibility": dict(eligibility or {}),
     }
-    if c2_manifest is not None:
+    if c2_manifest is None:
+        payload["allocation"] = allocation_df.to_dict(orient="records")
+        payload["scenarios"] = scenario_df.to_dict(orient="records")
+    else:
+        payload["canonical_allocation"] = allocation_df.to_dict(orient="records")
+        payload["scenarios"] = scenario_df.to_dict(orient="records")
+        payload["scenario_allocations"] = list(c2_manifest.get("scenario_allocations", []))
         payload["flexible_laminates_governance"] = dict(c2_manifest)
     normalized_payload = _normalize_strict_json(payload)
     return json.dumps(normalized_payload, indent=2, default=str, allow_nan=False).encode("utf-8")
@@ -203,6 +248,7 @@ def build_excel_workbook(scored_df, should_cost_df, allocation_df, scenario_df, 
     should_cost = build_readable_should_cost(should_cost_df, display_currency, fx_rate, annual_volume, annual_volume_unit)
     allocation = build_readable_allocation(allocation_df, display_currency, fx_rate, annual_volume, annual_volume_unit)
     scenarios = build_readable_scenarios(scenario_df, display_currency, fx_rate, annual_volume, annual_volume_unit)
+    scenario_allocations = _scenario_allocation_frame(scenario_df)
     optimized = build_readable_allocation(optimized_allocation_df, display_currency, fx_rate, annual_volume, annual_volume_unit) if optimized_allocation_df is not None else pd.DataFrame()
     buffer = BytesIO()
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
@@ -210,10 +256,15 @@ def build_excel_workbook(scored_df, should_cost_df, allocation_df, scenario_df, 
         if comparison is not None:
             comparison.to_excel(writer, sheet_name="Supplier Comparison", index=False)
         should_cost.to_excel(writer, sheet_name="Should Cost", index=False)
-        allocation.to_excel(writer, sheet_name="Allocation", index=False)
-        allocation.to_excel(writer, sheet_name="Standard Allocation", index=False)
-        optimized.to_excel(writer, sheet_name="Optimized Allocation", index=False)
-        scenarios.to_excel(writer, sheet_name="Scenarios", index=False)
+        if c2_manifest is not None:
+            allocation.to_excel(writer, sheet_name="Canonical Allocation", index=False)
+            scenarios.to_excel(writer, sheet_name="Scenarios", index=False)
+            scenario_allocations.to_excel(writer, sheet_name="Scenario Allocations", index=False)
+        else:
+            allocation.to_excel(writer, sheet_name="Allocation", index=False)
+            if optimized_allocation_df is not None:
+                optimized.to_excel(writer, sheet_name="Optimized Allocation", index=False)
+            scenarios.to_excel(writer, sheet_name="Scenarios", index=False)
         scored_df.to_excel(writer, sheet_name="Audit Supplier Scores", index=False)
         if c2_manifest is not None:
             pd.DataFrame([
