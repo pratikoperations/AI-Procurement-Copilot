@@ -139,7 +139,7 @@ def get_demo_data(
             data = expand_kraft_paper(data)
         elif category == "Raw Material Procurement" and commodity == "Steel":
             data = expand_steel(data)
-        elif category == "Packaging Procurement":
+        elif category == "Packaging Procurement" and commodity == "Corrugated Board":
             data = expand_general_packaging(data)
 
     version = "C3.1-STEEL-v1" if commodity == "Steel" else ("C2.0" if commodity=="Flexible Laminates" else ("C1.0" if commodity=="Kraft Paper" else "S1"))
