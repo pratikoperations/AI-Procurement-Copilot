@@ -114,8 +114,11 @@ def test_metpet_non_applicable_table_is_not_duplicate_base_case():
     row = table.loc[table["Scenario"] == "MetPET Availability Stress"].iloc[0]
     assert row["Scenario Applicable"] == False
     assert row["Winning Supplier"] == "Not applicable"
-    assert row["Standard Allocation Status"] == "Not applicable"
-    assert row["Optimized Allocation Status"] == "Not applicable"
+    assert row["Scenario Route Status"] == "NOT_APPLICABLE"
+    assert row["Canonical Allocation Status"] == "No allocation"
+    assert row["Allocation Available"] == False
+    assert "Standard Allocation Status" not in table.columns
+    assert "Optimized Allocation Status" not in table.columns
     assert pd.isna(row["Annual TCO (USD)"])
 
 
@@ -278,8 +281,10 @@ def test_scenario_table_never_falls_back_to_ineligible_supplier():
         table["Scenario"] == "Press and Lamination Capacity Stress"
     ].iloc[0]
     assert capacity["Winning Supplier"] == "No technically eligible supplier"
-    assert capacity["Standard Allocation Status"] == "No allocation"
-    assert capacity["Optimized Allocation Status"] == "No allocation"
+    assert capacity["Canonical Allocation Status"] == "No allocation"
+    assert capacity["Allocation Available"] == False
+    assert capacity["Scenario Route Status"] not in {"READY", "WARNING"}
+    assert capacity["Blocking Reasons"]
 
 
 def test_generic_and_laminate_penalties_reconcile_in_every_scenario():

@@ -96,13 +96,20 @@ def test_non_applicable_and_no_winner_scenario_ux_are_explicit():
     metpet = scenarios.loc[scenarios["Scenario"] == "MetPET Availability Stress"].iloc[0]
     assert metpet["Scenario Applicable"] == False
     assert metpet["Winning Supplier"] == "Not applicable"
+    assert metpet["Scenario Route Status"] == "NOT_APPLICABLE"
+    assert metpet["Canonical Allocation Status"] == "No allocation"
+    assert metpet["Allocation Available"] == False
     assert metpet["Confidence"] == "Not applicable"
     capacity = scenarios.loc[scenarios["Scenario"] == "Press and Lamination Capacity Stress"].iloc[0]
     assert capacity["Winning Supplier"] == "No technically eligible supplier"
-    assert capacity["Standard Allocation Status"] == "No allocation"
-    assert capacity["Optimized Allocation Status"] == "No allocation"
+    assert capacity["Canonical Allocation Status"] == "No allocation"
+    assert capacity["Allocation Available"] == False
+    assert capacity["Scenario Route Status"] not in {"READY", "WARNING"}
     assert capacity["Confidence"] == 0.0
     assert capacity["Scenario Status / Reason"]
+    assert capacity["Blocking Reasons"]
+    assert "Standard Allocation Status" not in scenarios.columns
+    assert "Optimized Allocation Status" not in scenarios.columns
 
 
 def test_supplier_export_preserves_visible_eligibility_tco_units_and_disclaimer():
