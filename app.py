@@ -420,7 +420,6 @@ c2_manifest = (
     build_c2_export_manifest(
         scored_df,
         allocation_df,
-        allocation_df,
         scenario_df,
     )
     if is_flexible_laminates
@@ -431,7 +430,6 @@ excel_package = build_excel_workbook(
     readable_scores, readable_comparison,
     display_currency=display_currency, fx_rate=fx_rate,
     annual_volume=volume, annual_volume_unit=volume_unit,
-    optimized_allocation_df=allocation_df,
     c2_manifest=c2_manifest,
 )
 json_package = build_decision_package_json(
