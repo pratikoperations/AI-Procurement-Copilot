@@ -54,23 +54,37 @@ def test_c2_governance_sheet_is_registered_and_checked():
     assert result.present_locations == ("Scenarios", "C2 Governance")
 
 
-def test_generic_json_registered_paths_exist():
+def test_canonical_c2_allocation_sheets_are_registered_and_checked():
+    result = assure_excel_evidence(
+        _workbook_bytes(("Canonical Allocation", "Scenario Allocations")),
+        "EXP-EV-004",
+    )
+    assert result.classification == "exact_match"
+    assert result.present_locations == ("Canonical Allocation", "Scenario Allocations")
+    assert result.schema_change is True
+
+
+def test_c2_json_registered_paths_exist():
     payload = {
         "recommended_supplier": {},
         "value_metrics": {},
-        "allocation": {},
-        "scenarios": {},
+        "canonical_allocation": [],
+        "scenarios": [],
+        "scenario_allocations": [],
         "negotiation": {},
         "eligibility": {},
         "flexible_laminates_governance": {
-            "optimized_allocation": {},
-            "scenarios": {},
+            "export_contract_version": "AIPC-MULTI-ALLOC-EXPORT-1.0",
+            "canonical_allocation": [],
+            "scenario_allocations": [],
+            "human_review_required": True,
+            "legacy_fallback_used": False,
         },
     }
     result = assure_json_evidence(json.dumps(payload), "EXP-EV-006")
     assert result.classification == "exact_match"
     assert result.blocking_status == "clear"
-    assert result.schema_change is False
+    assert result.schema_change is True
 
 
 def test_steel_json_registered_paths_exist():
@@ -95,9 +109,15 @@ def test_missing_json_path_fails_closed():
     assert "steel_governance.scenarios" in result.missing_locations
 
 
-def test_all_export_registry_entries_remain_schema_preserving():
+def test_only_authorized_c2_evidence_entries_record_schema_change():
     assert EXPORT_EVIDENCE
-    assert all(item.schema_change is False for item in EXPORT_EVIDENCE)
+    changed = {item.evidence_id for item in EXPORT_EVIDENCE if item.schema_change}
+    assert changed == {"EXP-EV-004", "EXP-EV-006"}
+    assert all(
+        item.schema_change is False
+        for item in EXPORT_EVIDENCE
+        if item.evidence_id not in changed
+    )
 
 
 def test_registered_serializer_functions_are_exact():

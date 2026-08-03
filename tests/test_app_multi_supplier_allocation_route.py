@@ -50,8 +50,19 @@ def test_allocation_consumers_receive_one_projected_result():
     assert "generate_decision(scored_df, allocation_df, risk_result)" in source
     assert "suppliers_df, scored_df, allocation_df," in source
     assert "scored_df, allocation_df, value_metrics" in source
-    assert "optimized_allocation_df=allocation_df" in source
-    assert "allocation_df,\n        allocation_df,\n        scenario_df" in source
+
+    canonical_manifest_call = (
+        "build_c2_export_manifest(\n"
+        "        scored_df,\n"
+        "        allocation_df,\n"
+        "        scenario_df,\n"
+        "    )"
+    )
+    assert canonical_manifest_call in source
+    assert "allocation_df,\n        allocation_df,\n        scenario_df" not in source
+    assert "optimized_allocation_df=allocation_df" not in source
+    assert "standard_allocation=" not in source
+    assert "optimized_allocation_df=" not in source
 
 
 def test_route_states_and_human_approval_are_visible():
