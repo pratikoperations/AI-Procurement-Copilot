@@ -48,3 +48,37 @@ def test_flexibles_supplier_topic_has_highest_retrieval_priority():
     matches = search_project_knowledge("Which vendor qualified for flexible laminates RFQ?")
     assert matches
     assert matches[0]["topic"] == "flexible laminates supplier qualification"
+
+
+def test_flexibles_participant_count_returns_exact_supplier_evidence_not_generic_rfq_text():
+    response = answer_question("How many vendors participated in flexibles RFQ?", _presentation())
+    assert response["intent"] == "project_knowledge"
+    assert "contains three participating suppliers" in response["answer"]
+    assert "Precision Flexibles Ltd" in response["answer"]
+    assert "BarrierPack Films" in response["answer"]
+    assert "Circular Laminate Solutions" in response["answer"]
+    assert "The RFQ layer ingests" not in response["answer"]
+
+
+def test_kraft_vendor_quote_and_tco_question_returns_specific_table_and_unavailable_boundary():
+    response = answer_question(
+        "Which vendor approved for kraft paper. What is his RFQ quote rate vs TCO rate?",
+        _presentation(),
+    )
+    assert response["intent"] == "project_knowledge"
+    assert "Western Fibre Mills" in response["answer"]
+    assert "National Kraft Industries" in response["answer"]
+    assert "Circular Paperworks Ltd" in response["answer"]
+    assert "0.84/kg" in response["answer"]
+    assert "0.96/kg" in response["answer"]
+    assert "0.80/kg" in response["answer"]
+    assert "TCO-adjusted rate" in response["answer"]
+    assert "Unavailable in the static cross-category registry" in response["answer"]
+    assert "does not approve or award" in response["answer"]
+    assert "The RFQ layer ingests" not in response["answer"]
+
+
+def test_kraft_specific_topic_has_priority_over_generic_rfq_and_tco_topics():
+    matches = search_project_knowledge("kraft paper RFQ quote rate vs TCO rate")
+    assert matches
+    assert matches[0]["topic"] == "kraft paper controlled supplier evidence"

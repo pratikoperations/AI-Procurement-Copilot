@@ -38,16 +38,41 @@ PROJECT_KNOWLEDGE = (
         ("README.md", "PROJECT_CONTROL.md", "app.py"),
     ),
     _entry(
+        "kraft paper controlled supplier evidence",
+        (
+            "kraft paper vendor", "kraft paper supplier", "kraft rfq", "kraft paper rfq",
+            "vendor approved for kraft", "vendor qualified for kraft", "kraft quote",
+            "kraft quoted rate", "kraft tco rate", "kraft paper participants",
+            "how many vendors participated in kraft",
+        ),
+        "The controlled synthetic Kraft Paper RFQ contains three suppliers. SourceMate does not approve or award a vendor; it reports the registered demonstration evidence. Under the default synthetic decision path, all three records participate and are technically eligible before any user-entered stress or override.\n\n| Supplier | Participation / qualification | RFQ quote | Currency | TCO-adjusted rate |\n|---|---|---:|---|---|\n| Western Fibre Mills | Participated; technically eligible in the default synthetic route | 0.84/kg | USD | Unavailable in the static cross-category registry |\n| National Kraft Industries | Participated; technically eligible in the default synthetic route | 0.96/kg | USD | Unavailable in the static cross-category registry |\n| Circular Paperworks Ltd | Participated; technically eligible in the default synthetic route; can become ineligible if governed mill-allocation or other thresholds are breached | 0.80/kg | USD | Unavailable in the static cross-category registry |\n\nA current TCO-adjusted rate is only reported when the main application has published the scored live context for Kraft Paper. It is not inferred from the quote. These are synthetic portfolio records, not audited supplier qualification or a production award decision.",
+        (
+            "modules/data_loader.py::get_kraft_paper_demo_suppliers",
+            "modules/scoring.py::enrich_supplier_scores",
+            "tests/test_c1_kraft_paper.py",
+        ),
+    ),
+    _entry(
+        "flexible laminates supplier qualification",
+        (
+            "flexibles vendor", "flexible vendor", "flexibles supplier", "flexible laminates supplier",
+            "qualified for flexibles", "vendor qualified for flexibles", "which vendor qualified",
+            "flexibles rfq", "flexible laminates rfq", "flexibles participants",
+            "how many vendors participated in flexibles", "how many suppliers participated in flexibles",
+            "flexibles vendor count", "flexible laminates vendor count", "flexibles quote",
+        ),
+        "The controlled synthetic Flexible Laminates RFQ contains three participating suppliers: Precision Flexibles Ltd, BarrierPack Films and Circular Laminate Solutions. Precision Flexibles Ltd and BarrierPack Films are technically eligible under the registered application-approval, capability, continuity, utilisation and substrate-availability controls. Circular Laminate Solutions is treated as technically ineligible in the governed decision path because its continuity and operating-risk evidence breaches registered thresholds.\n\nFor the default PET / PE demonstration structure:\n\n| Supplier | Governed demo status | RFQ quote | Currency | TCO-adjusted rate |\n|---|---|---:|---|---|\n| Precision Flexibles Ltd | Eligible | 2.050/kg | USD | Unavailable in the static cross-category registry |\n| BarrierPack Films | Eligible | 2.173/kg | USD | Unavailable in the static cross-category registry |\n| Circular Laminate Solutions | Ineligible | 1.927/kg | USD | Unavailable in the static cross-category registry |\n\nThe quote changes with the selected laminate structure. A current TCO-adjusted rate, score, rank or recommendation is only reported when the main application has published that live scored context; SourceMate does not infer it from the quote. These are synthetic portfolio records, not audited supplier qualification or a production award decision.",
+        (
+            "modules/data_loader.py::get_flexible_laminate_demo_suppliers",
+            "modules/flexible_laminate_risk.py::assess_flexible_laminate_supplier",
+            "tests/test_c2_decision_path.py",
+        ),
+    ),
+    _entry(
         "category engines",
         ("category engine", "categories", "packaging", "raw material", "steel", "flexible laminate", "kraft", "pet resin"),
         "The portfolio includes Packaging Procurement, Raw Material Procurement and governed category-specific routes for Corrugated Board, Kraft Paper, PET Resin, Flexible Laminates and Steel. Category routing selects existing deterministic services; SourceMate does not create a new calculation route.",
         ("modules/category_engine.py", "modules/category_cost_router.py", "pages/8_Governed_Calculation_Explorer.py"),
-    ),
-    _entry(
-        "flexible laminates supplier qualification",
-        ("flexibles vendor", "flexible vendor", "flexibles supplier", "flexible laminates supplier", "qualified for flexibles", "vendor qualified for flexibles", "which vendor qualified"),
-        "For the controlled synthetic Flexible Laminates demonstration, Precision Flexibles Ltd and BarrierPack Films are technically eligible under the registered application-approval, capability, continuity, utilisation and substrate-availability controls. Circular Laminate Solutions is treated as technically ineligible in the governed decision path because its continuity and operating-risk evidence breaches registered thresholds.\n\n| Supplier | Governed demo status | Explanation |\n|---|---|---|\n| Precision Flexibles Ltd | Eligible | Approved application with qualifying capability and continuity evidence. |\n| BarrierPack Films | Eligible | Approved application with qualifying capability and continuity evidence. |\n| Circular Laminate Solutions | Ineligible | Fails registered technical continuity or risk thresholds in the controlled demo. |\n\nThese are synthetic portfolio records, not audited supplier qualification or a production award decision.",
-        ("modules/data_loader.py::get_flexible_laminate_demo_suppliers", "modules/flexible_laminate_risk.py::assess_flexible_laminate_supplier", "tests/test_c2_decision_path.py"),
     ),
     _entry(
         "should-cost methodology",
