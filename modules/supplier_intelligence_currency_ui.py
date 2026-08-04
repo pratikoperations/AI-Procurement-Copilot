@@ -140,7 +140,7 @@ def build_supplier_intelligence_display_frame(comparison_df, display_currency="U
 
 
 def render_supplier_intelligence(intelligence, display_currency="USD", fx_rate=83):
-    """Render selected-currency business values with a collapsed audit trail."""
+    """Render selected-currency business values with an adjacent audit trail."""
     try:
         mode = normalize_display_currency(display_currency)
     except ValueError:
@@ -158,14 +158,8 @@ def render_supplier_intelligence(intelligence, display_currency="USD", fx_rate=8
         fx_rate=fx_rate,
     )
     display_intelligence["comparison_df"] = business_frame
-    result = _render_supplier_intelligence(display_intelligence)
-
-    if not audit_frame.empty:
-        with st.expander("Currency normalization and audit trail", expanded=False):
-            st.caption(
-                "Canonical comparison remains in USD for consistent ranking and traceability. "
-                f"Displayed business values use {mode}; no award decision is automated."
-            )
-            st.dataframe(audit_frame, use_container_width=True, hide_index=True)
-
-    return result
+    return _render_supplier_intelligence(
+        display_intelligence,
+        currency_audit_df=audit_frame,
+        display_currency=mode,
+    )
