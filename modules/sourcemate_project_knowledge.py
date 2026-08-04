@@ -11,6 +11,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 PROJECT_KNOWLEDGE_CONTRACT = "AIPC-SOURCEMATE-PROJECT-KNOWLEDGE-1.0"
+_CONTEXT_KEY = "sourcemate_global_decision_context"
 
 
 def _entry(
@@ -30,6 +31,99 @@ def _entry(
     }
 
 
+def _session_display_context() -> tuple[str, float | None, str]:
+    """Read display-only currency context without changing any calculation."""
+    try:
+        import streamlit as st
+        context = dict(st.session_state.get(_CONTEXT_KEY) or {})
+    except Exception:
+        context = {}
+    selected = context.get("selected_presentation")
+    if isinstance(selected, Mapping):
+        selected_context = selected.get("context")
+        if isinstance(selected_context, Mapping):
+            for key in ("display_currency", "fx_rate_inr_per_usd", "fx_rate"):
+                if context.get(key) in (None, "") and selected_context.get(key) not in (None, ""):
+                    context[key] = selected_context.get(key)
+        for item in selected.get("assumptions") or ():
+            if not isinstance(item, Mapping):
+                continue
+            key = str(item.get("key") or item.get("assumption_id") or "")
+            value = item.get("effective_value") if item.get("effective_value") is not None else item.get("value")
+            if key in {"display_currency", "fx_rate_inr_per_usd", "fx_rate"} and context.get(key) in (None, ""):
+                context[key] = value
+    currency = str(context.get("display_currency") or "USD").strip().upper()
+    if currency not in {"USD", "INR", "BOTH"}:
+        currency = "USD"
+    raw_fx = context.get("fx_rate_inr_per_usd")
+    if raw_fx in (None, ""):
+        raw_fx = context.get("fx_rate")
+    try:
+        fx_rate = float(raw_fx) if raw_fx not in (None, "") else None
+    except (TypeError, ValueError):
+        fx_rate = None
+    page = str(context.get("active_page") or "current page")
+    return currency, fx_rate, page
+
+
+def _format_quote(usd_per_kg: float, currency: str, fx_rate: float | None) -> str:
+    if currency == "INR" and fx_rate is not None:
+        return f"INR {usd_per_kg * fx_rate:.2f}/kg"
+    if currency == "BOTH" and fx_rate is not None:
+        return f"USD {usd_per_kg:.3f}/kg / INR {usd_per_kg * fx_rate:.2f}/kg"
+    return f"USD {usd_per_kg:.3f}/kg"
+
+
+def _category_supplier_answer(topic: str) -> str | None:
+    currency, fx_rate, page = _session_display_context()
+    fx_note = ""
+    if currency in {"INR", "BOTH"} and fx_rate is not None:
+        fx_note = f" Display conversion uses {fx_rate:.2f} INR/USD; canonical registered quotes remain in USD."
+    elif currency in {"INR", "BOTH"}:
+        fx_note = " INR conversion is unavailable because no valid display FX rate is present; canonical USD quotes are shown."
+
+    if topic == "kraft paper controlled supplier evidence":
+        rows = (
+            ("Western Fibre Mills", "Participated; technically eligible in the default synthetic route", 0.84),
+            ("National Kraft Industries", "Participated; technically eligible in the default synthetic route", 0.96),
+            ("Circular Paperworks Ltd", "Participated; technically eligible by default; can become ineligible if governed thresholds are breached", 0.80),
+        )
+        body = "\n".join(f"| {supplier} | {status} | {_format_quote(rate, currency, fx_rate)} |" for supplier, status, rate in rows)
+        return (
+            "The controlled synthetic Kraft Paper RFQ contains three suppliers. SourceMate does not approve or award a vendor; it reports registered demonstration evidence.\n\n"
+            "| Supplier | Participation / qualification | RFQ quote in selected display currency |\n|---|---|---:|\n"
+            + body
+            + "\n\n"
+            + f"TCO evidence status: the active page is {page}. Supplier-level TCO-adjusted rates are not published by this cross-category should-cost view. "
+            "They can be reported only when the matching Kraft Paper supplier analysis on the main application has published live scored TCO context. "
+            "SourceMate has not calculated or inferred TCO from the RFQ quote."
+            + fx_note
+            + " These are synthetic portfolio records, not audited supplier qualification or a production award decision."
+        )
+
+    if topic == "flexible laminates supplier qualification":
+        rows = (
+            ("Precision Flexibles Ltd", "Eligible", 2.050),
+            ("BarrierPack Films", "Eligible", 2.173),
+            ("Circular Laminate Solutions", "Ineligible", 1.927),
+        )
+        body = "\n".join(f"| {supplier} | {status} | {_format_quote(rate, currency, fx_rate)} |" for supplier, status, rate in rows)
+        return (
+            "The controlled synthetic Flexible Laminates RFQ contains three participating suppliers: Precision Flexibles Ltd, BarrierPack Films and Circular Laminate Solutions. "
+            "Precision Flexibles Ltd and BarrierPack Films are technically eligible; Circular Laminate Solutions is technically ineligible in the governed default decision path.\n\n"
+            "For the default PET / PE demonstration structure:\n\n"
+            "| Supplier | Governed demo status | RFQ quote in selected display currency |\n|---|---|---:|\n"
+            + body
+            + "\n\n"
+            + f"TCO evidence status: the active page is {page}. Supplier-level TCO-adjusted rates, scores, ranks and recommendations are not published by this cross-category should-cost view. "
+            "They can be reported only when the matching Flexible Laminates supplier analysis on the main application has published live scored context. "
+            "SourceMate has not calculated or inferred those outputs from the RFQ quote."
+            + fx_note
+            + " Quote values change with the selected laminate structure. These are synthetic portfolio records, not audited supplier qualification or a production award decision."
+        )
+    return None
+
+
 PROJECT_KNOWLEDGE = (
     _entry(
         "project architecture and scope",
@@ -45,7 +139,7 @@ PROJECT_KNOWLEDGE = (
             "kraft quoted rate", "kraft tco rate", "kraft paper participants",
             "how many vendors participated in kraft",
         ),
-        "The controlled synthetic Kraft Paper RFQ contains three suppliers. SourceMate does not approve or award a vendor; it reports the registered demonstration evidence. Under the default synthetic decision path, all three records participate and are technically eligible before any user-entered stress or override.\n\n| Supplier | Participation / qualification | RFQ quote | Currency | TCO-adjusted rate |\n|---|---|---:|---|---|\n| Western Fibre Mills | Participated; technically eligible in the default synthetic route | 0.84/kg | USD | Unavailable in the static cross-category registry |\n| National Kraft Industries | Participated; technically eligible in the default synthetic route | 0.96/kg | USD | Unavailable in the static cross-category registry |\n| Circular Paperworks Ltd | Participated; technically eligible in the default synthetic route; can become ineligible if governed mill-allocation or other thresholds are breached | 0.80/kg | USD | Unavailable in the static cross-category registry |\n\nA current TCO-adjusted rate is only reported when the main application has published the scored live context for Kraft Paper. It is not inferred from the quote. These are synthetic portfolio records, not audited supplier qualification or a production award decision.",
+        "Contextual supplier evidence is rendered from the registered Kraft Paper demonstration data.",
         (
             "modules/data_loader.py::get_kraft_paper_demo_suppliers",
             "modules/scoring.py::enrich_supplier_scores",
@@ -61,7 +155,7 @@ PROJECT_KNOWLEDGE = (
             "how many vendors participated in flexibles", "how many suppliers participated in flexibles",
             "flexibles vendor count", "flexible laminates vendor count", "flexibles quote",
         ),
-        "The controlled synthetic Flexible Laminates RFQ contains three participating suppliers: Precision Flexibles Ltd, BarrierPack Films and Circular Laminate Solutions. Precision Flexibles Ltd and BarrierPack Films are technically eligible under the registered application-approval, capability, continuity, utilisation and substrate-availability controls. Circular Laminate Solutions is treated as technically ineligible in the governed decision path because its continuity and operating-risk evidence breaches registered thresholds.\n\nFor the default PET / PE demonstration structure:\n\n| Supplier | Governed demo status | RFQ quote | Currency | TCO-adjusted rate |\n|---|---|---:|---|---|\n| Precision Flexibles Ltd | Eligible | 2.050/kg | USD | Unavailable in the static cross-category registry |\n| BarrierPack Films | Eligible | 2.173/kg | USD | Unavailable in the static cross-category registry |\n| Circular Laminate Solutions | Ineligible | 1.927/kg | USD | Unavailable in the static cross-category registry |\n\nThe quote changes with the selected laminate structure. A current TCO-adjusted rate, score, rank or recommendation is only reported when the main application has published that live scored context; SourceMate does not infer it from the quote. These are synthetic portfolio records, not audited supplier qualification or a production award decision.",
+        "Contextual supplier evidence is rendered from the registered Flexible Laminates demonstration data.",
         (
             "modules/data_loader.py::get_flexible_laminate_demo_suppliers",
             "modules/flexible_laminate_risk.py::assess_flexible_laminate_supplier",
@@ -189,7 +283,18 @@ def search_project_knowledge(question: str) -> list[Mapping[str, Any]]:
     if not scored:
         return []
     best = scored[0][0]
-    return [item for score, item in scored[:3] if score >= max(3, best - 3)]
+    results: list[Mapping[str, Any]] = []
+    for score, item in scored[:3]:
+        if score < max(3, best - 3):
+            continue
+        contextual_answer = _category_supplier_answer(str(item["topic"]))
+        if contextual_answer is None:
+            results.append(item)
+        else:
+            contextual_item = dict(item)
+            contextual_item["answer"] = contextual_answer
+            results.append(contextual_item)
+    return results
 
 
 def project_topic_catalogue() -> tuple[str, ...]:
