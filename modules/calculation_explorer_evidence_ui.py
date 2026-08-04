@@ -1,6 +1,7 @@
 """Business-readable Trace and Reconciliation presentation for the Explorer."""
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping, Sequence
 from typing import Any
 
@@ -28,12 +29,51 @@ def _summary_rows(payload: Mapping[str, Any] | None) -> list[dict[str, str]]:
     return rows
 
 
+def _technical_rows(value: Any, path: str = "Payload") -> list[dict[str, str]]:
+    """Flatten governed evidence into readable audit rows without changing values."""
+    rows: list[dict[str, str]] = []
+    if isinstance(value, Mapping):
+        if not value:
+            rows.append({"Evidence path": path, "Value": "No recorded fields"})
+        for key, child in value.items():
+            rows.extend(_technical_rows(child, f"{path} > {_humanize(key)}"))
+        return rows
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        if not value:
+            rows.append({"Evidence path": path, "Value": "No recorded items"})
+        for index, child in enumerate(value, start=1):
+            rows.extend(_technical_rows(child, f"{path} > Item {index}"))
+        return rows
+    display = "Not available" if value is None or value == "" else str(value)
+    rows.append({"Evidence path": path, "Value": display})
+    return rows
+
+
+def _download_json(label: str, payload: Mapping[str, Any], file_name: str) -> None:
+    st.download_button(
+        label,
+        data=json.dumps(payload, indent=2, default=str),
+        file_name=file_name,
+        mime="application/json",
+        use_container_width=True,
+    )
+
+
 def prepare_trace_presentation(trace: Mapping[str, Any]) -> dict[str, Any]:
     """Prepare readable trace summaries without changing the governed payload."""
     raw_output = trace.get("raw_output")
     input_snapshot = trace.get("input_snapshot") or {}
     intermediate_steps = trace.get("intermediate_steps") or ()
     unresolved = trace.get("unresolved_or_rejected_parameters") or ()
+    technical_payload = {
+        "input_snapshot": input_snapshot,
+        "raw_output": raw_output,
+        "intermediate_steps": intermediate_steps,
+        "unresolved_or_rejected_parameters": unresolved,
+        "blocking_rule_record": trace.get("blocking_rule_record"),
+        "recommendation_impact": trace.get("recommendation_impact"),
+        "configuration_versions": trace.get("configuration_versions"),
+    }
     return {
         "input_rows": _summary_rows(input_snapshot),
         "output_rows": _summary_rows(raw_output if isinstance(raw_output, Mapping) else {}),
@@ -44,15 +84,8 @@ def prepare_trace_presentation(trace: Mapping[str, Any]) -> dict[str, Any]:
             "Recommendation impact": trace.get("recommendation_impact") or "No direct impact recorded",
             "Configuration evidence": trace.get("configuration_versions_status") or "Not available",
         },
-        "technical_payload": {
-            "input_snapshot": input_snapshot,
-            "raw_output": raw_output,
-            "intermediate_steps": intermediate_steps,
-            "unresolved_or_rejected_parameters": unresolved,
-            "blocking_rule_record": trace.get("blocking_rule_record"),
-            "recommendation_impact": trace.get("recommendation_impact"),
-            "configuration_versions": trace.get("configuration_versions"),
-        },
+        "technical_payload": technical_payload,
+        "technical_rows": _technical_rows(technical_payload),
     }
 
 
@@ -63,6 +96,13 @@ def prepare_reconciliation_presentation(item: Mapping[str, Any]) -> dict[str, An
     mismatches = item.get("mismatches") or ()
     unavailable = item.get("unavailable_evidence") or ()
     tolerance_rules = item.get("tolerance_rules") or ()
+    technical_payload = {
+        "exact_matches": exact,
+        "tolerated_differences": tolerated,
+        "mismatches": mismatches,
+        "unavailable_evidence": unavailable,
+        "tolerance_rules": tolerance_rules,
+    }
     rows = [
         {"Evidence class": "Exact matches", "Count": len(exact), "Review meaning": "Authoritative and compared evidence align."},
         {"Evidence class": "Tolerated differences", "Count": len(tolerated), "Review meaning": "Difference is within an approved tolerance rule."},
@@ -72,13 +112,8 @@ def prepare_reconciliation_presentation(item: Mapping[str, Any]) -> dict[str, An
     return {
         "rows": rows,
         "review_required": bool(mismatches or unavailable),
-        "technical_payload": {
-            "exact_matches": exact,
-            "tolerated_differences": tolerated,
-            "mismatches": mismatches,
-            "unavailable_evidence": unavailable,
-            "tolerance_rules": tolerance_rules,
-        },
+        "technical_payload": technical_payload,
+        "technical_rows": _technical_rows(technical_payload),
     }
 
 
@@ -120,8 +155,9 @@ def render_readable_trace(presentation: Mapping[str, Any]) -> None:
     )
 
     with st.expander("Technical trace evidence", expanded=False):
-        st.json(prepared["technical_payload"])
-        st.caption("Exact governed trace payload retained for technical audit. The readable summary does not replace trace authority.")
+        st.dataframe(pd.DataFrame(prepared["technical_rows"]), use_container_width=True, hide_index=True)
+        _download_json("Download exact trace evidence (JSON)", prepared["technical_payload"], "calculation_trace_evidence.json")
+        st.caption("Exact governed trace values are retained for audit. The table is presentation-only and does not replace trace authority.")
 
 
 def render_readable_reconciliation(presentation: Mapping[str, Any]) -> None:
@@ -156,5 +192,10 @@ def render_readable_reconciliation(presentation: Mapping[str, Any]) -> None:
         st.caption("No mismatch or unavailable-evidence condition is present in this reconciliation record.")
 
     with st.expander("Technical reconciliation evidence", expanded=False):
-        st.json(prepared["technical_payload"])
-        st.caption("Exact reconciliation arrays retained for technical audit. The readable assessment does not change classification authority.")
+        st.dataframe(pd.DataFrame(prepared["technical_rows"]), use_container_width=True, hide_index=True)
+        _download_json(
+            "Download exact reconciliation evidence (JSON)",
+            prepared["technical_payload"],
+            "calculation_reconciliation_evidence.json",
+        )
+        st.caption("Exact reconciliation values are retained for audit. The table does not change classification authority.")
