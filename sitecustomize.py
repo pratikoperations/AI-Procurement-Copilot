@@ -1,4 +1,4 @@
-"""Global SourceMate bootstrap for Streamlit entry points.
+"""Global presentation bootstrap for Streamlit entry points.
 
 The bootstrap wraps presentation hooks only. Existing business functions remain
 authoritative and their return values are passed through unchanged.
@@ -66,6 +66,24 @@ def _install() -> None:
             enrich_supplier_scores_with_context._aipc_global_sourcemate = True
             scoring.enrich_supplier_scores = enrich_supplier_scores_with_context
     except Exception:
+        pass
+
+    try:
+        from modules import dashboard
+        from modules.decision_clarity_ui import render_decision_clarity
+
+        if not getattr(dashboard.render_executive_dashboard, "_aipc_decision_clarity", False):
+            original_dashboard = dashboard.render_executive_dashboard
+
+            def render_executive_dashboard_with_clarity(scored_df, assumptions, confidence=None):
+                render_decision_clarity(scored_df, assumptions, confidence)
+                with st.expander("Detailed executive dashboard", expanded=False):
+                    return original_dashboard(scored_df, assumptions, confidence)
+
+            render_executive_dashboard_with_clarity._aipc_decision_clarity = True
+            dashboard.render_executive_dashboard = render_executive_dashboard_with_clarity
+    except Exception:
+        # The clarity layer is presentation-only and must never block the application.
         pass
 
     try:
