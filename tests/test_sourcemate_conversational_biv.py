@@ -124,7 +124,7 @@ def test_streamlit_ui_uses_chat_contract_and_session_only_history():
     assert "st.chat_message(" in source
     assert "st.session_state" in source
     assert "Clear conversation" in source
-    assert "No web browsing" in source
+    assert "does not browse the web" in source
     assert "render_sourcemate_conversation(presentation)" in page
 
 
