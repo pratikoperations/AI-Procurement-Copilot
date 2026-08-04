@@ -4,10 +4,22 @@ from pathlib import Path
 
 import pandas as pd
 
-from modules.supplier_intelligence_currency_ui import build_supplier_intelligence_display_frame
+from modules.supplier_intelligence_currency_ui import (
+    build_supplier_intelligence_currency_frames,
+    build_supplier_intelligence_display_frame,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
+AUDIT_LABELS = {
+    "Original Quote Currency",
+    "Original Quote Unit Price",
+    "Canonical Comparison Currency",
+    "Canonical Comparison Unit Price",
+    "FX Rate Used (INR/USD)",
+    "Unit of Measure",
+    "Canonical Comparison Basis",
+}
 
 
 def _comparison_frame():
@@ -30,7 +42,7 @@ def _comparison_frame():
     ])
 
 
-def test_usd_mode_derives_quoted_price_and_preserves_audit_metadata():
+def test_usd_mode_keeps_only_usd_business_values_in_main_frame():
     source = _comparison_frame()
     original = source.copy(deep=True)
 
@@ -39,13 +51,13 @@ def test_usd_mode_derives_quoted_price_and_preserves_audit_metadata():
     assert result.loc[0, "Quoted Price (USD)"] == 1.25
     assert result.loc[0, "Risk-Adjusted TCO (USD)"] == 1.50
     assert "Quoted Price (INR)" not in result.columns
-    assert result.loc[0, "Normalized Unit Price"] == 1.25
-    assert result.loc[0, "Original Currency"] == "USD"
-    assert result.loc[0, "Normalized Currency"] == "USD"
+    assert not AUDIT_LABELS.intersection(result.columns)
+    assert "Original Currency" not in result.columns
+    assert "Normalized Unit Price" not in result.columns
     pd.testing.assert_frame_equal(source, original)
 
 
-def test_inr_mode_derives_business_values_once_and_hides_business_usd_columns():
+def test_inr_mode_derives_business_values_once_and_hides_all_usd_audit_fields():
     source = _comparison_frame()
     original = source.copy(deep=True)
 
@@ -55,20 +67,20 @@ def test_inr_mode_derives_business_values_once_and_hides_business_usd_columns():
     assert "Risk-Adjusted TCO (USD)" not in result.columns
     assert result.loc[0, "Quoted Price (INR)"] == 103.75
     assert result.loc[0, "Risk-Adjusted TCO (INR)"] == 124.5
-    assert result.loc[0, "Original Unit Price"] == 1.25
-    assert result.loc[0, "Normalized Unit Price"] == 1.25
-    assert result.loc[0, "FX Rate Used"] == 83.0
+    assert "Original Currency" not in result.columns
+    assert "Normalized Currency" not in result.columns
+    assert "Comparison Basis" not in result.columns
     pd.testing.assert_frame_equal(source, original)
 
 
-def test_both_mode_shows_separate_usd_and_inr_business_columns():
+def test_both_mode_shows_separate_usd_and_inr_business_columns_only():
     result = build_supplier_intelligence_display_frame(_comparison_frame(), "Both", 83)
 
     assert result.loc[0, "Quoted Price (USD)"] == 1.25
     assert result.loc[0, "Quoted Price (INR)"] == 103.75
     assert result.loc[0, "Risk-Adjusted TCO (USD)"] == 1.50
     assert result.loc[0, "Risk-Adjusted TCO (INR)"] == 124.5
-    assert result.loc[0, "Normalized Unit Price"] == 1.25
+    assert "Normalized Unit Price" not in result.columns
 
 
 def test_invalid_display_mode_falls_back_to_usd():
@@ -95,16 +107,20 @@ def test_precomputed_display_columns_are_rebuilt_without_duplicates_or_double_co
     assert "Risk-Adjusted TCO (USD)" not in result.columns
 
 
-def test_audit_metadata_is_unchanged_in_inr_mode():
-    result = build_supplier_intelligence_display_frame(_comparison_frame(), "INR", 83)
+def test_currency_audit_frame_preserves_original_and_canonical_metadata():
+    business, audit = build_supplier_intelligence_currency_frames(_comparison_frame(), "INR", 83)
 
-    assert result.loc[0, "Original Currency"] == "USD"
-    assert result.loc[0, "Original Unit Price"] == 1.25
-    assert result.loc[0, "Normalized Currency"] == "USD"
-    assert result.loc[0, "Normalized Unit Price"] == 1.25
-    assert result.loc[0, "FX Rate Used"] == 83.0
-    assert result.loc[0, "Unit of Measure"] == "piece"
-    assert result.loc[0, "Comparison Basis"] == "USD/piece"
+    assert "Original Currency" not in business.columns
+    assert "Normalized Unit Price" not in business.columns
+    assert audit.loc[0, "Supplier"] == "Supplier A"
+    assert audit.loc[0, "Display Currency"] == "INR"
+    assert audit.loc[0, "Original Quote Currency"] == "USD"
+    assert audit.loc[0, "Original Quote Unit Price"] == 1.25
+    assert audit.loc[0, "Canonical Comparison Currency"] == "USD"
+    assert audit.loc[0, "Canonical Comparison Unit Price"] == 1.25
+    assert audit.loc[0, "FX Rate Used (INR/USD)"] == 83.0
+    assert audit.loc[0, "Unit of Measure"] == "piece"
+    assert audit.loc[0, "Canonical Comparison Basis"] == "USD/piece"
 
 
 def test_inr_business_columns_are_first_after_supplier_for_mobile_visibility():
@@ -115,11 +131,9 @@ def test_inr_business_columns_are_first_after_supplier_for_mobile_visibility():
         "Quoted Price (INR)",
         "Risk-Adjusted TCO (INR)",
     ]
-    assert result.columns.get_loc("Quoted Price (INR)") < result.columns.get_loc("Original Currency")
-    assert result.columns.get_loc("Risk-Adjusted TCO (INR)") < result.columns.get_loc("Normalized Currency")
 
 
-def test_both_mode_prioritizes_all_business_currency_columns_before_audit_metadata():
+def test_both_mode_prioritizes_all_business_currency_columns():
     result = build_supplier_intelligence_display_frame(_comparison_frame(), "Both", 83)
 
     assert list(result.columns[:5]) == [
@@ -129,7 +143,6 @@ def test_both_mode_prioritizes_all_business_currency_columns_before_audit_metada
         "Quoted Price (INR)",
         "Risk-Adjusted TCO (INR)",
     ]
-    assert result.columns.get_loc("Risk-Adjusted TCO (INR)") < result.columns.get_loc("Original Currency")
 
 
 def test_app_passes_display_currency_and_fx_rate_to_supplier_intelligence():
@@ -138,6 +151,15 @@ def test_app_passes_display_currency_and_fx_rate_to_supplier_intelligence():
     assert "from modules.supplier_intelligence_currency_ui import render_supplier_intelligence" in source
     assert "display_currency=display_currency" in source
     assert "fx_rate=fx_rate" in source
+
+
+def test_currency_wrapper_delegates_audit_frame_without_bottom_expander():
+    source = (ROOT / "modules" / "supplier_intelligence_currency_ui.py").read_text(encoding="utf-8")
+
+    assert "currency_audit_df=audit_frame" in source
+    assert "display_currency=mode" in source
+    assert 'st.expander("Currency normalization and audit trail"' not in source
+    assert "st.dataframe(audit_frame" not in source
 
 
 def test_supplier_selector_and_recommendation_logic_remain_in_original_ui():
