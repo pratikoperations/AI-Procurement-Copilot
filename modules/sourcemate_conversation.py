@@ -17,7 +17,7 @@ from modules.sourcemate_project_knowledge import (
     search_project_knowledge,
 )
 
-SOURCEMATE_CONVERSATION_CONTRACT = "AIPC-SOURCEMATE-GLOBAL-PROJECT-BIV-1.0"
+SOURCEMATE_CONVERSATION_CONTRACT = "AIPC-SOURCEMATE-PROJECT-WIDGET-BIV-1.0"
 SUPPORTED_INTENTS = (
     "live_supplier_results",
     "calculation",
@@ -90,8 +90,6 @@ def classify_intent(question: str, presentation: Mapping[str, Any] | None = None
         return "evidence"
     if any(term in text for term in ("selected calculation", "current result", "current calculation", "target unit cost")):
         return "calculation"
-    if _glossary_matches(text) and any(term in text for term in ("stand for", "stands for", "meaning", "mean", "abbreviation", "define", "what is")):
-        return "glossary"
     if search_project_knowledge(text):
         return "project_knowledge"
     if _glossary_matches(text):
