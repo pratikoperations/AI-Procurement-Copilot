@@ -36,6 +36,7 @@ def test_trace_summary_humanizes_raw_output_without_mutating_payload():
     assert prepared["intermediate_count"] == 0
     assert prepared["unresolved_count"] == 0
     assert prepared["technical_payload"]["raw_output"] is raw_output
+    assert any(row["Evidence path"].endswith("Target Unit Cost Usd") for row in prepared["technical_rows"])
 
 
 def test_reconciliation_summary_explains_counts_and_retains_exact_arrays():
@@ -56,6 +57,7 @@ def test_reconciliation_summary_explains_counts_and_retains_exact_arrays():
     }
     assert prepared["review_required"] is False
     assert prepared["technical_payload"]["exact_matches"] == ("$raw_output",)
+    assert any(row["Value"] == "$raw_output" for row in prepared["technical_rows"])
 
 
 def test_reconciliation_flags_mismatch_or_unavailable_evidence_for_review():
@@ -79,10 +81,12 @@ def test_hosted_wrapper_uses_readable_evidence_renderers():
     assert '"Reconciliation": _render_reconciliation' not in source
 
 
-def test_raw_evidence_remains_only_in_collapsed_technical_expanders():
+def test_technical_evidence_uses_tables_and_downloads_not_visible_raw_json():
     source = Path("modules/calculation_explorer_evidence_ui.py").read_text(encoding="utf-8")
 
     assert 'st.expander("Technical trace evidence", expanded=False)' in source
     assert 'st.expander("Technical reconciliation evidence", expanded=False)' in source
-    assert "Exact governed trace payload retained for technical audit" in source
-    assert "Exact reconciliation arrays retained for technical audit" in source
+    assert "Download exact trace evidence (JSON)" in source
+    assert "Download exact reconciliation evidence (JSON)" in source
+    assert "st.json(" not in source
+    assert "technical_rows" in source
