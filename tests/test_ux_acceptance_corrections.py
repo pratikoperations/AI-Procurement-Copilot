@@ -59,7 +59,7 @@ def test_nested_audit_payload_is_flattened_to_business_readable_rows():
     rows = flatten_evidence_rows(payload)
     fields = {row["Evidence field"]: row["Value"] for row in rows}
 
-    assert fields["Raw Output › Target Unit Cost Usd"] == "1.27"
+    assert fields["Raw Output › Target Unit Cost USD"] == "1.27"
     assert fields["Raw Output › Approved"] == "No"
     assert fields["Warnings › Item 1"] == "Human review required"
     assert fields["Missing"] == "Not available"
