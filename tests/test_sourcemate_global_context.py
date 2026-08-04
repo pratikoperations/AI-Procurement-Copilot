@@ -125,18 +125,36 @@ def test_all_streamlit_entry_points_use_page_config_for_global_bootstrap():
         assert "st.set_page_config" in path.read_text(encoding="utf-8")
 
 
-def test_widget_uses_shared_history_and_exactly_once_guard():
+def test_widget_uses_shared_history_rerun_token_and_persistent_panel():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
     assert '_SESSION_KEY = "sourcemate_conversation_history"' in source
-    assert "reset_global_mount_guard" in source
-    assert "if _RENDERED_THIS_RUN:" in source
+    assert '_OPEN_KEY = "sourcemate_widget_open"' in source
+    assert "get_script_run_ctx" in source
+    assert "_current_render_token" in source
+    assert "_LAST_RENDER_TOKEN == render_token" in source
     assert "publish_selected_presentation(presentation)" in source
+    assert "sourcemate_widget_launcher" in source
+    assert "sourcemate_widget_panel" in source
+    assert "position: fixed" in source
     assert "overflow-x: auto" in source
+    assert "st.popover(" not in source
 
 
-def test_submit_renders_exchange_without_second_forced_rerun():
+def test_submit_keeps_panel_open_and_does_not_force_rerun():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
     submit_block = source.split("if not submitted:", 1)[1]
     assert "sourcemate_widget_submitted_exchange" in submit_block
     assert "for message in exchange:" in submit_block
+    assert "st.session_state[_OPEN_KEY] = True" in submit_block
     assert "st.rerun()" not in submit_block
+
+
+def test_launcher_and_panel_controls_use_session_state_callbacks():
+    source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
+    assert "def _toggle_panel()" in source
+    assert "def _close_panel()" in source
+    assert 'key="sourcemate_launcher_toggle"' in source
+    assert 'key="sourcemate_panel_close"' in source
+    assert "on_click=_toggle_panel" in source
+    assert "on_click=_close_panel" in source
+    assert "The panel stays open after Send" in source
