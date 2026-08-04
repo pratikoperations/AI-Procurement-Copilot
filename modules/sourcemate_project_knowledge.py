@@ -44,6 +44,12 @@ PROJECT_KNOWLEDGE = (
         ("modules/category_engine.py", "modules/category_cost_router.py", "pages/8_Governed_Calculation_Explorer.py"),
     ),
     _entry(
+        "flexible laminates supplier qualification",
+        ("flexibles vendor", "flexible vendor", "flexibles supplier", "flexible laminates supplier", "qualified for flexibles", "vendor qualified for flexibles", "which vendor qualified"),
+        "For the controlled synthetic Flexible Laminates demonstration, Precision Flexibles Ltd and BarrierPack Films are technically eligible under the registered application-approval, capability, continuity, utilisation and substrate-availability controls. Circular Laminate Solutions is treated as technically ineligible in the governed decision path because its continuity and operating-risk evidence breaches registered thresholds.\n\n| Supplier | Governed demo status | Explanation |\n|---|---|---|\n| Precision Flexibles Ltd | Eligible | Approved application with qualifying capability and continuity evidence. |\n| BarrierPack Films | Eligible | Approved application with qualifying capability and continuity evidence. |\n| Circular Laminate Solutions | Ineligible | Fails registered technical continuity or risk thresholds in the controlled demo. |\n\nThese are synthetic portfolio records, not audited supplier qualification or a production award decision.",
+        ("modules/data_loader.py::get_flexible_laminate_demo_suppliers", "modules/flexible_laminate_risk.py::assess_flexible_laminate_supplier", "tests/test_c2_decision_path.py"),
+    ),
+    _entry(
         "should-cost methodology",
         ("should cost", "should-cost", "cost formula", "target cost", "cost breakdown"),
         "Should-cost outputs are produced by existing deterministic category services. The Governed Calculation Explorer presents the authoritative result, registered assumptions, trace and reconciliation. Formula metadata is explanatory and non-executable; SourceMate only explains existing outputs.",
@@ -69,14 +75,14 @@ PROJECT_KNOWLEDGE = (
     ),
     _entry(
         "supplier relationship management classification",
-        ("srm", "srm rating", "srm classification", "relationship rating", "strategic supplier", "preferred supplier", "bifurcation"),
-        "The SRM strategic index uses supplier performance 25%, risk score 20%, innovation 15%, ESG maturity 10%, financial stability 10%, business criticality 10%, switching difficulty 5% and supplier concentration 5%. Hard overrides classify a supplier as Exit Candidate when performance is below 45, risk is below 40 or financial stability is below 35; Development applies when performance is below 60 or risk below 55. Otherwise Strategic requires strategic index at least 80 and criticality at least 70; Preferred requires at least 70; Approved at least 58; lower results are Transactional. Each class has a defined governance cadence and relationship strategy.",
+        ("srm", "srm rating", "srm criteria", "srm score", "srm classification", "relationship rating", "strategic supplier", "preferred supplier", "bifurcation"),
+        "SRM means Supplier Relationship Management. The governed strategic index is structured as follows:\n\n| Particular | Weight |\n|---|---:|\n| Supplier performance | 25% |\n| Risk score | 20% |\n| Innovation | 15% |\n| ESG maturity | 10% |\n| Financial stability | 10% |\n| Business criticality | 10% |\n| Switching difficulty | 5% |\n| Supplier concentration | 5% |\n\nClassification rules:\n\n| Classification | Governed rule |\n|---|---|\n| Exit Candidate | Performance below 45, risk below 40, or financial stability below 35 |\n| Development | Performance below 60 or risk below 55 |\n| Strategic | Strategic index at least 80 and business criticality at least 70 |\n| Preferred | Strategic index at least 70 |\n| Approved | Strategic index at least 58 |\n| Transactional | Remaining suppliers below the Approved threshold |\n\nEach class has a defined governance cadence and relationship strategy. Human review remains mandatory.",
         ("modules/srm_engine.py::classify_supplier_relationship",),
     ),
     _entry(
         "financial ESG and innovation intelligence",
-        ("financial", "financial health", "esg", "sustainability", "innovation", "supplier intelligence"),
-        "Supplier 360 combines financial-stability indicators, ESG maturity, innovation evidence, performance and SRM classification. These are portfolio decision-support indicators based on supplied or synthetic evidence; they are not independent credit ratings, legal certifications or external ESG assurance.",
+        ("financial", "financial health", "esg", "what esg stands for", "esg meaning", "environmental social governance", "sustainability", "innovation", "supplier intelligence"),
+        "ESG stands for Environmental, Social and Governance.\n\n| Dimension | Procurement meaning in this project |\n|---|---|\n| Environmental | Carbon, recyclability, PCR content, EPR readiness and related sustainability indicators. |\n| Social | Supplier practices and continuity-related evidence represented by the available portfolio data; this is not an independent social audit. |\n| Governance | Certifications, controls, review evidence and governed supplier-management indicators. |\n\nSupplier 360 combines financial-stability indicators, ESG maturity, innovation evidence, performance and SRM classification. These are portfolio decision-support indicators based on supplied or synthetic evidence; they are not independent credit ratings, legal certifications or external ESG assurance.",
         ("modules/supplier_financial_engine.py", "modules/supplier_esg_intelligence.py", "modules/supplier_innovation_engine.py", "modules/supplier360_engine.py"),
     ),
     _entry(
