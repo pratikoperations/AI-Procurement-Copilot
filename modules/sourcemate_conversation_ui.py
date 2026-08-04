@@ -89,6 +89,16 @@ def clear_sourcemate_history() -> None:
     st.session_state[_SESSION_KEY] = []
 
 
+def _render_message(message: Mapping[str, Any]) -> None:
+    with st.chat_message(str(message["role"])):
+        st.markdown(str(message["content"]))
+        refs = message.get("evidence_references") or []
+        if refs:
+            st.caption("Evidence references: " + " | ".join(str(item) for item in refs))
+        if message.get("role") == "assistant":
+            st.caption("Repository/live-context explanation. Human procurement review required.")
+
+
 def _render_history(history: list[dict[str, Any]]) -> None:
     with st.container(key="sourcemate_widget_history"):
         if not history:
@@ -98,13 +108,7 @@ def _render_history(history: list[dict[str, Any]]) -> None:
                     "recommendations, allocation, calculations, terms, abbreviations, evidence or governance."
                 )
         for message in history:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
-                refs = message.get("evidence_references") or []
-                if refs:
-                    st.caption("Evidence references: " + " | ".join(refs))
-                if message.get("role") == "assistant":
-                    st.caption("Repository/live-context explanation. Human procurement review required.")
+            _render_message(message)
 
 
 def render_sourcemate_conversation(
@@ -161,19 +165,24 @@ def render_sourcemate_conversation(
                 return
 
             response = answer_question(question, current_context())
-            history.extend(
-                [
-                    {"role": "user", "content": question},
-                    {
-                        "role": "assistant",
-                        "content": response["answer"],
-                        "evidence_references": response["evidence_references"],
-                        "intent": response["intent"],
-                        "human_review_required": response["human_review_required"],
-                    },
-                ]
-            )
+            exchange = [
+                {"role": "user", "content": question},
+                {
+                    "role": "assistant",
+                    "content": response["answer"],
+                    "evidence_references": response["evidence_references"],
+                    "intent": response["intent"],
+                    "human_review_required": response["human_review_required"],
+                },
+            ]
+            history.extend(exchange)
             if len(history) > _MAX_MESSAGES:
                 del history[:-_MAX_MESSAGES]
             st.session_state[_SESSION_KEY] = history
-            st.rerun()
+
+            # Form submission has already started the current Streamlit rerun.
+            # Render the new exchange in this run instead of forcing a second rerun,
+            # which can remove the globally mounted popover from the visible page.
+            with st.container(key="sourcemate_widget_submitted_exchange"):
+                for message in exchange:
+                    _render_message(message)
