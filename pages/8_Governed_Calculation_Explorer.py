@@ -15,6 +15,7 @@ from modules.data_loader import get_demo_suppliers
 from modules.flexible_laminate_cost import calculate_flexible_laminate_should_cost
 from modules.raw_material_cost import calculate_raw_material_should_cost
 from modules.should_cost import calculate_packaging_should_cost
+from modules.sourcemate_conversation_ui import render_sourcemate_conversation
 from modules.steel_cost import calculate_steel_should_cost
 from modules.tco import calculate_supplier_tco
 
@@ -184,6 +185,7 @@ render_currency_aware_calculation_explorer(
     display_currency=display_currency,
     fx_rate=fx_rate,
 )
+render_sourcemate_conversation(presentation)
 
 st.markdown("---")
 st.caption(
