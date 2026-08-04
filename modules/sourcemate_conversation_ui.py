@@ -1,4 +1,4 @@
-"""Bottom-right Streamlit widget for project-wide SourceMate."""
+"""Bottom-right Streamlit widget for global project-wide SourceMate."""
 from __future__ import annotations
 
 from collections.abc import Mapping
@@ -10,9 +10,11 @@ from modules.sourcemate_conversation import (
     SOURCEMATE_CONVERSATION_CONTRACT,
     answer_question,
 )
+from modules.sourcemate_global_context import current_context, publish_selected_presentation
 
 _SESSION_KEY = "sourcemate_conversation_history"
 _MAX_MESSAGES = 16
+_RENDERED_THIS_RUN = False
 
 _WIDGET_CSS = """
 <style>
@@ -32,16 +34,22 @@ _WIDGET_CSS = """
     font-weight: 700;
 }
 div[data-testid="stPopoverBody"] {
-    width: min(420px, calc(100vw - 1rem));
-    max-width: min(420px, calc(100vw - 1rem));
-    max-height: min(72vh, 680px);
+    width: min(440px, calc(100vw - 1rem));
+    max-width: min(440px, calc(100vw - 1rem));
+    max-height: min(76vh, 720px);
     overflow-y: auto;
     overscroll-behavior: contain;
 }
 .st-key-sourcemate_widget_history {
-    max-height: 42vh;
+    max-height: 46vh;
     overflow-y: auto;
     padding-right: 0.2rem;
+}
+.st-key-sourcemate_widget_history table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
 }
 @media (max-width: 640px) {
     .st-key-sourcemate_widget_shell {
@@ -52,14 +60,20 @@ div[data-testid="stPopoverBody"] {
     div[data-testid="stPopoverBody"] {
         width: calc(100vw - 1rem);
         max-width: calc(100vw - 1rem);
-        max-height: 68vh;
+        max-height: 70vh;
     }
     .st-key-sourcemate_widget_history {
-        max-height: 34vh;
+        max-height: 38vh;
     }
 }
 </style>
 """
+
+
+def reset_global_mount_guard() -> None:
+    """Reset the per-script-run duplicate-render guard."""
+    global _RENDERED_THIS_RUN
+    _RENDERED_THIS_RUN = False
 
 
 def _history() -> list[dict[str, Any]]:
@@ -80,31 +94,46 @@ def _render_history(history: list[dict[str, Any]]) -> None:
         if not history:
             with st.chat_message("assistant"):
                 st.write(
-                    "Ask about this project: calculations, TCO, risk, scoring, SRM, supplier intelligence, allocation, "
-                    "scenarios, RFQ, currency, evidence, governance or limitations."
+                    "Ask about live supplier results, RFQ quotations, TCO-adjusted rates, qualification, scores, ranks, "
+                    "recommendations, allocation, calculations, terms, abbreviations, evidence or governance."
                 )
         for message in history:
             with st.chat_message(message["role"]):
-                st.write(message["content"])
+                st.markdown(message["content"])
                 refs = message.get("evidence_references") or []
                 if refs:
                     st.caption("Evidence references: " + " | ".join(refs))
                 if message.get("role") == "assistant":
-                    st.caption("Repository-grounded explanation. Human procurement review required.")
+                    st.caption("Repository/live-context explanation. Human procurement review required.")
 
 
-def render_sourcemate_conversation(presentation: Mapping[str, Any]) -> None:
-    """Render a persistent bottom-right SourceMate launcher and popover panel."""
+def render_sourcemate_conversation(
+    presentation: Mapping[str, Any] | None = None,
+    *,
+    global_mount: bool = False,
+) -> None:
+    """Render exactly one persistent SourceMate launcher on the active page."""
+    global _RENDERED_THIS_RUN
+
+    if presentation:
+        publish_selected_presentation(presentation)
+    if _RENDERED_THIS_RUN:
+        return
+    _RENDERED_THIS_RUN = True
+
+    context = current_context()
     st.markdown(_WIDGET_CSS, unsafe_allow_html=True)
     with st.container(key="sourcemate_widget_shell"):
         with st.popover("💬 SourceMate"):
             st.markdown("#### SourceMate — Project Assistant")
             st.caption(
-                f"Contract {SOURCEMATE_CONVERSATION_CONTRACT}. Read-only and grounded in selected live evidence or the governed project registry."
+                f"Contract {SOURCEMATE_CONVERSATION_CONTRACT}. Read-only, available across pages, and grounded in "
+                "current live context or the governed project registry."
             )
+            st.caption(f"Active page: {context.get('active_page', 'Unknown page')}")
             with st.expander("Evidence and authority boundaries", expanded=False):
                 st.write(
-                    "No web browsing, external evidence retrieval, formula execution, autonomous recommendation, supplier approval, "
+                    "No web browsing, external evidence retrieval, hidden recalculation, autonomous recommendation, supplier approval, "
                     "award, production allocation or ERP writeback. Human procurement review remains mandatory."
                 )
 
@@ -114,7 +143,7 @@ def render_sourcemate_conversation(presentation: Mapping[str, Any]) -> None:
             with st.form("sourcemate_widget_form", clear_on_submit=True):
                 question = st.text_input(
                     "Ask SourceMate",
-                    placeholder="Ask about TCO, SRM, scoring, allocation, RFQ or the selected calculation",
+                    placeholder="Ask about a supplier, RFQ quote, TCO, score, rank, formula or abbreviation",
                     label_visibility="collapsed",
                 )
                 submitted = st.form_submit_button("Send", use_container_width=True)
@@ -131,7 +160,7 @@ def render_sourcemate_conversation(presentation: Mapping[str, Any]) -> None:
                 st.warning("Enter a project-related question.")
                 return
 
-            response = answer_question(question, presentation)
+            response = answer_question(question, current_context())
             history.extend(
                 [
                     {"role": "user", "content": question},
