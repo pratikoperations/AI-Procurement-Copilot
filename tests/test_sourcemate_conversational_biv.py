@@ -109,11 +109,12 @@ def test_tco_question_returns_registered_percentages_and_sources():
 def test_srm_question_returns_weights_thresholds_and_bifurcation():
     response = answer_question("Give SRM rating bifurcation", _presentation())
     assert response["intent"] == "project_knowledge"
-    assert "supplier performance 25%" in response["answer"]
-    assert "risk score 20%" in response["answer"]
-    assert "innovation 15%" in response["answer"]
-    assert "Strategic requires strategic index at least 80" in response["answer"]
-    assert "Exit Candidate" in response["answer"]
+    assert "| Particular | Weight |" in response["answer"]
+    assert "| Supplier performance | 25% |" in response["answer"]
+    assert "| Risk score | 20% |" in response["answer"]
+    assert "| Innovation | 15% |" in response["answer"]
+    assert "| Strategic | Strategic index at least 80" in response["answer"]
+    assert "| Exit Candidate |" in response["answer"]
     assert "modules/srm_engine.py::classify_supplier_relationship" in response["evidence_references"]
 
 
