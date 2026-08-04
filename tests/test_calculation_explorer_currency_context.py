@@ -52,7 +52,7 @@ def test_usd_mode_preserves_business_values_and_units():
     assert prepared["principal"]["value"] == "1.27"
     assert prepared["principal"]["unit"] == "USD/kg"
     rows = {row["Component"]: row for row in prepared["components"]}
-    assert rows["Freight"]["value"] if False else rows["Freight"]["Value"] == "0.05"
+    assert rows["Freight"]["Value"] == "0.05"
     assert rows["Freight"]["Unit"] == "USD/kg"
 
 
