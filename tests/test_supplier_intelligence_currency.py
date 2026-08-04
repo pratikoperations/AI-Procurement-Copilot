@@ -153,12 +153,13 @@ def test_app_passes_display_currency_and_fx_rate_to_supplier_intelligence():
     assert "fx_rate=fx_rate" in source
 
 
-def test_supplier_currency_wrapper_renders_collapsed_audit_section():
+def test_currency_wrapper_delegates_audit_frame_without_bottom_expander():
     source = (ROOT / "modules" / "supplier_intelligence_currency_ui.py").read_text(encoding="utf-8")
 
-    assert 'st.expander("Currency normalization and audit trail", expanded=False)' in source
-    assert "Canonical comparison remains in USD" in source
-    assert "st.dataframe(audit_frame" in source
+    assert "currency_audit_df=audit_frame" in source
+    assert "display_currency=mode" in source
+    assert 'st.expander("Currency normalization and audit trail"' not in source
+    assert "st.dataframe(audit_frame" not in source
 
 
 def test_supplier_selector_and_recommendation_logic_remain_in_original_ui():
