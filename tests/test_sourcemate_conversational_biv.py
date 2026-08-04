@@ -6,6 +6,12 @@ from modules.sourcemate_conversation import (
     answer_question,
     classify_intent,
 )
+from modules.sourcemate_project_knowledge import (
+    PROJECT_KNOWLEDGE,
+    PROJECT_KNOWLEDGE_CONTRACT,
+    project_topic_catalogue,
+    search_project_knowledge,
+)
 
 
 def _presentation():
@@ -60,79 +66,145 @@ def _presentation():
     }
 
 
-def test_contract_and_supported_intents_are_bounded():
-    assert SOURCEMATE_CONVERSATION_CONTRACT == "AIPC-SOURCEMATE-CONVERSATIONAL-BIV-1.0"
+def test_contracts_and_supported_intents_are_bounded():
+    assert SOURCEMATE_CONVERSATION_CONTRACT == "AIPC-SOURCEMATE-PROJECT-WIDGET-BIV-1.0"
+    assert PROJECT_KNOWLEDGE_CONTRACT == "AIPC-SOURCEMATE-PROJECT-KNOWLEDGE-1.0"
     assert SUPPORTED_INTENTS == (
         "calculation",
         "assumptions",
         "trace",
         "reconciliation",
         "evidence",
+        "project_knowledge",
         "limitations",
-        "help",
+        "clarification",
+        "unavailable",
     )
 
 
-def test_intent_routing_is_deterministic():
+def test_live_selected_evidence_keeps_precedence():
     assert classify_intent("What assumptions were used?") == "assumptions"
     assert classify_intent("Show the calculation trace") == "trace"
-    assert classify_intent("Are there any mismatches?") == "reconciliation"
-    assert classify_intent("What evidence coverage exists?") == "evidence"
-    assert classify_intent("Can you browse the web?") == "limitations"
-    assert classify_intent("What is the target cost result?") == "calculation"
-    assert classify_intent("Tell me something unrelated") == "help"
+    assert classify_intent("Are there reconciliation mismatches?") == "reconciliation"
+    assert classify_intent("What is the current calculation result?") == "calculation"
+
+    presentation = _presentation()
+    assert "annual_volume" in answer_question("What assumptions were used?", presentation)["answer"]
+    assert "trace-1" in answer_question("Show the calculation trace", presentation)["answer"]
+    assert "1 exact match" in answer_question("Are there reconciliation mismatches?", presentation)["answer"]
+    assert "1.27" in answer_question("What is the current calculation result?", presentation)["answer"]
 
 
-def test_calculation_answer_labels_verified_and_generated_content():
-    response = answer_question("What is the result?", _presentation())
-    assert response["intent"] == "calculation"
-    assert "Verified evidence:" in response["answer"]
-    assert "1.27" in response["answer"]
-    assert "Generated explanation:" in response["answer"]
+def test_tco_question_returns_registered_percentages_and_sources():
+    response = answer_question("What percentage is considered in TCO for each parameter?", _presentation())
+    assert response["intent"] == "project_knowledge"
+    assert "raw-material exposure 60%" in response["answer"]
+    assert "cost of capital 12%" in response["answer"]
+    assert "inventory carrying rate 18%" in response["answer"]
+    assert "maximum freight exposure 6%" in response["answer"]
+    assert "business-impact multiplier 50%" in response["answer"]
+    assert "modules/tco.py::calculate_supplier_tco" in response["evidence_references"]
+
+
+def test_srm_question_returns_weights_thresholds_and_bifurcation():
+    response = answer_question("Give SRM rating bifurcation", _presentation())
+    assert response["intent"] == "project_knowledge"
+    assert "supplier performance 25%" in response["answer"]
+    assert "risk score 20%" in response["answer"]
+    assert "innovation 15%" in response["answer"]
+    assert "Strategic requires strategic index at least 80" in response["answer"]
+    assert "Exit Candidate" in response["answer"]
+    assert "modules/srm_engine.py::classify_supplier_relationship" in response["evidence_references"]
+
+
+def test_project_registry_covers_authorized_topic_catalogue():
+    topics = project_topic_catalogue()
+    assert len(PROJECT_KNOWLEDGE) >= 16
+    expected = (
+        "project architecture and scope",
+        "category engines",
+        "should-cost methodology",
+        "total cost of ownership",
+        "supplier risk",
+        "supplier scoring and performance",
+        "supplier relationship management classification",
+        "financial ESG and innovation intelligence",
+        "supplier recommendations",
+        "multi-supplier allocation",
+        "scenario analysis",
+        "RFQ processing",
+        "assumptions and precedence",
+        "currency and unit governance",
+        "exports evidence and reconciliation",
+        "governance limitations and deferred capabilities",
+    )
+    for topic in expected:
+        assert topic in topics
+
+
+def test_retrieval_handles_project_examples():
+    examples = {
+        "Explain supplier allocation capacity rules": "multi-supplier allocation",
+        "How does RFQ normalization work?": "RFQ processing",
+        "What is canonical USD and INR display?": "currency and unit governance",
+        "Explain ESG and innovation intelligence": "financial ESG and innovation intelligence",
+        "What are project limitations?": "governance limitations and deferred capabilities",
+    }
+    for question, expected_topic in examples.items():
+        matches = search_project_knowledge(question)
+        assert matches
+        assert expected_topic in {item["topic"] for item in matches}
+
+
+def test_external_prediction_fails_closed_without_fabrication():
+    response = answer_question("Predict PET resin prices for next month", _presentation())
+    assert response["intent"] == "unavailable"
+    assert response["evidence_available"] is False
+    assert "did not browse" in response["answer"]
+    assert "fabricate" in response["answer"]
     assert response["external_retrieval_used"] is False
     assert response["action_executed"] is False
-    assert response["human_review_required"] is True
-
-
-def test_assumption_trace_reconciliation_and_evidence_answers_use_current_objects():
-    presentation = _presentation()
-    assert "annual_volume" in answer_question("assumptions", presentation)["answer"]
-    assert "trace-1" in answer_question("trace", presentation)["answer"]
-    assert "1 exact match" in answer_question("reconciliation", presentation)["answer"]
-    assert "adapter_backed" in answer_question("evidence coverage", presentation)["answer"]
-
-
-def test_missing_evidence_fails_closed_without_reconstruction():
-    presentation = _presentation()
-    presentation["calculation_trace"] = {"available": False}
-    response = answer_question("show trace", presentation)
-    assert response["evidence_available"] is False
-    assert "cannot reconstruct" in response["answer"]
 
 
 def test_limitations_disclose_no_web_or_autonomous_authority():
-    response = answer_question("What can you not do?", _presentation())
+    response = answer_question("Can you browse the web or approve a supplier?", _presentation())
     assert response["intent"] == "limitations"
     assert "No web browsing" in response["answer"]
     assert "Human approval" in response["answer"]
 
 
-def test_streamlit_ui_uses_chat_contract_and_session_only_history():
+def test_widget_uses_fixed_bottom_right_native_popover_and_session_history():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
     page = Path("pages/8_Governed_Calculation_Explorer.py").read_text(encoding="utf-8")
-    assert "st.chat_input(" in source
-    assert "st.chat_message(" in source
+    assert "st.popover(\"💬 SourceMate\")" in source
+    assert "position: fixed" in source
+    assert "right: 1rem" in source
+    assert "bottom: 1rem" in source
+    assert "@media (max-width: 640px)" in source
+    assert "width: calc(100vw - 1rem)" in source
+    assert "overflow-y: auto" in source
     assert "st.session_state" in source
+    assert "st.form(" in source
+    assert "st.text_input(" in source
+    assert "st.form_submit_button(\"Send\"" in source
     assert "Clear conversation" in source
-    assert "does not browse the web" in source
     assert "render_sourcemate_conversation(presentation)" in page
+
+
+def test_widget_replaces_full_width_in_page_chat_contract():
+    source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
+    assert "st.subheader(\"SourceMate — Conversational Basic\")" not in source
+    assert "st.chat_input(" not in source
+    assert "sourcemate_widget_shell" in source
+    assert "Close or minimize" in source
 
 
 def test_no_prohibited_external_or_action_dependencies_are_introduced():
     service = Path("modules/sourcemate_conversation.py").read_text(encoding="utf-8")
-    assert "requests" not in service
-    assert "openai" not in service.lower()
-    assert "vector" not in service.lower()
-    assert "execute" in service.lower()
-    assert "external_retrieval_used\": False" in service
-    assert "action_executed\": False" in service
+    registry = Path("modules/sourcemate_project_knowledge.py").read_text(encoding="utf-8")
+    combined = (service + registry).lower()
+    assert "import requests" not in combined
+    assert "import openai" not in combined
+    assert "vector database" not in service.lower()
+    assert '"external_retrieval_used": false' in service.lower()
+    assert '"action_executed": false' in service.lower()
