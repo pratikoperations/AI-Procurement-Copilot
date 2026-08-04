@@ -31,6 +31,15 @@ _AUDIT_COLUMNS = [
     "Unit of Measure",
     "Comparison Basis",
 ]
+_AUDIT_RENAME = {
+    "Original Currency": "Original Quote Currency",
+    "Original Unit Price": "Original Quote Unit Price",
+    "Normalized Currency": "Canonical Comparison Currency",
+    "Normalized Unit Price": "Canonical Comparison Unit Price",
+    "FX Rate Used": "FX Rate Used (INR/USD)",
+    "Unit of Measure": "Unit of Measure",
+    "Comparison Basis": "Canonical Comparison Basis",
+}
 
 
 def _first_available(columns, candidates):
@@ -39,7 +48,7 @@ def _first_available(columns, candidates):
 
 
 def _display_column_order(frame, mode):
-    """Put business-facing currency columns first so they remain visible on mobile."""
+    """Put selected-currency business columns first for mobile visibility."""
     preferred = ["Supplier"]
     if mode in {"USD", "Both"}:
         preferred.extend(["Quoted Price (USD)", "Risk-Adjusted TCO (USD)"])
@@ -52,25 +61,14 @@ def _display_column_order(frame, mode):
         "Supplier 360 Score",
         "Recommendation Status",
     ])
-    preferred.extend(_AUDIT_COLUMNS)
 
     ordered = [column for column in preferred if column in frame.columns]
     ordered.extend(column for column in frame.columns if column not in ordered)
     return frame[ordered]
 
 
-def build_supplier_intelligence_display_frame(comparison_df, display_currency="USD", fx_rate=83):
-    """Return a display-only comparison frame in USD, INR, or Both.
-
-    ``Normalized Unit Price`` remains unchanged as canonical audit metadata. A
-    temporary canonical USD business column is derived from it solely to render
-    Quoted Price in the selected display currency. Risk-adjusted TCO follows the
-    same display-only conversion path. The supplied dataframe is never mutated.
-
-    Business-facing currency columns are moved immediately after Supplier so the
-    selected currency is visible without horizontal scrolling on mobile devices.
-    Audit metadata remains present later in the same table.
-    """
+def _build_full_currency_frame(comparison_df, display_currency="USD", fx_rate=83):
+    """Return the complete display frame before audit metadata is separated."""
     original = comparison_df.copy() if isinstance(comparison_df, pd.DataFrame) else pd.DataFrame()
     try:
         mode = normalize_display_currency(display_currency)
@@ -103,11 +101,46 @@ def build_supplier_intelligence_display_frame(comparison_df, display_currency="U
             mapping[_RISK_TCO_SOURCE] = "Risk-Adjusted TCO"
 
     display = build_currency_display_frame(source, mapping, mode, fx_rate) if mapping else source
-    return _display_column_order(display, mode)
+    return _display_column_order(display, mode), mode
+
+
+def build_supplier_intelligence_currency_frames(comparison_df, display_currency="USD", fx_rate=83):
+    """Return separate business-facing and currency-audit frames.
+
+    The main frame contains selected-currency business values and non-monetary
+    decision fields only. Original quotation and canonical USD normalization
+    metadata are preserved without mutation in a separate audit frame.
+    """
+    display, mode = _build_full_currency_frame(comparison_df, display_currency, fx_rate)
+
+    audit_source_columns = ["Supplier", *_AUDIT_COLUMNS]
+    available_audit = [column for column in audit_source_columns if column in display.columns]
+    audit = display[available_audit].copy() if available_audit else pd.DataFrame()
+    audit = audit.rename(columns=_AUDIT_RENAME)
+    if not audit.empty:
+        audit.insert(1 if "Supplier" in audit.columns else 0, "Display Currency", mode)
+
+    business = display.drop(columns=_AUDIT_COLUMNS, errors="ignore")
+    business = _display_column_order(business, mode)
+    return business, audit
+
+
+def build_supplier_intelligence_display_frame(comparison_df, display_currency="USD", fx_rate=83):
+    """Return the main business-facing comparison frame only.
+
+    Currency normalization metadata is intentionally excluded from this frame
+    and is available through ``build_supplier_intelligence_currency_frames``.
+    """
+    business, _ = build_supplier_intelligence_currency_frames(
+        comparison_df,
+        display_currency=display_currency,
+        fx_rate=fx_rate,
+    )
+    return business
 
 
 def render_supplier_intelligence(intelligence, display_currency="USD", fx_rate=83):
-    """Render Supplier Intelligence using the governed display-currency selection."""
+    """Render selected-currency business values with a collapsed audit trail."""
     try:
         mode = normalize_display_currency(display_currency)
     except ValueError:
@@ -115,13 +148,24 @@ def render_supplier_intelligence(intelligence, display_currency="USD", fx_rate=8
 
     st.caption(
         f"Business-facing monetary columns are shown in {mode}. "
-        "Original and normalized currency fields remain visible as audit metadata."
+        "Canonical USD normalization is available in the collapsed audit trail."
     )
 
     display_intelligence = copy(intelligence or {})
-    display_intelligence["comparison_df"] = build_supplier_intelligence_display_frame(
+    business_frame, audit_frame = build_supplier_intelligence_currency_frames(
         display_intelligence.get("comparison_df", pd.DataFrame()),
         display_currency=mode,
         fx_rate=fx_rate,
     )
-    return _render_supplier_intelligence(display_intelligence)
+    display_intelligence["comparison_df"] = business_frame
+    result = _render_supplier_intelligence(display_intelligence)
+
+    if not audit_frame.empty:
+        with st.expander("Currency normalization and audit trail", expanded=False):
+            st.caption(
+                "Canonical comparison remains in USD for consistent ranking and traceability. "
+                f"Displayed business values use {mode}; no award decision is automated."
+            )
+            st.dataframe(audit_frame, use_container_width=True, hide_index=True)
+
+    return result
