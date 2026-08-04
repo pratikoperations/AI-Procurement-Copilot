@@ -132,3 +132,11 @@ def test_widget_uses_shared_history_and_exactly_once_guard():
     assert "if _RENDERED_THIS_RUN:" in source
     assert "publish_selected_presentation(presentation)" in source
     assert "overflow-x: auto" in source
+
+
+def test_submit_renders_exchange_without_second_forced_rerun():
+    source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
+    submit_block = source.split("if not submitted:", 1)[1]
+    assert "sourcemate_widget_submitted_exchange" in submit_block
+    assert "for message in exchange:" in submit_block
+    assert "st.rerun()" not in submit_block
