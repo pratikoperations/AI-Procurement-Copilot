@@ -2,9 +2,12 @@
 
 from pathlib import Path
 
+import pandas as pd
 import pytest
 
+import modules.supplier_intelligence_ui as supplier_ui
 from modules.supplier_intelligence_ui import (
+    _render_currency_audit,
     _resolve_supplier_profile,
     _supplier_report_filename,
     _valid_supplier_profiles,
@@ -175,6 +178,59 @@ def test_selector_is_rendered_before_comparison_sections():
 
     assert selector_position < comparison_position
     assert selector_position < recommendation_position
+
+
+def test_currency_audit_is_between_executive_comparison_and_recommendations():
+    source = (ROOT / "modules" / "supplier_intelligence_ui.py").read_text(encoding="utf-8")
+
+    comparison_position = source.index('render_comparison_matrix(comparison, "Executive supplier comparison")')
+    audit_position = source.index("_render_currency_audit(currency_audit_df, display_currency)")
+    recommendation_position = source.index('render_comparison_matrix(recommendations, "Recommendation rankings")')
+
+    assert comparison_position < audit_position < recommendation_position
+    assert source.count("_render_currency_audit(currency_audit_df, display_currency)") == 1
+
+
+def test_empty_currency_audit_does_not_create_expander(monkeypatch):
+    def fail_expander(*args, **kwargs):
+        raise AssertionError("Empty audit data must not create an expander")
+
+    monkeypatch.setattr(supplier_ui.st, "expander", fail_expander)
+
+    _render_currency_audit(pd.DataFrame(), "INR")
+    _render_currency_audit(None, "INR")
+
+
+def test_non_empty_currency_audit_uses_collapsed_expander(monkeypatch):
+    calls = []
+
+    class Context:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    def record_expander(label, expanded):
+        calls.append(("expander", label, expanded))
+        return Context()
+
+    monkeypatch.setattr(supplier_ui.st, "expander", record_expander)
+    monkeypatch.setattr(supplier_ui.st, "caption", lambda text: calls.append(("caption", text)))
+    monkeypatch.setattr(
+        supplier_ui.st,
+        "dataframe",
+        lambda frame, **kwargs: calls.append(("dataframe", frame.copy(), kwargs)),
+    )
+
+    audit = pd.DataFrame([{"Supplier": "Supplier A", "Display Currency": "INR"}])
+    _render_currency_audit(audit, "INR")
+
+    assert calls[0] == ("expander", "Currency normalization and audit trail", False)
+    assert any(call[0] == "caption" and "Canonical comparison remains in USD" in call[1] for call in calls)
+    dataframe_call = next(call for call in calls if call[0] == "dataframe")
+    pd.testing.assert_frame_equal(dataframe_call[1], audit)
+    assert dataframe_call[2] == {"use_container_width": True, "hide_index": True}
 
 
 def test_selected_supplier_heading_and_portfolio_narrative_label_are_present():
