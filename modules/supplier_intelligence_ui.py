@@ -201,7 +201,20 @@ def _render_srm(srm):
     render_comparison_matrix(governance, "Governance matrix")
 
 
-def render_supplier_intelligence(intelligence):
+def _render_currency_audit(currency_audit_df, display_currency):
+    """Render non-empty currency audit evidence adjacent to the comparison table."""
+    if not isinstance(currency_audit_df, pd.DataFrame) or currency_audit_df.empty:
+        return
+
+    with st.expander("Currency normalization and audit trail", expanded=False):
+        st.caption(
+            "Canonical comparison remains in USD for consistent ranking and traceability. "
+            f"Displayed business values use {display_currency}; no award decision is automated."
+        )
+        st.dataframe(currency_audit_df, use_container_width=True, hide_index=True)
+
+
+def render_supplier_intelligence(intelligence, currency_audit_df=None, display_currency="USD"):
     st.header("Supplier Intelligence")
     comparison = _readable_comparison(intelligence.get("comparison_df", pd.DataFrame()))
     profiles = intelligence.get("profiles", [])
@@ -220,6 +233,7 @@ def render_supplier_intelligence(intelligence):
     st.subheader(f"Viewing Supplier 360 Profile: {selected}")
 
     render_comparison_matrix(comparison, "Executive supplier comparison")
+    _render_currency_audit(currency_audit_df, display_currency)
     if not recommendations.empty:
         render_comparison_matrix(recommendations, "Recommendation rankings")
 
