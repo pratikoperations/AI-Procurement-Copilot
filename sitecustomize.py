@@ -19,8 +19,12 @@ def _install() -> None:
             result = original_set_page_config(*args, **kwargs)
             try:
                 from modules.sourcemate_global_context import current_context
-                from modules.sourcemate_conversation_ui import render_sourcemate_conversation
+                from modules.sourcemate_conversation_ui import (
+                    render_sourcemate_conversation,
+                    reset_global_mount_guard,
+                )
 
+                reset_global_mount_guard()
                 page = str(kwargs.get("page_title") or "AI Procurement Copilot")
                 render_sourcemate_conversation(current_context(page), global_mount=True)
             except Exception:
