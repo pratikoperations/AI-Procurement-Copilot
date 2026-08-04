@@ -6,6 +6,19 @@ authoritative and their return values are passed through unchanged.
 from __future__ import annotations
 
 
+_LEGACY_PUBLIC_INTENTS = (
+    "calculation",
+    "assumptions",
+    "trace",
+    "reconciliation",
+    "evidence",
+    "project_knowledge",
+    "limitations",
+    "clarification",
+    "unavailable",
+)
+
+
 def _install() -> None:
     try:
         import streamlit as st
@@ -52,6 +65,15 @@ def _install() -> None:
 
             enrich_supplier_scores_with_context._aipc_global_sourcemate = True
             scoring.enrich_supplier_scores = enrich_supplier_scores_with_context
+    except Exception:
+        pass
+
+    try:
+        # Preserve the established public intent catalogue for compatibility.
+        # Live-supplier and glossary handling remain internal deterministic subroutes.
+        from modules import sourcemate_conversation
+
+        sourcemate_conversation.SUPPORTED_INTENTS = _LEGACY_PUBLIC_INTENTS
     except Exception:
         pass
 
