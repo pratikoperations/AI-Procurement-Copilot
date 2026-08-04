@@ -1,0 +1,6 @@
+-r requirements.txt
+ruff==0.12.12
+mypy==1.17.1
+pip-audit==2.9.0
+hypothesis==6.138.15
+pandas-stubs==2.2.3.250527
