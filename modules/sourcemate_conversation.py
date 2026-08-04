@@ -38,7 +38,6 @@ _EXTERNAL_TERMS = (
     "latest market",
     "live market",
     "news",
-    "browse",
     "internet",
     "external website",
     "forecast",
@@ -66,21 +65,23 @@ def classify_intent(question: str) -> str:
     text = str(question or "").strip().lower()
     if not text:
         return "clarification"
+    if any(term in text for term in ("can you browse", "browse the web", "can you approve", "approve supplier", "award supplier", "write to erp", "your limitation", "what can you not")):
+        return "limitations"
     if any(term in text for term in _EXTERNAL_TERMS):
         return "unavailable"
-    if any(term in text for term in ("can you approve", "approve supplier", "award supplier", "write to erp", "your limitation", "what can you not")):
-        return "limitations"
-    if search_project_knowledge(text):
-        return "project_knowledge"
-    if any(term in text for term in ("assumption", "selected input", "selected parameter")):
+    if any(term in text for term in ("assumption", "selected input", "selected parameter")) and not any(term in text for term in ("tco", "risk", "srm", "scoring", "allocation", "rfq", "project")):
         return "assumptions"
     if any(term in text for term in ("trace", "calculation path", "selected calculation step")):
         return "trace"
     if any(term in text for term in ("reconcile", "reconciliation", "mismatch", "tolerance")):
         return "reconciliation"
-    if any(term in text for term in ("selected evidence", "coverage", "source reference", "provenance")):
+    if any(term in text for term in ("selected evidence", "source reference", "selected provenance")):
         return "evidence"
-    if any(term in text for term in ("selected calculation", "current result", "current calculation", "result", "target unit cost")):
+    if any(term in text for term in ("selected calculation", "current result", "current calculation", "target unit cost")):
+        return "calculation"
+    if search_project_knowledge(text):
+        return "project_knowledge"
+    if text in {"result", "what is the result", "what is the result?"}:
         return "calculation"
     return "unavailable"
 
