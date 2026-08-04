@@ -87,6 +87,14 @@ def _install() -> None:
         pass
 
     try:
+        from modules.ux_acceptance_corrections import install_ux_acceptance_corrections
+
+        install_ux_acceptance_corrections()
+    except Exception:
+        # Hosted acceptance formatting must never block authoritative application routes.
+        pass
+
+    try:
         # Preserve the established public intent catalogue for compatibility.
         # Live-supplier and glossary handling remain internal deterministic subroutes.
         from modules import sourcemate_conversation
