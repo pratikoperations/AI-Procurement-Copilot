@@ -184,11 +184,14 @@ def test_currency_audit_is_between_executive_comparison_and_recommendations():
     source = (ROOT / "modules" / "supplier_intelligence_ui.py").read_text(encoding="utf-8")
 
     comparison_position = source.index('render_comparison_matrix(comparison, "Executive supplier comparison")')
-    audit_position = source.index("_render_currency_audit(currency_audit_df, display_currency)")
+    audit_position = source.index(
+        "_render_currency_audit(currency_audit_df, display_currency)",
+        comparison_position,
+    )
     recommendation_position = source.index('render_comparison_matrix(recommendations, "Recommendation rankings")')
 
     assert comparison_position < audit_position < recommendation_position
-    assert source.count("_render_currency_audit(currency_audit_df, display_currency)") == 1
+    assert source.count("_render_currency_audit(currency_audit_df, display_currency)") == 2
 
 
 def test_empty_currency_audit_does_not_create_expander(monkeypatch):
