@@ -7,6 +7,10 @@ from typing import Any, Mapping
 import pandas as pd
 import streamlit as st
 
+from modules.calculation_explorer_evidence_ui import (
+    render_readable_reconciliation,
+    render_readable_trace,
+)
 from modules.calculation_explorer_ui import (
     SECTIONS,
     _find_principal_result_key,
@@ -14,9 +18,7 @@ from modules.calculation_explorer_ui import (
     _humanize_result_field,
     _render_assumptions,
     _render_human_review,
-    _render_reconciliation,
     _render_sourcemate,
-    _render_trace,
     _result_unit,
 )
 from modules.config import DEFAULT_FX_RATE
@@ -201,7 +203,7 @@ def render_currency_aware_calculation_explorer(
     display_currency: str = "USD",
     fx_rate: float = DEFAULT_FX_RATE,
 ) -> None:
-    """Render the six read-only sections with currency-aware Overview presentation."""
+    """Render six sections with currency-aware and business-readable presentation."""
     st.header("Governed Calculation Explorer")
     st.caption("Read-only explanation of authoritative procurement calculations, assumptions, evidence and review status.")
     status = st.columns(4)
@@ -215,8 +217,8 @@ def render_currency_aware_calculation_explorer(
         return
     renderers = {
         "Assumptions": _render_assumptions,
-        "Calculation Trace": _render_trace,
-        "Reconciliation": _render_reconciliation,
+        "Calculation Trace": render_readable_trace,
+        "Reconciliation": render_readable_reconciliation,
         "SourceMate": _render_sourcemate,
         "Human Review": _render_human_review,
     }
