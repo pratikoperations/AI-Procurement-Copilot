@@ -75,7 +75,7 @@ def test_mobile_acceptance_workflow_retains_failure_evidence() -> None:
 def test_streamlit_runtime_uses_compatible_starlette() -> None:
     requirements = Path("requirements.txt").read_text(encoding="utf-8")
     assert "streamlit==1.59.1" in requirements
-    assert "starlette==0.47.3" in requirements
+    assert "starlette==1.3.1" in requirements
 
 
 def test_mobile_pack_preserves_scope_boundaries() -> None:
