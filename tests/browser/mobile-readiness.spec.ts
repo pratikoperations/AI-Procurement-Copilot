@@ -88,7 +88,7 @@ test.describe('folded-phone-desktop-site-mode', () => {
     hasTouch: true,
   });
 
-  test('retains a phone-first single-column layout and bounded sidebar', async ({ page }) => {
+  test('retains desktop-style multi-column layout and bounded sidebar', async ({ page }) => {
     await waitForApp(page);
     await assertNoPageOverflow(page);
 
@@ -96,10 +96,10 @@ test.describe('folded-phone-desktop-site-mode', () => {
     await expect(firstHorizontalBlock).toBeVisible();
     const layout = await firstHorizontalBlock.evaluate((element) => {
       const style = window.getComputedStyle(element);
-      return { display: style.display, flexDirection: style.flexDirection };
+      return { display: style.display, gridTemplateColumns: style.gridTemplateColumns };
     });
-    expect(layout.display).toBe('flex');
-    expect(layout.flexDirection).toBe('column');
+    expect(layout.display).toBe('grid');
+    expect(layout.gridTemplateColumns.split(' ').length).toBeGreaterThanOrEqual(2);
 
     const openSidebar = page.getByRole('button', { name: /Open sidebar/i });
     if (await openSidebar.isVisible()) await openSidebar.click();
