@@ -5,9 +5,10 @@
   "description": "Governed Playwright acceptance harness for mobile and foldable browser readiness.",
   "scripts": {
     "test:mobile": "playwright test --config=playwright.config.ts",
-    "test:mobile:update": "playwright test --config=playwright.config.ts --update-snapshots"
+    "test:mobile:update": "playwright test --config=playwright.config.ts --update-snapshots",
+    "audit:mobile": "npm audit --audit-level=high"
   },
   "devDependencies": {
-    "@playwright/test": "1.55.0"
+    "@playwright/test": "1.61.1"
   }
 }
