@@ -160,12 +160,12 @@ body,
 }
 
 /*
- * Desktop-site mode on a physical phone exposes a wide CSS viewport while the
- * device remains coarse-pointer and phone-sized. Treat that combination as a
- * phone, not as a desktop, so folded screens do not compress two-column cards
- * or allow the sidebar to consume most of the visible display.
+ * Folded-phone desktop-site mode commonly exposes a CSS viewport near 980px.
+ * On a coarse-pointer device that range should remain phone-first rather than
+ * use the generic two-column touch layout. The upper bound deliberately stops
+ * below the governed 1024px tablet-landscape profile.
  */
-@media (hover: none) and (pointer: coarse) and (min-width: 761px) and (max-device-width: 900px) {
+@media (hover: none) and (pointer: coarse) and (min-width: 900px) and (max-width: 1000px) {
     [data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: column !important;
