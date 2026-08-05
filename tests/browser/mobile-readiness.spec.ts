@@ -12,7 +12,16 @@ const VIEWPORTS = [
 async function waitForApp(page: Page): Promise<void> {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-testid="stApp"]')).toBeVisible({ timeout: 45_000 });
-  await page.waitForTimeout(1_000);
+  await expect(page.locator('[data-testid="stMain"]')).toBeVisible({ timeout: 45_000 });
+
+  // A healthy Streamlit shell is not sufficient: wait for rendered application
+  // content so browser assertions cannot run against an empty websocket shell.
+  await expect.poll(async () => {
+    const main = page.locator('[data-testid="stMain"]');
+    const text = (await main.textContent())?.trim() ?? '';
+    const interactiveCount = await page.locator('button, input, textarea, select').count();
+    return text.length > 0 && interactiveCount > 0;
+  }, { timeout: 45_000, intervals: [250, 500, 1_000] }).toBe(true);
 }
 
 async function assertNoPageOverflow(page: Page): Promise<void> {
@@ -122,26 +131,53 @@ test.describe('folded-phone-desktop-site-mode', () => {
     await expect(sidebar).toBeVisible();
     await expect(main).toBeVisible();
 
-    const openMainBox = await main.boundingBox();
-    expect(openMainBox).not.toBeNull();
+    const captureState = async (label: string) => {
+      const evidence = await page.evaluate((stateLabel) => {
+        const sidebarElement = document.querySelector('[data-testid="stSidebar"]') as HTMLElement | null;
+        const mainElement = document.querySelector('[data-testid="stMain"]') as HTMLElement | null;
+        const sidebarStyle = sidebarElement ? window.getComputedStyle(sidebarElement) : null;
+        const mainStyle = mainElement ? window.getComputedStyle(mainElement) : null;
+        const attributes = sidebarElement
+          ? Object.fromEntries(Array.from(sidebarElement.attributes).map((item) => [item.name, item.value]))
+          : {};
+        const sidebarBox = sidebarElement?.getBoundingClientRect();
+        const mainBox = mainElement?.getBoundingClientRect();
+        return {
+          label: stateLabel,
+          sidebarPresent: Boolean(sidebarElement),
+          sidebarAttributes: attributes,
+          sidebarBox: sidebarBox ? { x: sidebarBox.x, width: sidebarBox.width, right: sidebarBox.right } : null,
+          mainBox: mainBox ? { x: mainBox.x, width: mainBox.width, right: mainBox.right } : null,
+          sidebarStyle: sidebarStyle ? {
+            display: sidebarStyle.display,
+            visibility: sidebarStyle.visibility,
+            transform: sidebarStyle.transform,
+            width: sidebarStyle.width,
+            minWidth: sidebarStyle.minWidth,
+            maxWidth: sidebarStyle.maxWidth,
+            flex: sidebarStyle.flex,
+            flexBasis: sidebarStyle.flexBasis,
+          } : null,
+          mainStyle: mainStyle ? { width: mainStyle.width, flex: mainStyle.flex, flexBasis: mainStyle.flexBasis } : null,
+        };
+      }, label);
+      console.log(`FOLD_SIDEBAR_EVIDENCE ${JSON.stringify(evidence)}`);
+      return evidence;
+    };
+
+    const openEvidence = await captureState('open');
+    expect(openEvidence.sidebarBox).not.toBeNull();
+    expect(openEvidence.mainBox).not.toBeNull();
 
     const sidebarToggle = sidebar.locator('[data-testid="stBaseButton-headerNoPadding"]').first();
     await expect(sidebarToggle).toBeAttached();
     await sidebarToggle.click({ force: true });
 
-    await expect.poll(async () => {
-      const sidebarBox = await sidebar.boundingBox();
-      return sidebarBox?.width ?? 0;
-    }).toBeLessThanOrEqual(2);
+    await page.waitForTimeout(750);
+    const collapsedEvidence = await captureState('post-collapse');
 
-    const collapsedSidebarBox = await sidebar.boundingBox();
-    const collapsedMainBox = await main.boundingBox();
-    expect(collapsedSidebarBox).not.toBeNull();
-    expect(collapsedMainBox).not.toBeNull();
-    if (collapsedSidebarBox) expect(collapsedSidebarBox.width).toBeLessThanOrEqual(2);
-    if (openMainBox && collapsedMainBox) {
-      expect(collapsedMainBox.width).toBeGreaterThan(openMainBox.width + 200);
-    }
+    expect(collapsedEvidence.sidebarBox?.width ?? 0).toBeLessThanOrEqual(2);
+    expect(collapsedEvidence.mainBox?.width ?? 0).toBeGreaterThan((openEvidence.mainBox?.width ?? 0) + 200);
     await assertNoPageOverflow(page);
   });
 });
