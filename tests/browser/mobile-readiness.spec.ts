@@ -14,8 +14,6 @@ async function waitForApp(page: Page): Promise<void> {
   await expect(page.locator('[data-testid="stApp"]')).toBeVisible({ timeout: 45_000 });
   await expect(page.locator('[data-testid="stMain"]')).toBeVisible({ timeout: 45_000 });
 
-  // A healthy Streamlit shell is not sufficient: wait for rendered application
-  // content so browser assertions cannot run against an empty websocket shell.
   await expect.poll(async () => {
     const main = page.locator('[data-testid="stMain"]');
     const text = (await main.textContent())?.trim() ?? '';
@@ -131,7 +129,7 @@ test.describe('folded-phone-desktop-site-mode', () => {
     await expect(sidebar).toBeVisible();
     await expect(main).toBeVisible();
 
-    const captureState = async (label: string) => {
+    const captureFoldEvidence = async (label: string) => {
       const evidence = await page.evaluate((stateLabel) => {
         const sidebarElement = document.querySelector('[data-testid="stSidebar"]') as HTMLElement | null;
         const mainElement = document.querySelector('[data-testid="stMain"]') as HTMLElement | null;
@@ -165,11 +163,13 @@ test.describe('folded-phone-desktop-site-mode', () => {
       return evidence;
     };
 
-    const openEvidence = await captureState('open');
+    const openEvidence = await captureFoldEvidence('open');
     expect(openEvidence.sidebarBox).not.toBeNull();
     expect(openEvidence.mainBox).not.toBeNull();
 
-    const sidebarToggle = page.getByRole('button', { name: 'keyboard_double_arrow_left', exact: true });
+    const collapseContainer = sidebar.locator('[data-testid="stSidebarCollapseButton"]');
+    const sidebarToggle = collapseContainer.locator('button');
+    await expect(collapseContainer).toBeVisible();
     await expect(sidebarToggle).toBeVisible();
     await sidebarToggle.click();
 
@@ -179,7 +179,7 @@ test.describe('folded-phone-desktop-site-mode', () => {
       return expanded === 'false' || box === null || box.width <= 2;
     }, { timeout: 10_000, intervals: [100, 250, 500] }).toBe(true);
 
-    const collapsedEvidence = await captureState('post-collapse');
+    const collapsedEvidence = await captureFoldEvidence('post-collapse');
 
     expect(collapsedEvidence.sidebarAttributes['aria-expanded']).not.toBe('true');
     expect(collapsedEvidence.sidebarBox?.width ?? 0).toBeLessThanOrEqual(2);
