@@ -169,13 +169,19 @@ test.describe('folded-phone-desktop-site-mode', () => {
     expect(openEvidence.sidebarBox).not.toBeNull();
     expect(openEvidence.mainBox).not.toBeNull();
 
-    const sidebarToggle = sidebar.locator('[data-testid="stBaseButton-headerNoPadding"]').first();
-    await expect(sidebarToggle).toBeAttached();
-    await sidebarToggle.click({ force: true });
+    const sidebarToggle = page.getByRole('button', { name: 'keyboard_double_arrow_left', exact: true });
+    await expect(sidebarToggle).toBeVisible();
+    await sidebarToggle.click();
 
-    await page.waitForTimeout(750);
+    await expect.poll(async () => {
+      const expanded = await sidebar.getAttribute('aria-expanded');
+      const box = await sidebar.boundingBox();
+      return expanded === 'false' || box === null || box.width <= 2;
+    }, { timeout: 10_000, intervals: [100, 250, 500] }).toBe(true);
+
     const collapsedEvidence = await captureState('post-collapse');
 
+    expect(collapsedEvidence.sidebarAttributes['aria-expanded']).not.toBe('true');
     expect(collapsedEvidence.sidebarBox?.width ?? 0).toBeLessThanOrEqual(2);
     expect(collapsedEvidence.mainBox?.width ?? 0).toBeGreaterThan((openEvidence.mainBox?.width ?? 0) + 200);
     await assertNoPageOverflow(page);
