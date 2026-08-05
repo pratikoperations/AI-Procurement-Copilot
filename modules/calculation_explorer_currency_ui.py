@@ -97,6 +97,26 @@ def _component_rows(
     return rows
 
 
+def prepare_canonical_payload_rows(payload: Any) -> list[dict[str, str]]:
+    """Flatten the unchanged canonical payload into an interview-readable table."""
+    rows: list[dict[str, str]] = []
+
+    def append_value(field_path: tuple[str, ...], value: Any) -> None:
+        if isinstance(value, MappingABC):
+            for key, nested_value in value.items():
+                append_value((*field_path, str(key)), nested_value)
+            return
+        label = " › ".join(_humanize_result_field(part) for part in field_path)
+        rows.append({"Field": label or "Result", "Value": _format_result_value(value)})
+
+    if isinstance(payload, MappingABC):
+        for key, value in payload.items():
+            append_value((str(key),), value)
+    else:
+        append_value((), payload)
+    return rows
+
+
 def prepare_currency_result_presentation(
     item: Mapping[str, Any],
     display_currency: str = "USD",
@@ -174,9 +194,10 @@ def _render_currency_result(item: Mapping[str, Any], display_currency: str, fx_r
         st.write("**Calculation components**")
         st.dataframe(pd.DataFrame(components), use_container_width=True, hide_index=True)
 
-    with st.expander("Technical result payload — canonical USD", expanded=False):
-        st.json(prepared["technical_payload"])
-        st.caption("Canonical authoritative payload retained unchanged. Display conversion is not used for trace or reconciliation.")
+    with st.expander("Canonical result details — USD", expanded=False):
+        canonical_rows = prepare_canonical_payload_rows(prepared["technical_payload"])
+        st.dataframe(pd.DataFrame(canonical_rows), use_container_width=True, hide_index=True)
+        st.caption("Canonical authoritative values are retained unchanged. Display conversion is not used for trace or reconciliation.")
 
 
 def _render_currency_overview(
