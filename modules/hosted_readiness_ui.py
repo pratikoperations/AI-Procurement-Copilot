@@ -201,6 +201,26 @@ body,
     [data-testid="stTable"] {
         min-height: 12rem;
     }
+
+    /*
+     * Streamlit keeps the sidebar element mounted after collapse. The forced
+     * Fold-width above must be removed when the element contains the native
+     * Open-sidebar control, otherwise a blank column remains reserved.
+     */
+    [data-testid="stSidebar"]:has(button[aria-label="Open sidebar"]) {
+        flex: 0 0 0 !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+    }
+
+    [data-testid="stSidebar"]:has(button[aria-label="Open sidebar"])
+    [data-testid="stSidebarContent"] {
+        display: none !important;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
