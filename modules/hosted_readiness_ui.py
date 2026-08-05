@@ -6,28 +6,20 @@ import streamlit as st
 
 
 HOSTED_READINESS_CSS = """
-/*
- * Theme-level interactive accent governance.
- * Streamlit Community Cloud previously rendered valid controls with its default
- * red primary color while the application-wide keyboard focus token remained
- * yellow. The combination appeared as a red select border plus a yellow stripe.
- *
- * `.streamlit/config.toml` now sets Streamlit's primary color to governed blue.
- * This final token override aligns application keyboard focus with that same
- * blue and removes the need for fragile BaseWeb select descendant selectors.
- */
 :root {
     --aipc-focus: #58A6FF;
     --aipc-select-focus: #58A6FF;
     --primary-color: #58A6FF;
+    --aipc-safe-top: env(safe-area-inset-top, 0px);
+    --aipc-safe-right: env(safe-area-inset-right, 0px);
+    --aipc-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --aipc-safe-left: env(safe-area-inset-left, 0px);
 }
 
-/* Preserve genuine validation red without styling normal focus as an error. */
 [aria-invalid="true"] {
     border-color: var(--aipc-error) !important;
 }
 
-/* Keep menu options readable and selected state unambiguous. */
 [data-baseweb="popover"],
 [data-baseweb="menu"],
 [role="listbox"] {
@@ -39,7 +31,6 @@ HOSTED_READINESS_CSS = """
     overflow-wrap: anywhere !important;
 }
 
-/* Shared containment contract. */
 html,
 body,
 [data-testid="stApp"],
@@ -50,20 +41,37 @@ body,
     min-width: 0 !important;
 }
 
+[data-testid="stAppViewContainer"] {
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
 [data-testid="stDataFrame"],
 [data-testid="stTable"] {
     max-width: 100% !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-inline: contain;
 }
 
-/*
- * Foldable/tablet touch layout. Physical Android screenshots can expose a CSS
- * viewport wider than a conventional phone even though the available content
- * width is narrow after the sidebar opens. Use pointer capability plus a broad
- * width ceiling to force critical Streamlit columns into a readable two-column
- * grid. Conventional desktop pointers keep the desktop multi-column layout.
- */
+/* Mobile controls must remain reliably touch-operable. */
+@media (hover: none) and (pointer: coarse) {
+    button,
+    [role="button"],
+    input,
+    textarea,
+    select,
+    [data-baseweb="select"] {
+        min-height: 44px !important;
+    }
+
+    [data-testid="stMainBlockContainer"] {
+        padding-left: max(1rem, var(--aipc-safe-left)) !important;
+        padding-right: max(1rem, var(--aipc-safe-right)) !important;
+        padding-bottom: max(5.5rem, calc(1rem + var(--aipc-safe-bottom))) !important;
+    }
+}
+
 @media (hover: none) and (pointer: coarse) and (max-width: 1400px) {
     html,
     body,
@@ -114,6 +122,8 @@ body,
 
     [data-testid="stSidebar"] {
         max-width: min(22rem, 92vw) !important;
+        padding-top: var(--aipc-safe-top) !important;
+        padding-left: var(--aipc-safe-left) !important;
     }
 
     [data-testid="stSidebarContent"] {
@@ -142,6 +152,21 @@ body,
         width: 100% !important;
         max-width: 100% !important;
         min-width: 0 !important;
+    }
+
+    h1 { font-size: clamp(1.65rem, 8vw, 2.2rem) !important; }
+    h2 { font-size: clamp(1.35rem, 6.5vw, 1.8rem) !important; }
+    h3 { font-size: clamp(1.15rem, 5.5vw, 1.5rem) !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }
 """
