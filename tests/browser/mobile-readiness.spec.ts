@@ -101,13 +101,43 @@ test.describe('folded-phone-desktop-site-mode', () => {
     expect(layout.display).toBe('flex');
     expect(layout.flexDirection).toBe('column');
 
-    const sidebarToggle = page.getByRole('button', { name: /Open sidebar/i });
-    if (await sidebarToggle.isVisible()) await sidebarToggle.click();
+    const openSidebar = page.getByRole('button', { name: /Open sidebar/i });
+    if (await openSidebar.isVisible()) await openSidebar.click();
 
     const sidebar = page.locator('[data-testid="stSidebar"]');
     await expect(sidebar).toBeVisible();
     const sidebarBox = await sidebar.boundingBox();
     expect(sidebarBox).not.toBeNull();
     if (sidebarBox) expect(sidebarBox.width).toBeLessThanOrEqual(360);
+  });
+
+  test('returns collapsed sidebar width to the main content', async ({ page }) => {
+    await waitForApp(page);
+
+    const openSidebar = page.getByRole('button', { name: /Open sidebar/i });
+    if (await openSidebar.isVisible()) await openSidebar.click();
+
+    const sidebar = page.locator('[data-testid="stSidebar"]');
+    const main = page.locator('[data-testid="stMain"]');
+    await expect(sidebar).toBeVisible();
+    await expect(main).toBeVisible();
+
+    const openMainBox = await main.boundingBox();
+    expect(openMainBox).not.toBeNull();
+
+    const closeSidebar = page.getByRole('button', { name: /Close sidebar/i });
+    await expect(closeSidebar).toBeVisible();
+    await closeSidebar.click();
+    await expect(page.getByRole('button', { name: /Open sidebar/i })).toBeVisible();
+
+    const collapsedSidebarBox = await sidebar.boundingBox();
+    const collapsedMainBox = await main.boundingBox();
+    expect(collapsedSidebarBox).not.toBeNull();
+    expect(collapsedMainBox).not.toBeNull();
+    if (collapsedSidebarBox) expect(collapsedSidebarBox.width).toBeLessThanOrEqual(2);
+    if (openMainBox && collapsedMainBox) {
+      expect(collapsedMainBox.width).toBeGreaterThan(openMainBox.width + 200);
+    }
+    await assertNoPageOverflow(page);
   });
 });
