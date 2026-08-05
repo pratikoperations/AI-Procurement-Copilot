@@ -37,6 +37,9 @@ jobs:
           npm install
           npx playwright install --with-deps chromium
 
+      - name: Audit browser-test dependencies
+        run: npm run audit:mobile
+
       - name: Start Streamlit application
         run: |
           streamlit run app.py \
