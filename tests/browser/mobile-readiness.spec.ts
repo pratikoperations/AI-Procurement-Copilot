@@ -79,3 +79,35 @@ for (const viewport of VIEWPORTS) {
     });
   });
 }
+
+test.describe('folded-phone-desktop-site-mode', () => {
+  test.use({
+    viewport: { width: 980, height: 1740 },
+    screen: { width: 412, height: 915 },
+    isMobile: true,
+    hasTouch: true,
+  });
+
+  test('retains a phone-first single-column layout and bounded sidebar', async ({ page }) => {
+    await waitForApp(page);
+    await assertNoPageOverflow(page);
+
+    const firstHorizontalBlock = page.locator('[data-testid="stHorizontalBlock"]').first();
+    await expect(firstHorizontalBlock).toBeVisible();
+    const layout = await firstHorizontalBlock.evaluate((element) => {
+      const style = window.getComputedStyle(element);
+      return { display: style.display, flexDirection: style.flexDirection };
+    });
+    expect(layout.display).toBe('flex');
+    expect(layout.flexDirection).toBe('column');
+
+    const sidebarToggle = page.getByRole('button', { name: /Open sidebar/i });
+    if (await sidebarToggle.isVisible()) await sidebarToggle.click();
+
+    const sidebar = page.locator('[data-testid="stSidebar"]');
+    await expect(sidebar).toBeVisible();
+    const sidebarBox = await sidebar.boundingBox();
+    expect(sidebarBox).not.toBeNull();
+    if (sidebarBox) expect(sidebarBox.width).toBeLessThanOrEqual(360);
+  });
+});
