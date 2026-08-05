@@ -37,6 +37,16 @@ def test_folded_phone_desktop_site_mode_is_governed() -> None:
     assert "width: min(18rem, 36vw)" in css
 
 
+def test_collapsed_fold_sidebar_returns_width_to_main_content() -> None:
+    source = Path("tests/browser/mobile-readiness.spec.ts").read_text(encoding="utf-8")
+    css = hosted_readiness_ui.HOSTED_READINESS_CSS
+    assert "returns collapsed sidebar width to the main content" in source
+    assert "collapsedMainBox.width" in source
+    assert ':has(button[aria-label="Open sidebar"])' in css
+    assert "flex: 0 0 0 !important" in css
+    assert "width: 0 !important" in css
+
+
 def test_touch_targets_safe_areas_and_dynamic_viewport_are_governed() -> None:
     css = hosted_readiness_ui.HOSTED_READINESS_CSS
     assert "env(safe-area-inset-bottom, 0px)" in css
