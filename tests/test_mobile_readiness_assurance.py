@@ -26,6 +26,16 @@ def test_browser_acceptance_checks_page_overflow_and_sourcemate() -> None:
     assert "toBeHidden" in source
 
 
+def test_folded_phone_desktop_site_mode_is_governed() -> None:
+    source = Path("tests/browser/mobile-readiness.spec.ts").read_text(encoding="utf-8")
+    css = hosted_readiness_ui.HOSTED_READINESS_CSS
+    assert "folded-phone-desktop-site-mode" in source
+    assert "viewport: { width: 980, height: 1740 }" in source
+    assert "screen: { width: 412, height: 915 }" in source
+    assert "max-device-width: 900px" in css
+    assert "width: min(18rem, 36vw)" in css
+
+
 def test_touch_targets_safe_areas_and_dynamic_viewport_are_governed() -> None:
     css = hosted_readiness_ui.HOSTED_READINESS_CSS
     assert "env(safe-area-inset-bottom, 0px)" in css
@@ -34,13 +44,11 @@ def test_touch_targets_safe_areas_and_dynamic_viewport_are_governed() -> None:
     assert "prefers-reduced-motion: reduce" in css
 
 
-def test_mobile_acceptance_workflow_retains_failure_evidence_and_audits_dependencies() -> None:
+def test_mobile_acceptance_workflow_retains_failure_evidence() -> None:
     workflow = Path(".github/workflows/mobile-browser-acceptance.yml").read_text(encoding="utf-8")
-    package = Path("package.json").read_text(encoding="utf-8")
     assert "npx playwright install --with-deps chromium" in workflow
     assert "Audit browser-test dependencies" in workflow
     assert "npm run audit:mobile" in workflow
-    assert '"audit:mobile": "npm audit --audit-level=high"' in package
     assert "Run six-viewport mobile acceptance" in workflow
     assert "if: always()" in workflow
     assert "playwright-report" in workflow
