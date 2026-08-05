@@ -32,7 +32,8 @@ def test_folded_phone_desktop_site_mode_is_governed() -> None:
     assert "folded-phone-desktop-site-mode" in source
     assert "viewport: { width: 980, height: 1740 }" in source
     assert "screen: { width: 412, height: 915 }" in source
-    assert "max-device-width: 900px" in css
+    assert "min-width: 900px" in css
+    assert "max-width: 1000px" in css
     assert "width: min(18rem, 36vw)" in css
 
 
