@@ -5,8 +5,11 @@ not calculate, score, rank, recommend, allocate, approve, or mutate procurement 
 """
 from __future__ import annotations
 
+import logging
 from collections.abc import Mapping
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 GLOBAL_CONTEXT_CONTRACT = "AIPC-SOURCEMATE-GLOBAL-CONTEXT-1.0"
 _CONTEXT_KEY = "sourcemate_global_decision_context"
@@ -112,7 +115,14 @@ def publish_scored_context(scored_df: Any, assumptions: Mapping[str, Any] | None
     assumptions = dict(assumptions or {})
     try:
         records = scored_df.to_dict(orient="records")
-    except Exception:
+    except (AttributeError, TypeError) as exc:
+        logger.warning(
+            "SourceMate scored context received non-tabular output; publishing an empty supplier set.",
+            extra={
+                "event": "sourcemate_context_publish_fallback",
+                "error_type": type(exc).__name__,
+            },
+        )
         records = []
     supplier_rows: list[dict[str, Any]] = []
     for position, row in enumerate(records, start=1):

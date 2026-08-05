@@ -24,10 +24,31 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
 
       - name: Compile Python files
         run: python -m compileall app.py modules tests
+
+      - name: Run Ruff governed checks
+        run: |
+          ruff check \
+            sitecustomize.py \
+            modules/ux_acceptance_corrections.py \
+            modules/decision_clarity_ui.py \
+            modules/sourcemate_global_context.py \
+            tests/test_ux_acceptance_corrections.py \
+            tests/test_decision_clarity_ui.py \
+            tests/test_sourcemate_global_context.py
+
+      - name: Run targeted type checks
+        run: |
+          mypy \
+            modules/ux_acceptance_corrections.py \
+            modules/decision_clarity_ui.py \
+            modules/sourcemate_global_context.py
+
+      - name: Audit dependencies
+        run: pip-audit -r requirements.txt
 
       - name: Run regression tests
         run: python -m pytest
