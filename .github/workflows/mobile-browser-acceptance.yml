@@ -60,7 +60,13 @@ jobs:
           cat /tmp/aipc-streamlit.log
           exit 1
 
-      - name: Run six-viewport mobile acceptance
+      - name: Run focused Fold sidebar regression
+        run: >-
+          npx playwright test
+          --config=playwright.config.ts
+          --grep "returns collapsed sidebar width to the main content"
+
+      - name: Run full mobile acceptance
         run: npm run test:mobile
 
       - name: Upload browser evidence
