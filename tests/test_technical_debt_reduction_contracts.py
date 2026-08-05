@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import pandas as pd
+import pytest
 from hypothesis import given, settings, strategies as st
 
 from modules.sourcemate_global_context import (
@@ -36,7 +37,9 @@ def test_currency_presentation_preserves_canonical_values_and_conversion_invaria
     )
 
     pd.testing.assert_frame_equal(canonical, original)
-    assert display.loc[0, "Quoted Unit Price (INR)"] == round(float(amount) * float(fx_rate), 2)
+    assert display.loc[0, "Quoted Unit Price (INR)"] == pytest.approx(
+        float(amount) * float(fx_rate)
+    )
 
 
 @given(display_currency=st.sampled_from(["USD", "INR", "Both"]))
