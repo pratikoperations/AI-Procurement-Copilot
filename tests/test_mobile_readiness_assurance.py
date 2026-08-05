@@ -32,9 +32,12 @@ def test_folded_phone_desktop_site_mode_is_governed() -> None:
     assert "folded-phone-desktop-site-mode" in source
     assert "viewport: { width: 980, height: 1740 }" in source
     assert "screen: { width: 412, height: 915 }" in source
+    assert "retains desktop-style multi-column layout" in source
+    assert "gridTemplateColumns" in source
     assert "min-width: 900px" in css
     assert "max-width: 1000px" in css
     assert "width: min(18rem, 36vw)" in css
+    assert "Preserve the desktop-style two-column presentation" in css
 
 
 def test_collapsed_fold_sidebar_returns_width_to_main_content() -> None:
