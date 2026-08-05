@@ -125,9 +125,9 @@ test.describe('folded-phone-desktop-site-mode', () => {
     const openMainBox = await main.boundingBox();
     expect(openMainBox).not.toBeNull();
 
-    const closeSidebar = page.getByRole('button', { name: /Close sidebar/i });
-    await expect(closeSidebar).toBeVisible();
-    await closeSidebar.click();
+    const sidebarToggle = sidebar.locator('button').first();
+    await expect(sidebarToggle).toBeVisible();
+    await sidebarToggle.click();
     await expect(page.getByRole('button', { name: /Open sidebar/i })).toBeVisible();
 
     const collapsedSidebarBox = await sidebar.boundingBox();
