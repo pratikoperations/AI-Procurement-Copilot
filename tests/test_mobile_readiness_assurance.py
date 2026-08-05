@@ -44,7 +44,9 @@ def test_collapsed_fold_sidebar_returns_width_to_main_content() -> None:
     source = Path("tests/browser/mobile-readiness.spec.ts").read_text(encoding="utf-8")
     css = hosted_readiness_ui.HOSTED_READINESS_CSS
     assert "returns collapsed sidebar width to the main content" in source
-    assert "collapsedMainBox.width" in source
+    assert "openEvidence.mainBox" in source
+    assert "collapsedEvidence.mainBox" in source
+    assert "captureFoldEvidence" in source
     assert ':has(button[aria-label="Open sidebar"])' in css
     assert "flex: 0 0 0 !important" in css
     assert "width: 0 !important" in css
@@ -63,10 +65,17 @@ def test_mobile_acceptance_workflow_retains_failure_evidence() -> None:
     assert "npx playwright install --with-deps chromium" in workflow
     assert "Audit browser-test dependencies" in workflow
     assert "npm run audit:mobile" in workflow
-    assert "Run six-viewport mobile acceptance" in workflow
+    assert "Run focused Fold sidebar regression" in workflow
+    assert "Run full mobile acceptance" in workflow
     assert "if: always()" in workflow
     assert "playwright-report" in workflow
     assert "test-results/mobile-acceptance" in workflow
+
+
+def test_streamlit_runtime_uses_compatible_starlette() -> None:
+    requirements = Path("requirements.txt").read_text(encoding="utf-8")
+    assert "streamlit==1.59.1" in requirements
+    assert "starlette==0.47.3" in requirements
 
 
 def test_mobile_pack_preserves_scope_boundaries() -> None:
