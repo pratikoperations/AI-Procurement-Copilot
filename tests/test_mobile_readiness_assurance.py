@@ -34,9 +34,13 @@ def test_touch_targets_safe_areas_and_dynamic_viewport_are_governed() -> None:
     assert "prefers-reduced-motion: reduce" in css
 
 
-def test_mobile_acceptance_workflow_retains_failure_evidence() -> None:
+def test_mobile_acceptance_workflow_retains_failure_evidence_and_audits_dependencies() -> None:
     workflow = Path(".github/workflows/mobile-browser-acceptance.yml").read_text(encoding="utf-8")
+    package = Path("package.json").read_text(encoding="utf-8")
     assert "npx playwright install --with-deps chromium" in workflow
+    assert "Audit browser-test dependencies" in workflow
+    assert "npm run audit:mobile" in workflow
+    assert '"audit:mobile": "npm audit --audit-level=high"' in package
     assert "Run six-viewport mobile acceptance" in workflow
     assert "if: always()" in workflow
     assert "playwright-report" in workflow
