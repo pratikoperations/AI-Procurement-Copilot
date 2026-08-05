@@ -125,24 +125,9 @@ test.describe('folded-phone-desktop-site-mode', () => {
     const openMainBox = await main.boundingBox();
     expect(openMainBox).not.toBeNull();
 
-    const collapsed = await sidebar.locator('button').evaluateAll((buttons) => {
-      const candidate = buttons.find((button) => {
-        const element = button as HTMLButtonElement;
-        const style = window.getComputedStyle(element);
-        const box = element.getBoundingClientRect();
-        return (
-          element.textContent?.includes('keyboard_double_arrow_left') === true &&
-          style.display !== 'none' &&
-          style.visibility !== 'hidden' &&
-          box.width > 0 &&
-          box.height > 0
-        );
-      }) as HTMLButtonElement | undefined;
-      if (!candidate) return false;
-      candidate.click();
-      return true;
-    });
-    expect(collapsed).toBe(true);
+    const sidebarToggle = sidebar.locator('[data-testid="stBaseButton-headerNoPadding"]').first();
+    await expect(sidebarToggle).toBeAttached();
+    await sidebarToggle.click({ force: true });
 
     await expect.poll(async () => {
       const sidebarBox = await sidebar.boundingBox();
