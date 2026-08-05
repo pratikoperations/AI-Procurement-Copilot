@@ -159,6 +159,50 @@ body,
     h3 { font-size: clamp(1.15rem, 5.5vw, 1.5rem) !important; }
 }
 
+/*
+ * Desktop-site mode on a physical phone exposes a wide CSS viewport while the
+ * device remains coarse-pointer and phone-sized. Treat that combination as a
+ * phone, not as a desktop, so folded screens do not compress two-column cards
+ * or allow the sidebar to consume most of the visible display.
+ */
+@media (hover: none) and (pointer: coarse) and (min-width: 761px) and (max-device-width: 900px) {
+    [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        gap: 0.65rem !important;
+    }
+
+    [data-testid="stHorizontalBlock"] > [data-testid="column"],
+    [data-testid="stHorizontalBlock"] > .stColumn,
+    div[data-testid="column"],
+    .stColumn {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    [data-testid="stSidebar"] {
+        width: min(18rem, 36vw) !important;
+        max-width: min(18rem, 36vw) !important;
+    }
+
+    [data-testid="stSidebarContent"] {
+        padding-right: 0.75rem !important;
+    }
+
+    [data-testid="stMainBlockContainer"] {
+        padding-left: max(0.75rem, var(--aipc-safe-left)) !important;
+        padding-right: max(0.75rem, var(--aipc-safe-right)) !important;
+    }
+
+    [data-testid="stDataFrame"],
+    [data-testid="stTable"] {
+        min-height: 12rem;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
