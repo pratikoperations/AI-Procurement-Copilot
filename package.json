@@ -1,0 +1,13 @@
+{
+  "name": "ai-procurement-copilot-mobile-acceptance",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Governed Playwright acceptance harness for mobile and foldable browser readiness.",
+  "scripts": {
+    "test:mobile": "playwright test --config=playwright.config.ts",
+    "test:mobile:update": "playwright test --config=playwright.config.ts --update-snapshots"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.55.0"
+  }
+}
