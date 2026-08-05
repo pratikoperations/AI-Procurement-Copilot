@@ -125,7 +125,7 @@ test.describe('folded-phone-desktop-site-mode', () => {
     const openMainBox = await main.boundingBox();
     expect(openMainBox).not.toBeNull();
 
-    const sidebarToggle = sidebar.locator('button').filter({ hasText: 'keyboard_double_arrow_left' }).first();
+    const sidebarToggle = sidebar.locator('button:visible').filter({ hasText: 'keyboard_double_arrow_left' }).first();
     await expect(sidebarToggle).toBeVisible();
     await sidebarToggle.click();
 
