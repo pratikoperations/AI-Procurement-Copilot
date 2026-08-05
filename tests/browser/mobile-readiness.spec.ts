@@ -125,7 +125,7 @@ test.describe('folded-phone-desktop-site-mode', () => {
     const openMainBox = await main.boundingBox();
     expect(openMainBox).not.toBeNull();
 
-    const sidebarToggle = sidebar.locator('button').first();
+    const sidebarToggle = sidebar.locator('button:visible').first();
     await expect(sidebarToggle).toBeVisible();
     await sidebarToggle.click();
     await expect(page.getByRole('button', { name: /Open sidebar/i })).toBeVisible();
