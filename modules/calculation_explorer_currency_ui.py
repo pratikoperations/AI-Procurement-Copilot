@@ -97,6 +97,24 @@ def _component_rows(
     return rows
 
 
+def _canonical_payload_label(key: str) -> str:
+    """Humanize a canonical key without dropping explicit currency suffixes."""
+    label = _humanize_result_field(key)
+    upper_key = key.upper()
+    if upper_key.endswith("_USD") and not label.endswith(" USD"):
+        return f"{label} USD"
+    if upper_key.endswith("_INR") and not label.endswith(" INR"):
+        return f"{label} INR"
+    return label
+
+
+def _canonical_payload_value(value: Any) -> str:
+    """Format canonical values consistently without changing their meaning."""
+    if isinstance(value, float):
+        return f"{value:,.2f}"
+    return _format_result_value(value)
+
+
 def prepare_canonical_payload_rows(payload: Any) -> list[dict[str, str]]:
     """Flatten the unchanged canonical payload into an interview-readable table."""
     rows: list[dict[str, str]] = []
@@ -106,8 +124,8 @@ def prepare_canonical_payload_rows(payload: Any) -> list[dict[str, str]]:
             for key, nested_value in value.items():
                 append_value((*field_path, str(key)), nested_value)
             return
-        label = " › ".join(_humanize_result_field(part) for part in field_path)
-        rows.append({"Field": label or "Result", "Value": _format_result_value(value)})
+        label = " › ".join(_canonical_payload_label(part) for part in field_path)
+        rows.append({"Field": label or "Result", "Value": _canonical_payload_value(value)})
 
     if isinstance(payload, MappingABC):
         for key, value in payload.items():
