@@ -96,5 +96,7 @@ def test_explorer_page_exposes_governed_currency_controls_and_new_renderer():
 def test_currency_wrapper_keeps_canonical_payload_expander_collapsed():
     source = Path("modules/calculation_explorer_currency_ui.py").read_text(encoding="utf-8")
 
-    assert 'st.expander("Technical result payload — canonical USD", expanded=False)' in source
+    assert 'st.expander("Canonical result details — USD", expanded=False)' in source
     assert "Canonical calculation, trace and reconciliation remain in USD" in source
+    assert "prepare_canonical_payload_rows" in source
+    assert "st.dataframe" in source
