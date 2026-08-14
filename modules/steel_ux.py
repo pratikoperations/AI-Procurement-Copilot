@@ -159,7 +159,7 @@ def _display_allocation(frame: pd.DataFrame, display_mode: str) -> pd.DataFrame:
 
 
 def render_steel_governed_dashboard(suppliers: pd.DataFrame, assumptions: Mapping) -> None:
-    """Render the isolated Steel route, then stop before generic downstream outputs."""
+    """Render the governed Steel route and return to the common intelligence workflow."""
     state = normalize_steel_dependent_state(assumptions)
     profile, volume = state["steel_profile"], float(assumptions["annual_volume"])
     fx, display_mode = float(assumptions["fx_rate"]), assumptions.get("display_currency", "Both")
@@ -248,4 +248,3 @@ def render_steel_governed_dashboard(suppliers: pd.DataFrame, assumptions: Mappin
     )
     st.info("Recommendation remains pending human approval. No autonomous award is performed.")
     st.caption("Grade-substitution states are workflow evidence only and do not provide engineering approval.")
-    st.stop()
