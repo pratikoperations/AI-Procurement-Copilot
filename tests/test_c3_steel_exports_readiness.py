@@ -93,15 +93,14 @@ def test_changed_winner_no_winner_and_partial_allocation_are_exportable():
     assert manifest2["steel_governance"]["optimized_unallocated_volume_kg"] == pytest.approx(500000)
 
 
-def test_steel_route_stops_before_generic_sections_and_uses_dedicated_exports():
+def test_steel_route_preserves_dedicated_exports_and_continues_to_common_sections():
     steel_source = Path("modules/steel_ux.py").read_text(encoding="utf-8")
     dashboard_source = Path("modules/dashboard.py").read_text(encoding="utf-8")
     assert "build_steel_excel_workbook" in steel_source
     assert "build_steel_json_export" in steel_source
-    assert "st.stop()" in steel_source
+    assert "st.stop()" not in steel_source
     assert "render_steel_governed_dashboard" in dashboard_source
-    stop_position = steel_source.rfind("st.stop()")
-    assert stop_position > steel_source.find("Download Steel Decision Audit JSON")
+    assert "Download Steel Decision Audit JSON" in steel_source
 
 
 def test_historical_c1_c2_and_generic_export_contract_remains_present():
