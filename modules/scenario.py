@@ -8,6 +8,7 @@ from modules.multi_supplier_allocation_scenario_presenter import build_scenario_
 from modules.recommendation import recommendation_confidence
 from modules.scenario_engine import run_all_flexible_laminate_scenarios
 from modules.scoring import enrich_supplier_scores
+from modules.steel_scenario import run_governed_steel_scenarios
 
 
 def _tooling_status(result):
@@ -100,20 +101,92 @@ def _is_steel_route(assumptions):
     )
 
 
+def _steel_scenario_table(base_df, assumptions):
+    """Project governed Steel scenarios into the shared scenario-table contract.
+
+    The governed Steel engine remains the scenario authority. This projection does
+    not relabel governed_total_score as the generic total_score confidence contract.
+    """
+    profile = assumptions.get("steel_profile", "CR_COIL_COMMERCIAL")
+    volume = float(assumptions["annual_volume"])
+    fx = float(assumptions["fx_rate"])
+    display_mode = assumptions.get("display_currency", "Both")
+    cost_assumptions = {
+        "zinc_cost_usd_per_kg": float(assumptions.get("steel_zinc_cost_usd_per_kg", 0.0)),
+        "paint_treatment_usd_per_kg": float(assumptions.get("steel_paint_treatment_usd_per_kg", 0.0)),
+        "sourcing_route": assumptions.get("steel_sourcing_route", "Domestic"),
+        "import_duty_pct": float(assumptions.get("steel_import_duty_pct", 0.0)),
+    }
+    scenario_assumptions = {
+        "grade_substitution_status": assumptions.get("steel_substitution_status", "Non-applicable")
+    }
+    summary, details = run_governed_steel_scenarios(
+        base_df,
+        profile,
+        volume,
+        fx,
+        display_mode,
+        cost_assumptions=cost_assumptions,
+        scenario_assumptions=scenario_assumptions,
+    )
+
+    rows = []
+    for _, summary_row in summary.iterrows():
+        scenario_name = str(summary_row["Scenario"])
+        detail = details[scenario_name]
+        scored = detail["scored_suppliers"]
+        recommendation = detail["recommendation"]
+        winner_name = recommendation.get("winner")
+        winner = scored.loc[scored["Supplier"] == winner_name].iloc[0] if winner_name else None
+        annual_tco = None
+        unit_tco = None
+        risk_score = None
+        governed_score = None
+        technical_state = "No technically eligible supplier"
+        if winner is not None:
+            unit_tco = float(winner["normalized_usd_per_kg"])
+            annual_tco = unit_tco * float(summary_row["Annual Volume kg"])
+            risk_score = 100.0 - float(winner["steel_risk_score"])
+            governed_score = float(winner["governed_total_score"])
+            technical_state = "Eligible"
+        rows.append({
+            "Scenario": scenario_name,
+            "Scenario Applicable": True,
+            "Scenario Status / Reason": summary_row["Winner State"],
+            "Ineligibility / Applicability Reason": "" if winner_name else summary_row["Winner State"],
+            "Winning Supplier": winner_name or "No technically eligible supplier",
+            "Risk-Adjusted TCO per kg (USD)": unit_tco,
+            "Annual TCO (USD)": annual_tco,
+            "Risk Resilience Score": risk_score,
+            "Failure Probability": None,
+            "Technical Eligibility": technical_state,
+            "Confidence": None,
+            "Governed Total Score": governed_score,
+            "Confidence Governance": (
+                "Steel uses governed_total_score as governed decision evidence; it is not relabelled as "
+                "generic total_score or generic recommendation confidence. Human procurement approval remains mandatory."
+            ),
+            "Allocation State": summary_row["Allocation State"],
+            "Unallocated Volume kg": float(summary_row["Unallocated Volume kg"]),
+            "Human Approval Required": True,
+        })
+    result = pd.DataFrame(rows)
+    result.attrs.update(summary.attrs)
+    result.attrs["shared_scenario_contract"] = True
+    return result
+
+
 def run_scenario_table(base_df, assumptions):
     """Run category-aware stress scenarios through governed presentation projections.
 
-    Steel remains on its dedicated governed route. Flexible Laminates and generic
-    categories expose canonical scenario route status separately from analytical
-    supplier ranking; no table row constitutes an autonomous award decision.
+    Steel, Flexible Laminates and generic categories return scenario data into the
+    shared application workflow; no scenario engine renders UI or constitutes an
+    autonomous award decision.
     """
     apply_hosted_readiness_overrides()
 
     if _is_steel_route(assumptions):
-        from modules.steel_ux import render_steel_governed_dashboard
-
-        render_steel_governed_dashboard(base_df, assumptions)
-        raise RuntimeError("Steel governed route returned without terminating the Streamlit run.")
+        return _steel_scenario_table(base_df, assumptions)
 
     if assumptions.get("category") == "Packaging Procurement" and assumptions.get("commodity") == "Flexible Laminates":
         return _flexible_laminate_scenario_table(base_df, assumptions)
