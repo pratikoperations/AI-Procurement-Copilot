@@ -69,15 +69,8 @@ st.caption(
     "Built for procurement managers, category managers and sourcing teams reviewing supplier quotations, "
     "commercial trade-offs and award readiness."
 )
-status_columns = st.columns(4)
-status_columns[0].info("Portfolio demonstration")
-status_columns[1].info("Read-only operation")
-status_columns[2].info("Validation-gated")
-status_columns[3].info("No live ERP integration")
-st.warning(
-    "This application supports human procurement review. It does not claim production deployment, "
-    "autonomous awards, live ERP integration or realized savings."
-)
+st.caption("Portfolio Demo · Read-only · Validation-gated · No live ERP integration")
+st.caption("Synthetic/demo evidence where indicated. Human procurement approval remains mandatory.")
 st.caption(f"{EDITION} | {BUILD}")
 
 with st.expander("Selected Category Intelligence", expanded=False):
@@ -442,9 +435,9 @@ route_blocked = not route_decision_control["route_allows_allocation"]
 with st.expander("Governed Multi-Supplier Allocation Route", expanded=route_blocked):
     route_status = allocation_route_result.route_status.value
     if route_status == "READY":
-        st.success("Canonical allocation route completed. Human procurement approval remains mandatory.")
+        st.caption("Canonical allocation available for human procurement review.")
     elif route_status == "WARNING":
-        st.warning("Canonical allocation route completed with warnings. Human procurement review remains mandatory.")
+        st.caption("Canonical allocation completed with review notes.")
     else:
         st.error(f"Canonical allocation route is blocked: {route_status}")
     st.write(allocation_route_result.route_summary)
@@ -454,17 +447,22 @@ with st.expander("Governed Multi-Supplier Allocation Route", expanded=route_bloc
     )
     st.write("**Governed controls**")
     st.dataframe([allocation_control_summary], width="stretch", hide_index=True)
-    for warning in allocation_route_result.warnings:
-        st.warning(warning)
     for reason in allocation_route_result.blocking_reasons:
         st.write(f"- {reason}")
+    governance_notes = list(dict.fromkeys(allocation_route_result.warnings))
     if allocation_route_result.partial_evidence:
-        st.warning("Partial evidence captured before adapter failure")
-    st.caption(route_decision_control["message"])
-    st.caption(
-        "No legacy allocation fallback is permitted. Human procurement approval remains mandatory. "
-        "No autonomous award, approval record or ERP authorization is created."
-    )
+        governance_notes.append("Partial evidence captured before adapter failure")
+    with st.expander("Governance & Evidence Details", expanded=False):
+        if governance_notes:
+            for note in governance_notes:
+                st.write(f"- {note}")
+        else:
+            st.caption("No additional governance or evidence notes for this route.")
+        st.caption(route_decision_control["message"])
+        st.caption(
+            "No legacy allocation fallback is permitted. Human procurement approval remains mandatory. "
+            "No autonomous award, approval record or ERP authorization is created."
+        )
 
 with st.expander("Validation Assurance Gate", expanded=True):
     c1, c2, c3, c4 = st.columns(4)
