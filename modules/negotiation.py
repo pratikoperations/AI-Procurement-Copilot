@@ -1,6 +1,18 @@
 """Negotiation simulator and category-aware playbook generator."""
 
 
+def _is_steel_supplier(supplier):
+    category = str(supplier.get("category_engine", "")).strip()
+    commodity = str(supplier.get("Material", supplier.get("Commodity", ""))).strip()
+    return (
+        category == "Raw Material Procurement"
+        and commodity == "Steel"
+    ) or (
+        "governed_total_score" in supplier.index
+        and "normalized_usd_per_kg" in supplier.index
+    )
+
+
 def simulate_negotiation(
     supplier,
     annual_volume,
@@ -10,6 +22,14 @@ def simulate_negotiation(
     risk_reduction=0.15,
     cost_of_capital=0.12,
 ):
+    """Simulate negotiation while preserving the governed Steel evidence boundary."""
+    if _is_steel_supplier(supplier):
+        return simulate_steel_negotiation(
+            supplier,
+            annual_volume,
+            price_reduction=price_reduction,
+        )
+
     current_tco = float(supplier["adjusted_tco_unit_usd"])
     simulated_price = float(supplier["scenario_unit_price_usd"]) * (1 - price_reduction)
     simulated_freight = float(supplier["freight_cost_usd"]) * (1 - freight_improvement)
