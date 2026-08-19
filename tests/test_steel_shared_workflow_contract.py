@@ -22,7 +22,10 @@ from modules.exports import (
     build_readable_supplier_comparison,
     build_readable_supplier_scores,
 )
-from modules.multi_supplier_allocation_application import run_application_allocation
+from modules.multi_supplier_allocation_application import (
+    route_allows_allocation,
+    run_application_allocation,
+)
 from modules.negotiation import generate_negotiation_playbook, simulate_negotiation
 from modules.negotiation_engine import build_negotiation_intelligence
 from modules.recommendation import (
@@ -112,7 +115,7 @@ def test_steel_shared_workflow_reaches_outputs_without_generic_tco_fabrication(p
 
     application_allocation = run_application_allocation(scored, assumptions)
     allocation_df = application_allocation.allocation_df
-    assert application_allocation.route_result.ready
+    assert route_allows_allocation(application_allocation.route_result)
     assert not allocation_df.empty
 
     scenario_df = run_scenario_table(suppliers, assumptions)
