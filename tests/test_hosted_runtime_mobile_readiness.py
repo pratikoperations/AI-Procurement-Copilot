@@ -23,24 +23,54 @@ def test_steel_route_is_detected_before_generic_scenarios() -> None:
     })
 
 
-def test_steel_route_dispatches_to_governed_dashboard(monkeypatch) -> None:
+def test_steel_route_returns_governed_scenario_contract(monkeypatch) -> None:
     calls = []
     monkeypatch.setattr(scenario, "apply_hosted_readiness_overrides", lambda: calls.append("css"))
-    import modules.steel_ux as steel_ux_module
 
-    def fake_render(frame, assumptions):
-        calls.append((frame.copy(), dict(assumptions)))
-        raise SystemExit("governed route stopped")
+    summary = pd.DataFrame([{
+        "Scenario": "Base Case",
+        "Winner State": "Governed recommendation — pending human approval",
+        "Annual Volume kg": 500000.0,
+        "Allocation State": "Allocated",
+        "Unallocated Volume kg": 0.0,
+    }])
+    details = {
+        "Base Case": {
+            "scored_suppliers": pd.DataFrame([{
+                "Supplier": "A",
+                "technical_eligible": True,
+                "normalized_usd_per_kg": 1.0,
+                "steel_risk_score": 20.0,
+                "governed_total_score": 88.0,
+            }]),
+            "recommendation": {"winner": "A"},
+        }
+    }
 
-    monkeypatch.setattr(steel_ux_module, "render_steel_governed_dashboard", fake_render)
+    def fake_run(*args, **kwargs):
+        calls.append((args, kwargs))
+        return summary, details
+
+    monkeypatch.setattr(scenario, "run_governed_steel_scenarios", fake_run)
     frame = pd.DataFrame({"Supplier": ["A"]})
-    assumptions = {"category": "Raw Material Procurement", "commodity": "Steel"}
+    assumptions = {
+        "category": "Raw Material Procurement",
+        "commodity": "Steel",
+        "annual_volume": 500000.0,
+        "fx_rate": 83.0,
+        "display_currency": "Both",
+        "steel_profile": "CR_COIL_COMMERCIAL",
+        "steel_sourcing_route": "Domestic",
+        "steel_substitution_status": "Non-applicable",
+    }
 
-    with pytest.raises(SystemExit, match="governed route stopped"):
-        scenario.run_scenario_table(frame, assumptions)
+    result = scenario.run_scenario_table(frame, assumptions)
 
     assert calls[0] == "css"
-    assert calls[1][1] == assumptions
+    assert result.loc[0, "Winning Supplier"] == "A"
+    assert result.loc[0, "Governed Total Score"] == pytest.approx(88.0)
+    assert pd.isna(result.loc[0, "Confidence"])
+    assert result.attrs["shared_scenario_contract"] is True
 
 
 def test_generic_scenario_source_keeps_steel_guard_before_generic_loop() -> None:
@@ -48,7 +78,9 @@ def test_generic_scenario_source_keeps_steel_guard_before_generic_loop() -> None
     guard = source.index("if _is_steel_route(assumptions):")
     generic = source.index("scenarios = [")
     assert guard < generic
-    assert "render_steel_governed_dashboard(base_df, assumptions)" in source
+    assert "return _steel_scenario_table(base_df, assumptions)" in source
+    assert "render_steel_governed_dashboard(base_df, assumptions)" not in source
+    assert "Steel governed route returned without terminating" not in source
 
 
 def test_steel_widget_state_is_initialized_before_controls() -> None:
