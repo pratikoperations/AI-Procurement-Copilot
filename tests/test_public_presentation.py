@@ -41,20 +41,32 @@ def test_navigation_contract_contains_seven_numbered_sections():
     assert "8. Interview Guide" not in source
 
 
-def test_executive_first_claim_safe_messages_are_present():
+def test_executive_first_claim_safe_messages_are_compact_and_present():
     source = _source().lower()
 
     required = (
-        "portfolio demonstration",
-        "read-only operation",
+        "portfolio demo",
+        "read-only",
         "validation-gated",
         "no live erp integration",
-        "does not claim production deployment",
-        "autonomous awards",
-        "realized savings",
-        "human procurement review",
+        "synthetic/demo evidence where indicated",
+        "human procurement approval remains mandatory",
     )
     assert all(message in source for message in required)
+    assert 'status_columns[0].info("portfolio demonstration")' not in source
+    assert 'status_columns[1].info("read-only operation")' not in source
+    assert 'status_columns[2].info("validation-gated")' not in source
+    assert 'status_columns[3].info("no live erp integration")' not in source
+
+
+def test_non_blocking_allocation_governance_is_collapsed_not_banner_stacked():
+    source = _source()
+
+    assert 'with st.expander("Governance & Evidence Details", expanded=False):' in source
+    assert "governance_notes = list(dict.fromkeys(allocation_route_result.warnings))" in source
+    assert "for warning in allocation_route_result.warnings:\n        st.warning(warning)" not in source
+    assert 'st.warning("Partial evidence captured before adapter failure")' not in source
+    assert 'st.error(f"Canonical allocation route is blocked: {route_status}")' in source
 
 
 def test_downloads_remain_available_and_grouped():
