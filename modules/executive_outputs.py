@@ -141,7 +141,23 @@ Strategic Sourcing / Procurement Team
 
 
 def generate_explainability_panel(recommended_supplier):
-    """Generate explainable recommendation text."""
+    """Generate explainable recommendation text for generic and governed Steel paths."""
+    if (
+        str(recommended_supplier.get("category_engine", "")) == "Raw Material Procurement"
+        and "governed_total_score" in recommended_supplier.index
+    ):
+        return f"""Recommendation Logic Summary — Governed Steel:
+
+The governed Steel engine ranks {recommended_supplier['Supplier']} highest after combining:
+- Commercial score: {recommended_supplier['commercial_score']:.1f}/100
+- Generic risk fitness: {recommended_supplier['generic_risk_fitness_score']:.1f}/100
+- Steel-specific risk fitness: {recommended_supplier['steel_risk_fitness_score']:.1f}/100
+- Performance score: {recommended_supplier['performance_score']:.1f}/100
+- Governed Steel decision score: {recommended_supplier['governed_total_score']:.1f}/100
+
+Technical eligibility is evaluated before ranking. The recommendation remains pending human procurement approval and does not constitute autonomous supplier award.
+""".strip()
+
     return f"""Recommendation Logic Summary:
 
 The engine ranks {recommended_supplier['Supplier']} highest after combining:
