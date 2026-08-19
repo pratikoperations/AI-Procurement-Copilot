@@ -32,6 +32,53 @@ def simulate_negotiation(
     }
 
 
+def simulate_steel_negotiation(
+    supplier,
+    annual_volume,
+    price_reduction=0.03,
+):
+    """Simulate a Steel commercial-price concession without inventing TCO components.
+
+    The governed Steel analytical contract currently exposes normalized price and
+    risk-adjusted TCO but does not decompose generic freight, inventory, working-
+    capital, lead-time-buffer, or risk-penalty fields. The simulation therefore
+    applies only a commercial price concession and carries every other supported
+    component of current TCO through unchanged.
+    """
+    current_tco = float(supplier["adjusted_tco_unit_usd"])
+    current_price = float(supplier["scenario_unit_price_usd"])
+    simulated_price = current_price * (1 - price_reduction)
+    supported_price_delta = max(current_price - simulated_price, 0.0)
+    simulated_tco = max(current_tco - supported_price_delta, 0.0)
+    annual_saving = max(current_tco - simulated_tco, 0.0) * float(annual_volume)
+    return {
+        "current_tco_unit_usd": round(current_tco, 4),
+        "simulated_tco_unit_usd": round(simulated_tco, 4),
+        "annual_saving_usd": round(annual_saving, 2),
+        "simulation_basis": (
+            "Governed Steel commercial-price-only simulation; no unsupported freight, "
+            "inventory, working-capital, lead-time-buffer, or risk-penalty assumptions added."
+        ),
+    }
+
+
+def simulate_category_negotiation(
+    supplier,
+    annual_volume,
+    *,
+    category=None,
+    commodity=None,
+    **kwargs,
+):
+    """Dispatch negotiation simulation without changing non-Steel behavior."""
+    resolved_category = category or str(supplier.get("category_engine", "Packaging Procurement"))
+    resolved_commodity = commodity or str(supplier.get("Material", supplier.get("Commodity", "")))
+    if resolved_category == "Raw Material Procurement" and resolved_commodity == "Steel":
+        steel_kwargs = {key: kwargs[key] for key in ("price_reduction",) if key in kwargs}
+        return simulate_steel_negotiation(supplier, annual_volume, **steel_kwargs)
+    return simulate_negotiation(supplier, annual_volume, **kwargs)
+
+
 def generate_negotiation_playbook(
     supplier,
     should_cost_target,
