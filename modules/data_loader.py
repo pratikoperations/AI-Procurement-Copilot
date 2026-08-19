@@ -19,6 +19,16 @@ class RFQUploadError(ValueError):
     """Business-facing upload failure that is safe to show in the Streamlit UI."""
 
 
+GENERIC_PACKAGING_SYNTHETIC_CAPACITY = {
+    "Apex Packaging Corp": 900000,
+    "Vertex Global Print": 1200000,
+    "Matrix Logistics & Pack": 650000,
+    "EcoForm Packaging Solutions": 1000000,
+    "Regional Packworks": 750000,
+    "SecurePack Continuity Partners": 600000,
+}
+
+
 def _expanded_pool_enabled(expanded_supplier_pool: bool | None) -> bool:
     """Resolve an explicit selector, otherwise enable expansion only in Streamlit runtime."""
     if expanded_supplier_pool is not None:
@@ -28,6 +38,17 @@ def _expanded_pool_enabled(expanded_supplier_pool: bool | None) -> bool:
         return bool(st.runtime.exists())
     except Exception:
         return False
+
+
+def _apply_generic_packaging_demo_capacity(data: pd.DataFrame) -> pd.DataFrame:
+    """Attach controlled capacity evidence only to synthetic generic packaging rows."""
+    result = data.copy()
+    result["Supplier Capacity"] = result["Supplier"].map(GENERIC_PACKAGING_SYNTHETIC_CAPACITY)
+    result.attrs.update(data.attrs)
+    result.attrs["capacity_evidence_basis"] = (
+        "Controlled synthetic demonstration capacity; not verified supplier evidence."
+    )
+    return result
 
 
 def get_demo_suppliers():
@@ -141,6 +162,11 @@ def get_demo_data(
             data = expand_steel(data)
         elif category == "Packaging Procurement" and commodity == "Corrugated Board":
             data = expand_general_packaging(data)
+
+    if category == "Packaging Procurement" and commodity in {
+        "Corrugated Board", "PET Bottles", "Labels"
+    }:
+        data = _apply_generic_packaging_demo_capacity(data)
 
     version = "C3.1-STEEL-v1" if commodity == "Steel" else ("C2.0" if commodity=="Flexible Laminates" else ("C1.0" if commodity=="Kraft Paper" else "S1"))
     source = "Synthetic controlled demonstration data" if commodity == "Steel" else "Synthetic demonstration data"
