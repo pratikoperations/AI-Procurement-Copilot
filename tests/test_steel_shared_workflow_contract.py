@@ -7,6 +7,7 @@ import json
 import pytest
 
 from modules.category_cost_router import calculate_category_should_cost
+from modules.currency_unit_governance import normalize_comparison_basis
 from modules.data_loader import get_demo_data
 from modules.decision_engine import generate_decision, generate_executive_narrative
 from modules.executive_outputs import (
@@ -72,12 +73,13 @@ def _assumptions(profile: str) -> dict:
     }
 
 
-def _steel_demo():
-    return get_demo_data(
+def _steel_demo(fx_rate: float = 83.0):
+    demo = get_demo_data(
         "Raw Material Procurement",
         "Steel",
         expanded_supplier_pool=True,
     )
+    return normalize_comparison_basis(demo, fx_rate, "USD")
 
 
 @pytest.mark.parametrize(
@@ -86,7 +88,7 @@ def _steel_demo():
 )
 def test_steel_shared_workflow_reaches_outputs_without_generic_tco_fabrication(profile):
     assumptions = _assumptions(profile)
-    suppliers = _steel_demo()
+    suppliers = _steel_demo(assumptions["fx_rate"])
 
     rfq_validation = validate_rfq_dataframe(
         suppliers,
