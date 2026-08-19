@@ -37,18 +37,29 @@ def _is_steel_route(assumptions):
     )
 
 
+def _canonical_steel_substitution_status(value):
+    """Normalize the legacy hosted UI spelling to the eligibility contract."""
+    status = str(value or "Not applicable").strip()
+    if status.casefold() == "non-applicable":
+        return "Not applicable"
+    return status
+
+
 def _enrich_steel_scores(df, assumptions):
     """Adapt governed C3 Steel scores to the stable analytical score contract."""
     profile = assumptions.get("steel_profile", "CR_COIL_COMMERCIAL")
     display = assumptions.get("display_currency", "Both")
+    substitution_status = _canonical_steel_substitution_status(
+        assumptions.get("steel_substitution_status", "Not applicable")
+    )
     scored, recommendation = score_and_recommend_steel_suppliers(
         df,
         profile,
         assumptions["annual_volume"],
         assumptions["fx_rate"],
         display,
-        substitution_status=assumptions.get("steel_substitution_status", "Not applicable"),
-        substitution_requested=assumptions.get("steel_substitution_status", "Not applicable") != "Not applicable",
+        substitution_status=substitution_status,
+        substitution_requested=substitution_status != "Not applicable",
     )
     scored["Quoted Unit Price USD"] = scored["normalized_usd_per_kg"]
     scored["scenario_unit_price_usd"] = scored["normalized_usd_per_kg"]
