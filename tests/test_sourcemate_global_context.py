@@ -156,12 +156,13 @@ def test_widget_uses_shared_history_rerun_token_and_persistent_panel():
     assert "st.popover(" not in source
 
 
-def test_submit_refreshes_history_and_keeps_panel_open():
+def test_submit_refreshes_history_and_keeps_panel_open_across_rerun():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
     assert "question_to_answer =" in source
     assert "history.extend(" in source
     assert "st.session_state[_OPEN_KEY] = True" in source
-    assert "st.rerun()" in source
+    assert "reset_global_mount_guard()" in source
+    assert source.index("reset_global_mount_guard()") < source.index("st.rerun()", source.index("reset_global_mount_guard()"))
     assert "sourcemate_widget_submitted_exchange" not in source
 
 
