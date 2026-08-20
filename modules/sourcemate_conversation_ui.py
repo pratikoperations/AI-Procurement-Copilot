@@ -243,22 +243,20 @@ def render_sourcemate_conversation(
             return
 
         response = answer_question(question_to_answer, current_context())
-        exchange = [
-            {"role": "user", "content": question_to_answer},
-            {
-                "role": "assistant",
-                "content": response["answer"],
-                "evidence_references": response["evidence_references"],
-                "intent": response["intent"],
-                "human_review_required": response["human_review_required"],
-            },
-        ]
-        history.extend(exchange)
+        history.extend(
+            [
+                {"role": "user", "content": question_to_answer},
+                {
+                    "role": "assistant",
+                    "content": response["answer"],
+                    "evidence_references": response["evidence_references"],
+                    "intent": response["intent"],
+                    "human_review_required": response["human_review_required"],
+                },
+            ]
+        )
         if len(history) > _MAX_MESSAGES:
             del history[:-_MAX_MESSAGES]
         st.session_state[_SESSION_KEY] = history
         st.session_state[_OPEN_KEY] = True
-
-        with st.container(key="sourcemate_widget_submitted_exchange"):
-            for message in exchange:
-                _render_message(message)
+        st.rerun()
