@@ -7,6 +7,7 @@ from typing import Any
 import streamlit as st
 from streamlit.runtime.scriptrunner import get_script_run_ctx
 
+from modules.sourcemate_answer_display import format_sourcemate_answer_for_display
 from modules.sourcemate_conversation import (
     SOURCEMATE_CONVERSATION_CONTRACT,
     answer_question,
@@ -149,8 +150,12 @@ def _starter_prompts(active_page: str) -> tuple[str, str, str]:
 
 
 def _render_message(message: Mapping[str, Any]) -> None:
-    with st.chat_message(str(message["role"])):
-        st.markdown(str(message["content"]))
+    role = str(message["role"])
+    content = str(message["content"])
+    if role == "assistant":
+        content = format_sourcemate_answer_for_display(content, str(message.get("intent") or ""))
+    with st.chat_message(role):
+        st.markdown(content)
         refs = message.get("evidence_references") or []
         if refs:
             st.caption("Evidence: " + " | ".join(str(item) for item in refs))
