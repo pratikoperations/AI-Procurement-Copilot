@@ -6,6 +6,52 @@ import streamlit as st
 from modules.multi_supplier_allocation_scenario_presenter import build_scenario_presentation
 
 
+_NON_BLOCKING_GOVERNANCE_MARKERS = (
+    "adapter construction is decision support only",
+    "allocation is decision support only",
+    "controlled synthetic demonstration assumption",
+    "feasibility is decision support only",
+    "human procurement approval remains mandatory",
+    "human procurement review remains mandatory",
+    "supplier capacity is supplied evidence and has not been independently verified",
+    "not verified supplier evidence",
+)
+
+
+def _split_warning_messages(messages):
+    """Separate actionable warnings from retained non-blocking governance evidence."""
+    actionable = []
+    governance = []
+    for raw in messages or ():
+        message = str(raw).strip()
+        if not message:
+            continue
+        lowered = message.casefold()
+        target = governance if any(marker in lowered for marker in _NON_BLOCKING_GOVERNANCE_MARKERS) else actionable
+        if message not in target:
+            target.append(message)
+    return tuple(actionable), tuple(governance)
+
+
+def _render_governance_details(*, notes=(), evidence_origin="", scenario_version="", legacy_fallback=False):
+    """Keep audit facts available without promoting routine disclosures to alerts."""
+    with st.expander("Governance & Evidence Details", expanded=False):
+        if notes:
+            for note in notes:
+                st.write(f"- {note}")
+        else:
+            st.caption("No additional non-blocking governance notes are recorded for this view.")
+        st.write(f"**Evidence origin:** {evidence_origin or 'not available'}")
+        if scenario_version:
+            st.write(f"**Scenario assumptions:** {scenario_version}")
+        st.write("**Human procurement review required:** Yes")
+        st.write(f"**Legacy fallback used:** {'Yes' if legacy_fallback else 'No'}")
+        st.caption(
+            "These records are retained for audit and decision support. They do not create an autonomous award, "
+            "approval record or ERP authorization."
+        )
+
+
 def render_procurement_intelligence(
     decision,
     strategy,
@@ -32,6 +78,7 @@ def render_procurement_intelligence(
         c3.metric("Sourcing Strategy", strategy["strategy"])
         st.write(decision["executive_recommendation"])
         st.caption(decision["business_justification"])
+        st.info("Recommendation remains subject to human procurement approval.")
 
         st.subheader("Strategy")
         st.write(f"**Recommendation:** {strategy['strategy']}")
@@ -50,10 +97,15 @@ def render_procurement_intelligence(
         )
 
     st.subheader("Governed Multi-Supplier Allocation")
+    allocation_actionable, allocation_governance = _split_warning_messages(
+        optimized_allocation.get("warnings", ())
+    )
     if route_status == "READY":
-        st.success("Canonical allocation route completed. Human procurement approval remains mandatory.")
+        st.caption("Canonical allocation route completed.")
+    elif route_status == "WARNING" and allocation_actionable:
+        st.warning("Canonical allocation route completed with review items requiring attention.")
     elif route_status == "WARNING":
-        st.warning("Canonical allocation route completed with warnings. Human procurement review is mandatory.")
+        st.caption("Canonical allocation route completed; governance disclosures are available below.")
     else:
         st.error(f"Canonical allocation route is blocked: {route_status}")
     if allocation_df.empty:
@@ -61,14 +113,14 @@ def render_procurement_intelligence(
     else:
         st.dataframe(allocation_df, width="stretch", hide_index=True)
     st.write(optimized_allocation["explanation"])
-    for warning in optimized_allocation.get("warnings", ()):
+    for warning in allocation_actionable:
         st.warning(warning)
     for reason in optimized_allocation.get("blocking_reasons", ()):
         st.write(f"- {reason}")
-    st.caption(
-        f"Evidence origin: {optimized_allocation.get('evidence_origin') or 'not available'}. "
-        "This is a recommendation for human procurement review only when the route and validation controls permit it. "
-        "It is not an autonomous award, approval record or ERP authorization."
+    _render_governance_details(
+        notes=allocation_governance,
+        evidence_origin=optimized_allocation.get("evidence_origin") or "",
+        legacy_fallback=False,
     )
 
     st.subheader("Negotiation Intelligence")
@@ -101,10 +153,13 @@ def render_procurement_intelligence(
         st.write(f"**Scenario:** {presentation.scenario}")
         st.write(f"**Applicability:** {'Applicable' if presentation.scenario_applicable else 'Not applicable'}")
         st.write(f"**Canonical route status:** {presentation.route_status}")
+        scenario_actionable, scenario_governance = _split_warning_messages(presentation.warnings)
         if presentation.route_status == "READY":
-            st.success("Scenario allocation is available for human procurement review.")
+            st.caption("Scenario allocation is available for human procurement review.")
+        elif presentation.route_status == "WARNING" and scenario_actionable:
+            st.warning("Scenario allocation is available with review items requiring attention.")
         elif presentation.route_status == "WARNING":
-            st.warning("Scenario allocation is available with warnings; human review is mandatory.")
+            st.caption("Scenario allocation is available; governance disclosures are available below.")
         elif presentation.route_status == "NOT_APPLICABLE":
             st.info(presentation.status_reason)
         else:
@@ -118,18 +173,15 @@ def render_procurement_intelligence(
                 f"Analytical leading supplier: {presentation.analytical_leading_supplier}. "
                 "This ranking signal is not an award decision."
             )
-        for warning in presentation.warnings:
+        for warning in scenario_actionable:
             st.warning(warning)
         for reason in presentation.blocking_reasons:
             st.write(f"- {reason}")
-        st.caption(
-            f"Evidence origin: {presentation.evidence_origin or 'not available'} | "
-            f"Scenario assumptions: {presentation.scenario_assumption_version or 'not versioned'} | "
-            "Human procurement review required: Yes | Legacy fallback used: No."
-        )
-        st.caption(
-            "No legacy scenario allocation is displayed. The scenario view is a projection of the canonical "
-            "Gate 3C1 route and cannot create an autonomous award."
+        _render_governance_details(
+            notes=scenario_governance,
+            evidence_origin=presentation.evidence_origin,
+            scenario_version=presentation.scenario_assumption_version or "not versioned",
+            legacy_fallback=presentation.legacy_fallback_used,
         )
 
     st.subheader("AI Explainability 2.0")
@@ -143,7 +195,7 @@ def render_procurement_intelligence(
         st.write(f"- **{competitor['supplier']}**: {competitor['reason']}")
     st.write(f"**Trade-offs:** {explanation['trade_offs']}")
     st.write(f"**Assumptions:** {explanation['assumptions']}")
-    st.success(explanation["governance"])
+    st.caption(explanation["governance"])
 
     st.subheader("Executive Decision Narrative")
     st.text_area("Board-ready analytical narrative", executive_narrative, height=520)
