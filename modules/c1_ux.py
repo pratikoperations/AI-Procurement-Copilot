@@ -5,6 +5,8 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
+from modules.sourcemate_application_shell import mount_global_sourcemate
+
 
 CATEGORY_INTELLIGENCE_METRIC_CSS = """
 /* Keep long category labels readable inside Selected Category Intelligence. */
@@ -17,7 +19,8 @@ CATEGORY_INTELLIGENCE_METRIC_CSS = """
 
 
 def apply_c1_ux_overrides() -> None:
-    """Apply scoped presentation overrides without changing category data."""
+    """Apply scoped presentation overrides and the shared project assistant shell."""
+    mount_global_sourcemate("AI Procurement Copilot")
     st.markdown(f"<style>{CATEGORY_INTELLIGENCE_METRIC_CSS}</style>", unsafe_allow_html=True)
 
 
