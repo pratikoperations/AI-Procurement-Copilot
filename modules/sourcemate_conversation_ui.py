@@ -43,7 +43,7 @@ _WIDGET_CSS = """
     z-index: 1000000;
     width: min(420px, calc(100vw - 1rem));
     max-width: min(420px, calc(100vw - 1rem));
-    max-height: min(58vh, 620px);
+    max-height: min(54vh, 620px);
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: 0.85rem;
