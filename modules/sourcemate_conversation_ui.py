@@ -5,7 +5,6 @@ from collections.abc import Mapping
 from typing import Any
 
 import streamlit as st
-from streamlit.runtime.scriptrunner import get_script_run_ctx
 
 from modules.sourcemate_conversation import (
     SOURCEMATE_CONVERSATION_CONTRACT,
@@ -17,7 +16,6 @@ _SESSION_KEY = "sourcemate_conversation_history"
 _OPEN_KEY = "sourcemate_widget_open"
 _PENDING_QUESTION_KEY = "sourcemate_pending_question"
 _MAX_MESSAGES = 16
-_LAST_RENDER_TOKEN: int | None = None
 
 _WIDGET_CSS = """
 <style>
@@ -41,19 +39,19 @@ _WIDGET_CSS = """
     right: 1rem;
     bottom: 1rem;
     z-index: 1000000;
-    width: min(420px, calc(100vw - 1rem));
-    max-width: min(420px, calc(100vw - 1rem));
-    max-height: min(54vh, 620px);
+    width: min(400px, calc(100vw - 1rem));
+    max-width: min(400px, calc(100vw - 1rem));
+    max-height: min(46vh, 560px);
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: 0.85rem;
+    padding: 0.75rem;
     border: 1px solid rgba(128, 128, 128, 0.38);
     border-radius: 1rem;
     background: var(--background-color, #0e1117);
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.34);
 }
 .st-key-sourcemate_widget_history {
-    max-height: 34vh;
+    max-height: 24vh;
     overflow-y: auto;
     padding-right: 0.15rem;
 }
@@ -78,27 +76,15 @@ _WIDGET_CSS = """
         bottom: 4.25rem;
         width: calc(100vw - 1rem);
         max-width: calc(100vw - 1rem);
-        max-height: 52vh;
-        padding: 0.7rem;
+        max-height: 44vh;
+        padding: 0.65rem;
     }
     .st-key-sourcemate_widget_history {
-        max-height: 28vh;
+        max-height: 22vh;
     }
 }
 </style>
 """
-
-
-def _current_render_token() -> int | None:
-    """Return a token that changes with each Streamlit script run."""
-    ctx = get_script_run_ctx(suppress_warning=True)
-    return None if ctx is None else id(ctx)
-
-
-def reset_global_mount_guard() -> None:
-    """Allow the next render call while retaining duplicate protection within one run."""
-    global _LAST_RENDER_TOKEN
-    _LAST_RENDER_TOKEN = None
 
 
 def _history() -> list[dict[str, Any]]:
@@ -168,15 +154,10 @@ def render_sourcemate_conversation(
     global_mount: bool = False,
 ) -> None:
     """Render one persistent SourceMate launcher and a rerun-safe fixed panel."""
-    global _LAST_RENDER_TOKEN
+    del global_mount
 
     if presentation:
         publish_selected_presentation(presentation)
-
-    render_token = _current_render_token()
-    if render_token is not None and _LAST_RENDER_TOKEN == render_token:
-        return
-    _LAST_RENDER_TOKEN = render_token
 
     st.session_state.setdefault(_OPEN_KEY, False)
     context = current_context()
@@ -194,9 +175,8 @@ def render_sourcemate_conversation(
         return
 
     with st.container(key="sourcemate_widget_panel"):
-        heading_columns = st.columns([6, 1])
-        heading_columns[0].markdown("#### SourceMate")
-        heading_columns[1].button("✕", key="sourcemate_panel_close", on_click=_close_panel, width="stretch")
+        st.markdown("#### SourceMate")
+        st.button("✕", key="sourcemate_panel_close", on_click=_close_panel, width="content")
         st.caption(f"{active_page} · Read-only · Human review required")
 
         history = _history()
