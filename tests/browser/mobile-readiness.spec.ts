@@ -90,6 +90,29 @@ for (const viewport of VIEWPORTS) {
   });
 }
 
+test.describe('SourceMate submitted-question persistence', () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+  test('typed Send keeps the panel open and shows the submitted exchange', async ({ page }) => {
+    await waitForApp(page);
+
+    const launcher = page.getByRole('button', { name: /SourceMate/i }).first();
+    await launcher.click();
+
+    const panel = page.locator('.st-key-sourcemate_widget_panel');
+    await expect(panel).toBeVisible();
+
+    const question = 'What are project limitations?';
+    await panel.getByPlaceholder('Ask SourceMate…').fill(question);
+    await panel.getByRole('button', { name: 'Send', exact: true }).click();
+
+    await expect(panel).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('.st-key-sourcemate_widget_launcher')).toHaveCount(0);
+    await expect(panel.getByText(question, { exact: true })).toBeVisible();
+    await expect(panel.getByPlaceholder('Ask SourceMate…')).toBeVisible();
+  });
+});
+
 test.describe('folded-phone-desktop-site-mode', () => {
   test.use({
     viewport: { width: 980, height: 1740 },
