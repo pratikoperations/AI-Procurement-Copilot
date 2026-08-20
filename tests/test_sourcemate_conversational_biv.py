@@ -70,11 +70,13 @@ def test_contracts_and_supported_intents_are_bounded():
     assert SOURCEMATE_CONVERSATION_CONTRACT == "AIPC-SOURCEMATE-PROJECT-WIDGET-BIV-1.0"
     assert PROJECT_KNOWLEDGE_CONTRACT == "AIPC-SOURCEMATE-PROJECT-KNOWLEDGE-1.0"
     assert SUPPORTED_INTENTS == (
+        "live_supplier_results",
         "calculation",
         "assumptions",
         "trace",
         "reconciliation",
         "evidence",
+        "glossary",
         "project_knowledge",
         "limitations",
         "clarification",
@@ -104,6 +106,19 @@ def test_tco_question_returns_registered_percentages_and_sources():
     assert "maximum freight exposure 6%" in response["answer"]
     assert "business-impact multiplier 50%" in response["answer"]
     assert "modules/tco.py::calculate_supplier_tco" in response["evidence_references"]
+
+
+def test_tco_answer_is_structured_at_presentation_boundary_without_changing_registered_values():
+    source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
+    assert "def _format_assistant_content(" in source
+    assert "| Raw-material exposure | 60% |" in source
+    assert "| Cost of capital | 12% |" in source
+    assert "| Inventory carrying rate | 18% |" in source
+    assert "| Maximum freight exposure | 6% |" in source
+    assert "| Maximum failure probability | 20% |" in source
+    assert "| Business-impact multiplier | 50% |" in source
+    assert "| DDP | 0% |" in source
+    assert "| EXW | 100% |" in source
 
 
 def test_srm_question_returns_weights_thresholds_and_bifurcation():
@@ -227,7 +242,7 @@ def test_context_aware_starter_prompts_are_deterministic_and_bounded():
     assert "Compare the top suppliers" in source
     assert "What risks need human review?" in source
     assert "on_click=_queue_question" in source
-    assert "answer_question(question_to_answer, current_context())" in source
+    assert "answer_question(question, current_context())" in source
 
 
 def test_no_prohibited_external_or_action_dependencies_are_introduced():
