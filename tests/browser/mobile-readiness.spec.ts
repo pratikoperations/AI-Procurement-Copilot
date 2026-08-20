@@ -47,7 +47,7 @@ for (const viewport of VIEWPORTS) {
       }
     });
 
-    test('SourceMate stays compact, unique, contextual and viewport-contained', async ({ page }) => {
+    test('SourceMate stays compact, blank by default, unique and viewport-contained', async ({ page }) => {
       await waitForApp(page);
 
       const launchers = page.getByRole('button', { name: /SourceMate/i });
@@ -60,10 +60,9 @@ for (const viewport of VIEWPORTS) {
       await expect(panel).toBeVisible();
       await expect(page.locator('.st-key-sourcemate_widget_launcher')).toHaveCount(0);
       await expect(panel.getByText(/Read-only · Human review required/)).toBeVisible();
-      await expect(panel.getByText('How can I help?')).toBeVisible();
-
-      const starterPrompts = panel.locator('.st-key-sourcemate_starter_prompts button');
-      await expect(starterPrompts).toHaveCount(3);
+      await expect(panel.getByText('How can I help?')).toHaveCount(0);
+      await expect(panel.getByText('Explain the current recommendation')).toHaveCount(0);
+      await expect(panel.getByText('Compare the top suppliers')).toHaveCount(0);
 
       const bounds = await panel.boundingBox();
       expect(bounds).not.toBeNull();
@@ -89,6 +88,29 @@ for (const viewport of VIEWPORTS) {
     });
   });
 }
+
+test.describe('SourceMate submitted-question persistence', () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+  test('typed Send keeps the panel open and shows the submitted exchange without remounting launcher', async ({ page }) => {
+    await waitForApp(page);
+
+    const launcher = page.getByRole('button', { name: /SourceMate/i }).first();
+    await launcher.click();
+
+    const panel = page.locator('.st-key-sourcemate_widget_panel');
+    await expect(panel).toBeVisible();
+
+    const question = 'What are project limitations?';
+    await panel.getByPlaceholder('Ask SourceMate…').fill(question);
+    await panel.getByRole('button', { name: 'Send', exact: true }).click();
+
+    await expect(panel).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('.st-key-sourcemate_widget_launcher')).toHaveCount(0);
+    await expect(panel.getByText(question, { exact: true })).toBeVisible();
+    await expect(panel.getByPlaceholder('Ask SourceMate…')).toBeVisible();
+  });
+});
 
 test.describe('folded-phone-desktop-site-mode', () => {
   test.use({
