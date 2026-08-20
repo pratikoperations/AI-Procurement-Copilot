@@ -104,7 +104,8 @@ def test_procurement_intelligence_receives_combined_recommendation_control():
 def test_procurement_intelligence_hides_legacy_scenario_allocation():
     source = PROCUREMENT_UI_PATH.read_text(encoding="utf-8")
     assert "Governed Multi-Supplier Allocation" in source
-    assert "No legacy scenario allocation is displayed" in source
+    assert "Governance & Evidence Details" in source
+    assert "Legacy fallback used" in source
     assert 'scenario_result["allocation"]' not in source
     assert "Recommended supplier under scenario" not in source
 
