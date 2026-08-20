@@ -25,29 +25,6 @@ def _install() -> None:
     except Exception:
         return
 
-    if not getattr(st.set_page_config, "_aipc_global_sourcemate", False):
-        original_set_page_config = st.set_page_config
-
-        def set_page_config_with_sourcemate(*args, **kwargs):
-            result = original_set_page_config(*args, **kwargs)
-            try:
-                from modules.sourcemate_global_context import current_context
-                from modules.sourcemate_conversation_ui import (
-                    render_sourcemate_conversation,
-                    reset_global_mount_guard,
-                )
-
-                reset_global_mount_guard()
-                page = str(kwargs.get("page_title") or "AI Procurement Copilot")
-                render_sourcemate_conversation(current_context(page), global_mount=True)
-            except Exception:
-                # A presentation helper must never prevent the governed page from loading.
-                pass
-            return result
-
-        set_page_config_with_sourcemate._aipc_global_sourcemate = True
-        st.set_page_config = set_page_config_with_sourcemate
-
     try:
         from modules import scoring
         from modules.sourcemate_global_context import publish_scored_context
