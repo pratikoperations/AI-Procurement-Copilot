@@ -182,7 +182,7 @@ def test_widget_uses_compact_fixed_panel_and_persistent_session_history():
     assert "sourcemate_widget_launcher" in source
     assert "sourcemate_widget_panel" in source
     assert "position: fixed" in source
-    assert "max-height: min(58vh, 620px)" in source
+    assert "max-height: min(54vh, 620px)" in source
     assert "max-height: 52vh" in source
     assert "@media (max-width: 640px)" in source
     assert "overflow-y: auto" in source
