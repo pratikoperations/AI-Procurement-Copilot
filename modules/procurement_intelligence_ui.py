@@ -78,7 +78,7 @@ def render_procurement_intelligence(
         c3.metric("Sourcing Strategy", strategy["strategy"])
         st.write(decision["executive_recommendation"])
         st.caption(decision["business_justification"])
-        st.info("Recommendation remains subject to human procurement approval.")
+        st.write("**Human procurement approval required.**")
 
         st.subheader("Strategy")
         st.write(f"**Recommendation:** {strategy['strategy']}")
