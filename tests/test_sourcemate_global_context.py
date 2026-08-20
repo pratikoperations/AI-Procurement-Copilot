@@ -144,7 +144,7 @@ def test_widget_uses_shared_history_rerun_token_and_persistent_panel():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
     assert '_SESSION_KEY = "sourcemate_conversation_history"' in source
     assert '_OPEN_KEY = "sourcemate_widget_open"' in source
-    assert '_PENDING_QUESTION_KEY = "sourcemate_pending_question"' in source
+    assert "sourcemate_pending_question" not in source
     assert "get_script_run_ctx" in source
     assert "_current_render_token" in source
     assert "_LAST_RENDER_TOKEN == render_token" in source
@@ -165,15 +165,15 @@ def test_submit_refreshes_history_and_keeps_panel_open():
     assert "sourcemate_widget_submitted_exchange" not in source
 
 
-def test_launcher_and_panel_controls_use_session_state_callbacks():
+def test_launcher_is_persistent_and_panel_close_uses_session_state_callback():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
     assert "def _open_panel()" in source
     assert "def _close_panel()" in source
-    assert "def _queue_question(question: str)" in source
+    assert "def _queue_question(question: str)" not in source
     assert 'key="sourcemate_launcher_toggle"' in source
     assert 'key="sourcemate_panel_close"' in source
     assert "on_click=_open_panel" in source
     assert "on_click=_close_panel" in source
-    assert "on_click=_queue_question" in source
+    assert "sourcemate_starter_prompts" not in source
     assert "✕ Close SourceMate" not in source
     assert "The panel stays open after Send" not in source
