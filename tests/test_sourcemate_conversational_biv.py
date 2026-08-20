@@ -188,7 +188,7 @@ def test_widget_uses_compact_fixed_panel_and_persistent_session_history():
     assert "overflow-y: auto" in source
     assert "st.session_state" in source
     assert '_OPEN_KEY = "sourcemate_widget_open"' in source
-    assert '_PENDING_QUESTION_KEY = "sourcemate_pending_question"' in source
+    assert "sourcemate_pending_question" not in source
     assert "st.form(" in source
     assert "st.text_input(" in source
     assert 'placeholder="Ask SourceMate…"' in source
@@ -215,19 +215,18 @@ def test_widget_prioritizes_conversation_and_progressive_disclosure():
     assert "on_click=_close_panel" in source
 
 
-def test_context_aware_starter_prompts_are_deterministic_and_bounded():
+def test_blank_default_panel_has_no_suggested_questions_or_forced_rerun():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
-    assert "def _starter_prompts(" in source
-    assert "Explain this calculation" in source
-    assert "What assumptions were used?" in source
-    assert "What evidence supports this result?" in source
-    assert "What can SourceMate determine here?" in source
-    assert "What are the limits of this preview?" in source
-    assert "Explain the current recommendation" in source
-    assert "Compare the top suppliers" in source
-    assert "What risks need human review?" in source
-    assert "on_click=_queue_question" in source
+    assert "def _starter_prompts(" not in source
+    assert "sourcemate_starter_prompts" not in source
+    assert "Explain the current recommendation" not in source
+    assert "Compare the top suppliers" not in source
+    assert "What risks need human review?" not in source
+    assert "How can I help?" not in source
+    assert "st.rerun()" not in source
     assert "answer_question(question_to_answer, current_context())" in source
+    assert "history_container = st.container" in source
+    assert "st.session_state[_OPEN_KEY] = True" in source
 
 
 def test_no_prohibited_external_or_action_dependencies_are_introduced():
