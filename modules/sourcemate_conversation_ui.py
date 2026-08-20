@@ -19,6 +19,20 @@ _PENDING_QUESTION_KEY = "sourcemate_pending_question"
 _MAX_MESSAGES = 16
 _LAST_RENDER_TOKEN: int | None = None
 
+_TCO_DEFAULT_SENTENCE = (
+    "Default parameters are: raw-material exposure 60%, cost of capital 12%, inventory carrying rate 18%, "
+    "maximum freight exposure 6%, maximum failure probability 20%, and business-impact multiplier 50%."
+)
+_TCO_DEFAULT_TABLE = """Default parameters:\n\n| Parameter | Governed default |\n|---|---:|\n| Raw-material exposure | 60% |\n| Cost of capital | 12% |\n| Inventory carrying rate | 18% |\n| Maximum freight exposure | 6% |\n| Maximum failure probability | 20% |\n| Business-impact multiplier | 50% |"""
+_TCO_LEAD_SENTENCE = (
+    "Lead-time buffers are 0% up to 21 days, 0.3% above 21 days, 0.75% above 30 days and 1.5% above 45 days."
+)
+_TCO_LEAD_TABLE = """Lead-time buffers:\n\n| Lead time | Buffer |\n|---|---:|\n| Up to 21 days | 0% |\n| Above 21 days | 0.3% |\n| Above 30 days | 0.75% |\n| Above 45 days | 1.5% |"""
+_TCO_INCOTERM_SENTENCE = (
+    "Incoterm freight exposure is DDP 0%, DAP 20% of maximum, CIF 35%, FOB 75%, EXW 100%, and unknown 60% of maximum."
+)
+_TCO_INCOTERM_TABLE = """Incoterm freight exposure:\n\n| Incoterm | Share of maximum freight exposure |\n|---|---:|\n| DDP | 0% |\n| DAP | 20% |\n| CIF | 35% |\n| FOB | 75% |\n| EXW | 100% |\n| Unknown | 60% |"""
+
 _WIDGET_CSS = """
 <style>
 .st-key-sourcemate_widget_launcher {
@@ -148,9 +162,21 @@ def _starter_prompts(active_page: str) -> tuple[str, str, str]:
     )
 
 
+def _format_assistant_content(content: str) -> str:
+    """Apply presentation-only formatting to dense governed SourceMate answers."""
+    formatted = str(content)
+    formatted = formatted.replace(_TCO_DEFAULT_SENTENCE, _TCO_DEFAULT_TABLE)
+    formatted = formatted.replace(_TCO_LEAD_SENTENCE, _TCO_LEAD_TABLE)
+    formatted = formatted.replace(_TCO_INCOTERM_SENTENCE, _TCO_INCOTERM_TABLE)
+    return formatted
+
+
 def _render_message(message: Mapping[str, Any]) -> None:
     with st.chat_message(str(message["role"])):
-        st.markdown(str(message["content"]))
+        content = str(message["content"])
+        if message.get("role") == "assistant":
+            content = _format_assistant_content(content)
+        st.markdown(content)
         refs = message.get("evidence_references") or []
         if refs:
             st.caption("Evidence: " + " | ".join(str(item) for item in refs))
@@ -160,6 +186,27 @@ def _render_history(history: list[dict[str, Any]]) -> None:
     with st.container(key="sourcemate_widget_history"):
         for message in history:
             _render_message(message)
+
+
+def _append_exchange(question: str, history: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Append one deterministic SourceMate exchange and keep the panel open."""
+    response = answer_question(question, current_context())
+    exchange = [
+        {"role": "user", "content": question},
+        {
+            "role": "assistant",
+            "content": response["answer"],
+            "evidence_references": response["evidence_references"],
+            "intent": response["intent"],
+            "human_review_required": response["human_review_required"],
+        },
+    ]
+    history.extend(exchange)
+    if len(history) > _MAX_MESSAGES:
+        del history[:-_MAX_MESSAGES]
+    st.session_state[_SESSION_KEY] = history
+    st.session_state[_OPEN_KEY] = True
+    return exchange
 
 
 def render_sourcemate_conversation(
@@ -200,6 +247,10 @@ def render_sourcemate_conversation(
         st.caption(f"{active_page} · Read-only · Human review required")
 
         history = _history()
+        pending_question = str(st.session_state.pop(_PENDING_QUESTION_KEY, "") or "").strip()
+        if pending_question:
+            _append_exchange(pending_question, history)
+
         if not history:
             st.markdown("**How can I help?**")
             with st.container(key="sourcemate_starter_prompts"):
@@ -235,28 +286,15 @@ def render_sourcemate_conversation(
                 width="stretch",
             )
 
-        pending_question = st.session_state.pop(_PENDING_QUESTION_KEY, None)
-        question_to_answer = str(question or "").strip() if submitted else str(pending_question or "").strip()
-        if not question_to_answer:
-            if submitted:
-                st.warning("Enter a project-related question.")
+        if not submitted:
             return
 
-        response = answer_question(question_to_answer, current_context())
-        history.extend(
-            [
-                {"role": "user", "content": question_to_answer},
-                {
-                    "role": "assistant",
-                    "content": response["answer"],
-                    "evidence_references": response["evidence_references"],
-                    "intent": response["intent"],
-                    "human_review_required": response["human_review_required"],
-                },
-            ]
-        )
-        if len(history) > _MAX_MESSAGES:
-            del history[:-_MAX_MESSAGES]
-        st.session_state[_SESSION_KEY] = history
-        st.session_state[_OPEN_KEY] = True
-        st.rerun()
+        question_to_answer = str(question or "").strip()
+        if not question_to_answer:
+            st.warning("Enter a project-related question.")
+            return
+
+        exchange = _append_exchange(question_to_answer, history)
+        with st.container(key="sourcemate_widget_submitted_exchange"):
+            for message in exchange:
+                _render_message(message)
