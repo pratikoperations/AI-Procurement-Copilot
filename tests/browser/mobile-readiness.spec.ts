@@ -90,6 +90,32 @@ for (const viewport of VIEWPORTS) {
   });
 }
 
+test.describe('sourcemate-hosted-send-regression', () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+  test('typed Send keeps SourceMate open and presents TCO percentages as a table', async ({ page }) => {
+    await waitForApp(page);
+
+    const launcher = page.getByRole('button', { name: /SourceMate/i });
+    await expect(launcher).toHaveCount(1);
+    await launcher.click();
+
+    const panel = page.locator('.st-key-sourcemate_widget_panel');
+    await expect(panel).toBeVisible();
+
+    const input = panel.getByPlaceholder('Ask SourceMate…');
+    await input.fill('What percentage is considered in TCO for each parameter?');
+    await panel.getByRole('button', { name: 'Send', exact: true }).click();
+
+    await expect(panel).toBeVisible();
+    await expect(page.locator('.st-key-sourcemate_widget_launcher')).toHaveCount(0);
+    await expect(panel.getByText('Raw-material exposure', { exact: true })).toBeVisible();
+    await expect(panel.getByText('60%', { exact: true }).first()).toBeVisible();
+    await expect(panel.getByText('Cost of capital', { exact: true })).toBeVisible();
+    await expect(panel.getByText('12%', { exact: true }).first()).toBeVisible();
+  });
+});
+
 test.describe('folded-phone-desktop-site-mode', () => {
   test.use({
     viewport: { width: 980, height: 1740 },
