@@ -70,11 +70,13 @@ def test_contracts_and_supported_intents_are_bounded():
     assert SOURCEMATE_CONVERSATION_CONTRACT == "AIPC-SOURCEMATE-PROJECT-WIDGET-BIV-1.0"
     assert PROJECT_KNOWLEDGE_CONTRACT == "AIPC-SOURCEMATE-PROJECT-KNOWLEDGE-1.0"
     assert SUPPORTED_INTENTS == (
+        "live_supplier_results",
         "calculation",
         "assumptions",
         "trace",
         "reconciliation",
         "evidence",
+        "glossary",
         "project_knowledge",
         "limitations",
         "clarification",
@@ -183,12 +185,14 @@ def test_widget_uses_compact_fixed_panel_and_persistent_session_history():
     assert "sourcemate_widget_panel" in source
     assert "position: fixed" in source
     assert "max-height: min(54vh, 620px)" in source
-    assert "max-height: 52vh" in source
+    assert "max-height: 48vh" in source
     assert "@media (max-width: 640px)" in source
     assert "overflow-y: auto" in source
+    assert "background: #161d27" in source
+    assert "background: #1b2635" in source
     assert "st.session_state" in source
     assert '_OPEN_KEY = "sourcemate_widget_open"' in source
-    assert '_PENDING_QUESTION_KEY = "sourcemate_pending_question"' in source
+    assert "sourcemate_pending_question" not in source
     assert "st.form(" in source
     assert "st.text_input(" in source
     assert 'placeholder="Ask SourceMate…"' in source
@@ -213,21 +217,21 @@ def test_widget_prioritizes_conversation_and_progressive_disclosure():
     assert "Evidence: " in source
     assert "on_click=_open_panel" in source
     assert "on_click=_close_panel" in source
+    assert "Ask a question about the evidence available on this page." in source
 
 
-def test_context_aware_starter_prompts_are_deterministic_and_bounded():
+def test_starter_prompts_are_removed_and_display_answers_are_compacted_only_in_ui():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
-    assert "def _starter_prompts(" in source
-    assert "Explain this calculation" in source
-    assert "What assumptions were used?" in source
-    assert "What evidence supports this result?" in source
-    assert "What can SourceMate determine here?" in source
-    assert "What are the limits of this preview?" in source
-    assert "Explain the current recommendation" in source
-    assert "Compare the top suppliers" in source
-    assert "What risks need human review?" in source
-    assert "on_click=_queue_question" in source
+    service = Path("modules/sourcemate_conversation.py").read_text(encoding="utf-8")
+    assert "def _starter_prompts(" not in source
+    assert "sourcemate_starter_prompts" not in source
+    assert "Explain the current recommendation" not in source
+    assert "Compare the top suppliers" not in source
+    assert "What risks need human review?" not in source
+    assert "def _compact_answer_for_display(" in source
+    assert 'text.replace("Verified project evidence — ", "")' in source
     assert "answer_question(question_to_answer, current_context())" in source
+    assert "def answer_question(" in service
 
 
 def test_no_prohibited_external_or_action_dependencies_are_introduced():
