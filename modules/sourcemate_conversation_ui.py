@@ -15,7 +15,6 @@ from modules.sourcemate_global_context import current_context, publish_selected_
 
 _SESSION_KEY = "sourcemate_conversation_history"
 _OPEN_KEY = "sourcemate_widget_open"
-_PENDING_QUESTION_KEY = "sourcemate_pending_question"
 _MAX_MESSAGES = 16
 _LAST_RENDER_TOKEN: int | None = None
 
@@ -25,7 +24,7 @@ _WIDGET_CSS = """
     position: fixed;
     right: 1rem;
     bottom: 1rem;
-    z-index: 1000001;
+    z-index: 1000002;
     width: auto;
     max-width: calc(100vw - 1rem);
 }
@@ -33,24 +32,26 @@ _WIDGET_CSS = """
     min-height: 2.75rem;
     border-radius: 999px;
     padding: 0.55rem 0.9rem;
+    border: 1px solid rgba(88, 166, 255, 0.35);
+    background: #1b2635;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
     font-weight: 700;
 }
 .st-key-sourcemate_widget_panel {
     position: fixed;
     right: 1rem;
-    bottom: 1rem;
-    z-index: 1000000;
+    bottom: 4.75rem;
+    z-index: 1000001;
     width: min(420px, calc(100vw - 1rem));
     max-width: min(420px, calc(100vw - 1rem));
     max-height: min(54vh, 620px);
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: 0.85rem;
-    border: 1px solid rgba(128, 128, 128, 0.38);
+    border: 1px solid rgba(88, 166, 255, 0.32);
     border-radius: 1rem;
-    background: var(--background-color, #0e1117);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.34);
+    background: #161d27;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.38);
 }
 .st-key-sourcemate_widget_history {
     max-height: 34vh;
@@ -63,10 +64,6 @@ _WIDGET_CSS = """
     overflow-x: auto;
     white-space: nowrap;
 }
-.st-key-sourcemate_starter_prompts button {
-    min-height: 2.35rem;
-    text-align: left;
-}
 @media (max-width: 640px) {
     .st-key-sourcemate_widget_launcher {
         right: 0.5rem;
@@ -75,14 +72,14 @@ _WIDGET_CSS = """
     }
     .st-key-sourcemate_widget_panel {
         right: 0.5rem;
-        bottom: 4.25rem;
+        bottom: 8rem;
         width: calc(100vw - 1rem);
         max-width: calc(100vw - 1rem);
-        max-height: 52vh;
+        max-height: 48vh;
         padding: 0.7rem;
     }
     .st-key-sourcemate_widget_history {
-        max-height: 28vh;
+        max-height: 27vh;
     }
 }
 </style>
@@ -122,30 +119,17 @@ def _close_panel() -> None:
     st.session_state[_OPEN_KEY] = False
 
 
-def _queue_question(question: str) -> None:
-    st.session_state[_PENDING_QUESTION_KEY] = question
-
-
-def _starter_prompts(active_page: str) -> tuple[str, str, str]:
-    """Return deterministic starter prompts aligned to the active governed surface."""
-    page = active_page.casefold()
-    if "calculation explorer" in page:
-        return (
-            "Explain this calculation",
-            "What assumptions were used?",
-            "What evidence supports this result?",
-        )
-    if "erp upload preview" in page:
-        return (
-            "What can SourceMate determine here?",
-            "What evidence is available here?",
-            "What are the limits of this preview?",
-        )
-    return (
-        "Explain the current recommendation",
-        "Compare the top suppliers",
-        "What risks need human review?",
+def _compact_answer_for_display(answer: Any) -> str:
+    """Reduce repeated registry/governance wrapper text without changing answer evidence."""
+    text = str(answer or "").strip()
+    text = text.replace("Verified project evidence — ", "")
+    text = text.replace(
+        "\n\nThe response summarizes registered repository logic and does not execute it.",
+        "",
     )
+    text = text.replace("Verified evidence: ", "")
+    text = text.replace("Generated explanation: ", "")
+    return text.strip()
 
 
 def _render_message(message: Mapping[str, Any]) -> None:
@@ -183,14 +167,15 @@ def render_sourcemate_conversation(
     active_page = str(context.get("active_page", "Current page"))
     st.markdown(_WIDGET_CSS, unsafe_allow_html=True)
 
+    with st.container(key="sourcemate_widget_launcher"):
+        st.button(
+            "💬 SourceMate",
+            key="sourcemate_launcher_toggle",
+            on_click=_open_panel,
+            width="stretch",
+        )
+
     if not st.session_state[_OPEN_KEY]:
-        with st.container(key="sourcemate_widget_launcher"):
-            st.button(
-                "💬 SourceMate",
-                key="sourcemate_launcher_toggle",
-                on_click=_open_panel,
-                width="stretch",
-            )
         return
 
     with st.container(key="sourcemate_widget_panel"):
@@ -200,19 +185,10 @@ def render_sourcemate_conversation(
         st.caption(f"{active_page} · Read-only · Human review required")
 
         history = _history()
-        if not history:
-            st.markdown("**How can I help?**")
-            with st.container(key="sourcemate_starter_prompts"):
-                for index, prompt in enumerate(_starter_prompts(active_page)):
-                    st.button(
-                        prompt,
-                        key=f"sourcemate_starter_{index}",
-                        on_click=_queue_question,
-                        args=(prompt,),
-                        width="stretch",
-                    )
-        else:
+        if history:
             _render_history(history)
+        else:
+            st.caption("Ask a question about the evidence available on this page.")
 
         with st.form("sourcemate_widget_form", clear_on_submit=True):
             question = st.text_input(
@@ -235,11 +211,11 @@ def render_sourcemate_conversation(
                 width="stretch",
             )
 
-        pending_question = st.session_state.pop(_PENDING_QUESTION_KEY, None)
-        question_to_answer = str(question or "").strip() if submitted else str(pending_question or "").strip()
+        if not submitted:
+            return
+        question_to_answer = str(question or "").strip()
         if not question_to_answer:
-            if submitted:
-                st.warning("Enter a project-related question.")
+            st.warning("Enter a project-related question.")
             return
 
         response = answer_question(question_to_answer, current_context())
@@ -248,7 +224,7 @@ def render_sourcemate_conversation(
                 {"role": "user", "content": question_to_answer},
                 {
                     "role": "assistant",
-                    "content": response["answer"],
+                    "content": _compact_answer_for_display(response["answer"]),
                     "evidence_references": response["evidence_references"],
                     "intent": response["intent"],
                     "human_review_required": response["human_review_required"],
