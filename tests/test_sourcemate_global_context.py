@@ -105,24 +105,39 @@ def test_external_forecast_still_fails_closed():
     assert response["calculation_executed"] is False
 
 
-def test_global_bootstrap_mounts_after_page_config_and_wraps_scoring_read_only():
-    source = Path("sitecustomize.py").read_text(encoding="utf-8")
-    assert "set_page_config_with_sourcemate" in source
-    assert "render_sourcemate_conversation(current_context(page), global_mount=True)" in source
-    assert "result = original_enrich(suppliers_df, assumptions)" in source
-    assert "publish_scored_context(result, assumptions)" in source
-    assert "return result" in source
+def test_explicit_application_shell_replaces_implicit_widget_bootstrap_and_keeps_scoring_context_read_only():
+    bootstrap_source = Path("sitecustomize.py").read_text(encoding="utf-8")
+    shell_source = Path("modules/sourcemate_application_shell.py").read_text(encoding="utf-8")
+
+    assert "set_page_config_with_sourcemate" not in bootstrap_source
+    assert "render_sourcemate_conversation(current_context(page), global_mount=True)" not in bootstrap_source
+    assert "def mount_global_sourcemate(" in shell_source
+    assert "set_active_page(page_title)" in shell_source
+    assert "publish_selected_presentation(presentation)" in shell_source
+    assert "render_sourcemate_conversation(global_mount=True)" in shell_source
+
+    assert "result = original_enrich(suppliers_df, assumptions)" in bootstrap_source
+    assert "publish_scored_context(result, assumptions)" in bootstrap_source
+    assert "return result" in bootstrap_source
 
 
-def test_all_streamlit_entry_points_use_page_config_for_global_bootstrap():
-    entry_points = [
-        Path("app.py"),
-        Path("pages/8_Governed_Calculation_Explorer.py"),
-        Path("pages/9_ERP_Upload_Preview.py"),
-    ]
-    for path in entry_points:
-        assert path.exists(), path
-        assert "st.set_page_config" in path.read_text(encoding="utf-8")
+def test_all_streamlit_entry_points_use_one_shared_sourcemate_shell_contract():
+    app_source = Path("app.py").read_text(encoding="utf-8")
+    sidebar_source = Path("modules/sidebar.py").read_text(encoding="utf-8")
+    c1_source = Path("modules/c1_ux.py").read_text(encoding="utf-8")
+    explorer_source = Path("pages/8_Governed_Calculation_Explorer.py").read_text(encoding="utf-8")
+    erp_source = Path("pages/9_ERP_Upload_Preview.py").read_text(encoding="utf-8")
+
+    assert "assumptions = render_sidebar()" in app_source
+    assert "apply_c1_ux_overrides()" in sidebar_source
+    assert 'mount_global_sourcemate("AI Procurement Copilot")' in c1_source
+
+    assert 'mount_global_sourcemate("Governed Calculation Explorer")' in explorer_source
+    assert 'mount_global_sourcemate("Governed Calculation Explorer", presentation=presentation)' in explorer_source
+    assert "render_sourcemate_conversation(presentation)" not in explorer_source
+
+    assert 'mount_global_sourcemate("ERP Upload Preview")' in erp_source
+    assert erp_source.index('mount_global_sourcemate("ERP Upload Preview")') < erp_source.index("if uploaded_file is None:")
 
 
 def test_widget_uses_shared_history_rerun_token_and_persistent_panel():
