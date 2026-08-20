@@ -47,7 +47,7 @@ for (const viewport of VIEWPORTS) {
       }
     });
 
-    test('SourceMate launcher and panel remain unique, visible, closable and viewport-contained', async ({ page }) => {
+    test('SourceMate stays compact, unique, contextual and viewport-contained', async ({ page }) => {
       await waitForApp(page);
 
       const launchers = page.getByRole('button', { name: /SourceMate/i });
@@ -58,6 +58,12 @@ for (const viewport of VIEWPORTS) {
 
       const panel = page.locator('.st-key-sourcemate_widget_panel');
       await expect(panel).toBeVisible();
+      await expect(page.locator('.st-key-sourcemate_widget_launcher')).toHaveCount(0);
+      await expect(panel.getByText(/Read-only · Human review required/)).toBeVisible();
+      await expect(panel.getByText('How can I help?')).toBeVisible();
+
+      const starterPrompts = panel.locator('.st-key-sourcemate_starter_prompts button');
+      await expect(starterPrompts).toHaveCount(3);
 
       const bounds = await panel.boundingBox();
       expect(bounds).not.toBeNull();
@@ -66,9 +72,10 @@ for (const viewport of VIEWPORTS) {
         expect(bounds.y).toBeGreaterThanOrEqual(0);
         expect(bounds.x + bounds.width).toBeLessThanOrEqual(viewport.width + 2);
         expect(bounds.y + bounds.height).toBeLessThanOrEqual(viewport.height + 2);
+        expect(bounds.height).toBeLessThanOrEqual(viewport.height * 0.55 + 4);
       }
 
-      const input = panel.getByPlaceholder(/Ask about a supplier/i);
+      const input = panel.getByPlaceholder('Ask SourceMate…');
       await expect(input).toBeVisible();
       await input.focus();
       await expect(input).toBeFocused();
@@ -77,6 +84,7 @@ for (const viewport of VIEWPORTS) {
       await expect(closeButton).toBeVisible();
       await closeButton.click();
       await expect(panel).toBeHidden();
+      await expect(page.getByRole('button', { name: /SourceMate/i })).toHaveCount(1);
       await assertNoPageOverflow(page);
     });
   });
@@ -90,7 +98,7 @@ test.describe('folded-phone-desktop-site-mode', () => {
     hasTouch: true,
   });
 
-  test('retains a phone-first layout, bounded sidebar and one usable SourceMate shell', async ({ page }) => {
+  test('retains a phone-first layout, bounded sidebar and one compact SourceMate shell', async ({ page }) => {
     await waitForApp(page);
     await assertNoPageOverflow(page);
 
@@ -110,6 +118,7 @@ test.describe('folded-phone-desktop-site-mode', () => {
     await sourceMateLaunchers.first().click();
     const sourceMatePanel = page.locator('.st-key-sourcemate_widget_panel');
     await expect(sourceMatePanel).toBeVisible();
+    await expect(page.locator('.st-key-sourcemate_widget_launcher')).toHaveCount(0);
     const sourceMateBounds = await sourceMatePanel.boundingBox();
     expect(sourceMateBounds).not.toBeNull();
     if (sourceMateBounds) {

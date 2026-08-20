@@ -144,6 +144,7 @@ def test_widget_uses_shared_history_rerun_token_and_persistent_panel():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
     assert '_SESSION_KEY = "sourcemate_conversation_history"' in source
     assert '_OPEN_KEY = "sourcemate_widget_open"' in source
+    assert '_PENDING_QUESTION_KEY = "sourcemate_pending_question"' in source
     assert "get_script_run_ctx" in source
     assert "_current_render_token" in source
     assert "_LAST_RENDER_TOKEN == render_token" in source
@@ -155,21 +156,24 @@ def test_widget_uses_shared_history_rerun_token_and_persistent_panel():
     assert "st.popover(" not in source
 
 
-def test_submit_keeps_panel_open_and_does_not_force_rerun():
+def test_submit_refreshes_history_and_keeps_panel_open():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
-    submit_block = source.split("if not submitted:", 1)[1]
-    assert "sourcemate_widget_submitted_exchange" in submit_block
-    assert "for message in exchange:" in submit_block
-    assert "st.session_state[_OPEN_KEY] = True" in submit_block
-    assert "st.rerun()" not in submit_block
+    assert "question_to_answer =" in source
+    assert "history.extend(" in source
+    assert "st.session_state[_OPEN_KEY] = True" in source
+    assert "st.rerun()" in source
+    assert "sourcemate_widget_submitted_exchange" not in source
 
 
 def test_launcher_and_panel_controls_use_session_state_callbacks():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
-    assert "def _toggle_panel()" in source
+    assert "def _open_panel()" in source
     assert "def _close_panel()" in source
+    assert "def _queue_question(question: str)" in source
     assert 'key="sourcemate_launcher_toggle"' in source
     assert 'key="sourcemate_panel_close"' in source
-    assert "on_click=_toggle_panel" in source
+    assert "on_click=_open_panel" in source
     assert "on_click=_close_panel" in source
-    assert "The panel stays open after Send" in source
+    assert "on_click=_queue_question" in source
+    assert "✕ Close SourceMate" not in source
+    assert "The panel stays open after Send" not in source

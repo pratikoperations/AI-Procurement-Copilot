@@ -174,7 +174,7 @@ def test_limitations_disclose_no_web_or_autonomous_authority():
     assert "Human approval" in response["answer"]
 
 
-def test_widget_uses_fixed_bottom_right_persistent_panel_and_session_history():
+def test_widget_uses_compact_fixed_panel_and_persistent_session_history():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
     shell = Path("modules/sourcemate_application_shell.py").read_text(encoding="utf-8")
     explorer = Path("pages/8_Governed_Calculation_Explorer.py").read_text(encoding="utf-8")
@@ -182,32 +182,52 @@ def test_widget_uses_fixed_bottom_right_persistent_panel_and_session_history():
     assert "sourcemate_widget_launcher" in source
     assert "sourcemate_widget_panel" in source
     assert "position: fixed" in source
-    assert "right: 1rem" in source
-    assert "bottom: 1rem" in source
+    assert "max-height: min(54vh, 620px)" in source
+    assert "max-height: 52vh" in source
     assert "@media (max-width: 640px)" in source
-    assert "width: calc(100vw - 1rem)" in source
     assert "overflow-y: auto" in source
     assert "st.session_state" in source
     assert '_OPEN_KEY = "sourcemate_widget_open"' in source
+    assert '_PENDING_QUESTION_KEY = "sourcemate_pending_question"' in source
     assert "st.form(" in source
     assert "st.text_input(" in source
+    assert 'placeholder="Ask SourceMate…"' in source
     assert "st.form_submit_button(\"Send\"" in source
-    assert "Clear conversation" in source
-    assert "st.popover(" not in source
     assert "render_sourcemate_conversation" in shell
     assert "mount_global_sourcemate" in explorer
     assert "mount_global_sourcemate" in erp_page
     assert "render_sourcemate_conversation(presentation)" not in explorer
 
 
-def test_widget_replaces_full_width_and_native_popover_contracts():
+def test_widget_prioritizes_conversation_and_progressive_disclosure():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
-    assert "st.subheader(\"SourceMate — Conversational Basic\")" not in source
-    assert "st.chat_input(" not in source
-    assert "st.popover(" not in source
-    assert "The panel stays open after Send" in source
-    assert "on_click=_toggle_panel" in source
+    assert 'markdown("#### SourceMate")' in source
+    assert "SourceMate — Project Assistant" not in source
+    assert "Ask about live supplier results" not in source
+    assert "The panel stays open after Send" not in source
+    assert "✕ Close SourceMate" not in source
+    assert 'st.expander("ⓘ Details & controls"' in source
+    assert "SOURCEMATE_CONVERSATION_CONTRACT" in source
+    assert "Clear conversation" in source
+    assert "Human review required" in source
+    assert "Evidence: " in source
+    assert "on_click=_open_panel" in source
     assert "on_click=_close_panel" in source
+
+
+def test_context_aware_starter_prompts_are_deterministic_and_bounded():
+    source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
+    assert "def _starter_prompts(" in source
+    assert "Explain this calculation" in source
+    assert "What assumptions were used?" in source
+    assert "What evidence supports this result?" in source
+    assert "What can SourceMate determine here?" in source
+    assert "What are the limits of this preview?" in source
+    assert "Explain the current recommendation" in source
+    assert "Compare the top suppliers" in source
+    assert "What risks need human review?" in source
+    assert "on_click=_queue_question" in source
+    assert "answer_question(question_to_answer, current_context())" in source
 
 
 def test_no_prohibited_external_or_action_dependencies_are_introduced():
