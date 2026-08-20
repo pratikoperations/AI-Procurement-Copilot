@@ -176,7 +176,9 @@ def test_limitations_disclose_no_web_or_autonomous_authority():
 
 def test_widget_uses_fixed_bottom_right_persistent_panel_and_session_history():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
-    page = Path("pages/8_Governed_Calculation_Explorer.py").read_text(encoding="utf-8")
+    shell = Path("modules/sourcemate_application_shell.py").read_text(encoding="utf-8")
+    explorer = Path("pages/8_Governed_Calculation_Explorer.py").read_text(encoding="utf-8")
+    erp_page = Path("pages/9_ERP_Upload_Preview.py").read_text(encoding="utf-8")
     assert "sourcemate_widget_launcher" in source
     assert "sourcemate_widget_panel" in source
     assert "position: fixed" in source
@@ -192,7 +194,10 @@ def test_widget_uses_fixed_bottom_right_persistent_panel_and_session_history():
     assert "st.form_submit_button(\"Send\"" in source
     assert "Clear conversation" in source
     assert "st.popover(" not in source
-    assert "render_sourcemate_conversation(presentation)" in page
+    assert "render_sourcemate_conversation" in shell
+    assert "mount_global_sourcemate" in explorer
+    assert "mount_global_sourcemate" in erp_page
+    assert "render_sourcemate_conversation(presentation)" not in explorer
 
 
 def test_widget_replaces_full_width_and_native_popover_contracts():

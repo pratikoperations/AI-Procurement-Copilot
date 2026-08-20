@@ -14,8 +14,10 @@ from modules.erp_upload_preview import (
     build_workbook_metrics,
 )
 from modules.erp_workbook_loader import WorkbookLoadError, load_erp_workbook
+from modules.sourcemate_application_shell import mount_global_sourcemate
 
 st.set_page_config(page_title="ERP Upload Preview", page_icon="📄", layout="wide")
+mount_global_sourcemate("ERP Upload Preview")
 
 st.title("ERP Workbook Upload Preview")
 st.caption("Read-only structural validation — no procurement analysis")
