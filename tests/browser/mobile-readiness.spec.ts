@@ -47,10 +47,12 @@ for (const viewport of VIEWPORTS) {
       }
     });
 
-    test('SourceMate launcher and panel remain visible, closable and viewport-contained', async ({ page }) => {
+    test('SourceMate launcher and panel remain unique, visible, closable and viewport-contained', async ({ page }) => {
       await waitForApp(page);
 
-      const launcher = page.getByRole('button', { name: /SourceMate/i }).last();
+      const launchers = page.getByRole('button', { name: /SourceMate/i });
+      await expect(launchers).toHaveCount(1);
+      const launcher = launchers.first();
       await expect(launcher).toBeVisible();
       await launcher.click();
 
@@ -88,7 +90,7 @@ test.describe('folded-phone-desktop-site-mode', () => {
     hasTouch: true,
   });
 
-  test('retains a phone-first single-column layout and bounded sidebar', async ({ page }) => {
+  test('retains a phone-first layout, bounded sidebar and one usable SourceMate shell', async ({ page }) => {
     await waitForApp(page);
     await assertNoPageOverflow(page);
 
@@ -101,6 +103,23 @@ test.describe('folded-phone-desktop-site-mode', () => {
     });
     expect(layout.display).toBe('flex');
     expect(layout.flexDirection).toBe('column');
+
+    const sourceMateLaunchers = page.getByRole('button', { name: /SourceMate/i });
+    await expect(sourceMateLaunchers).toHaveCount(1);
+    await expect(sourceMateLaunchers.first()).toBeVisible();
+    await sourceMateLaunchers.first().click();
+    const sourceMatePanel = page.locator('.st-key-sourcemate_widget_panel');
+    await expect(sourceMatePanel).toBeVisible();
+    const sourceMateBounds = await sourceMatePanel.boundingBox();
+    expect(sourceMateBounds).not.toBeNull();
+    if (sourceMateBounds) {
+      expect(sourceMateBounds.x).toBeGreaterThanOrEqual(0);
+      expect(sourceMateBounds.y).toBeGreaterThanOrEqual(0);
+      expect(sourceMateBounds.x + sourceMateBounds.width).toBeLessThanOrEqual(982);
+      expect(sourceMateBounds.y + sourceMateBounds.height).toBeLessThanOrEqual(1742);
+    }
+    await sourceMatePanel.getByRole('button', { name: '✕', exact: true }).click();
+    await expect(sourceMatePanel).toBeHidden();
 
     const sidebarToggle = page.getByRole('button', { name: /Open sidebar/i });
     if (await sidebarToggle.isVisible()) await sidebarToggle.click();
