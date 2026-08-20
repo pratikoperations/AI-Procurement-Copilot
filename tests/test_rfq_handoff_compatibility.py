@@ -158,11 +158,11 @@ def test_unit_price_combines_currency_value_and_uom():
     assert _unit_price(83, "INR", "EA") == "INR 83 / ea"
 
 
-def test_app_preserves_public_navigation_and_claim_safety_structure():
+def test_app_preserves_public_navigation_and_compact_claim_safety_structure():
     source = Path("app.py").read_text(encoding="utf-8")
     assert 'st.selectbox(\n    "Explore the sourcing workflow"' in source
-    assert "This application supports human procurement review" in source
-    assert "does not claim production deployment" in source
+    assert "Synthetic/demo evidence where indicated. Human procurement approval remains mandatory." in source
+    assert "Portfolio Demo · Read-only · Validation-gated · No live ERP integration" in source
     assert "sections = [\n" in source
     assert "render_handoff_confirmation" in source
     assert "run_engine_stages" in source
