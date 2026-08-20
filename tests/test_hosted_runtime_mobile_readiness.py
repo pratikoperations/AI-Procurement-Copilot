@@ -187,6 +187,8 @@ def test_streamlit_theme_config_uses_governed_blue_primary() -> None:
     assert 'textColor = "#FAFAFA"' in config
 
 
-def test_landing_status_contract_has_one_erp_card() -> None:
+def test_landing_status_contract_is_compact_and_preserves_no_erp_boundary() -> None:
     source = Path("app.py").read_text(encoding="utf-8")
-    assert source.count('info("No live ERP integration")') == 1
+    assert source.count("No live ERP integration") == 1
+    assert 'status_columns[3].info("No live ERP integration")' not in source
+    assert 'st.caption("Portfolio Demo · Read-only · Validation-gated · No live ERP integration")' in source
