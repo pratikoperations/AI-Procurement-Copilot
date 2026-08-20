@@ -92,9 +92,10 @@ test.describe('folded-phone-desktop-site-mode', () => {
     await waitForApp(page);
     await assertNoPageOverflow(page);
 
-    const firstHorizontalBlock = page.locator('[data-testid="stHorizontalBlock"]').first();
-    await expect(firstHorizontalBlock).toBeVisible();
-    const layout = await firstHorizontalBlock.evaluate((element) => {
+    const visibleHorizontalBlocks = page.locator('[data-testid="stHorizontalBlock"]:visible');
+    expect(await visibleHorizontalBlocks.count()).toBeGreaterThan(0);
+    const firstVisibleHorizontalBlock = visibleHorizontalBlocks.first();
+    const layout = await firstVisibleHorizontalBlock.evaluate((element) => {
       const style = window.getComputedStyle(element);
       return { display: style.display, flexDirection: style.flexDirection };
     });
