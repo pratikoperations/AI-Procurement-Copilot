@@ -140,14 +140,14 @@ def test_all_streamlit_entry_points_use_one_shared_sourcemate_shell_contract():
     assert erp_source.index('mount_global_sourcemate("ERP Upload Preview")') < erp_source.index("if uploaded_file is None:")
 
 
-def test_widget_uses_shared_history_rerun_token_and_persistent_panel():
+def test_widget_uses_shared_history_and_rerun_safe_persistent_panel():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
     assert '_SESSION_KEY = "sourcemate_conversation_history"' in source
     assert '_OPEN_KEY = "sourcemate_widget_open"' in source
     assert '_PENDING_QUESTION_KEY = "sourcemate_pending_question"' in source
-    assert "get_script_run_ctx" in source
-    assert "_current_render_token" in source
-    assert "_LAST_RENDER_TOKEN == render_token" in source
+    assert "get_script_run_ctx" not in source
+    assert "_current_render_token" not in source
+    assert "_LAST_RENDER_TOKEN" not in source
     assert "publish_selected_presentation(presentation)" in source
     assert "sourcemate_widget_launcher" in source
     assert "sourcemate_widget_panel" in source
@@ -163,6 +163,7 @@ def test_submit_refreshes_history_and_keeps_panel_open():
     assert "st.session_state[_OPEN_KEY] = True" in source
     assert "st.rerun()" in source
     assert "sourcemate_widget_submitted_exchange" not in source
+    assert "_LAST_RENDER_TOKEN" not in source
 
 
 def test_launcher_and_panel_controls_use_session_state_callbacks():
@@ -175,5 +176,6 @@ def test_launcher_and_panel_controls_use_session_state_callbacks():
     assert "on_click=_open_panel" in source
     assert "on_click=_close_panel" in source
     assert "on_click=_queue_question" in source
+    assert 'width="content"' in source
     assert "✕ Close SourceMate" not in source
     assert "The panel stays open after Send" not in source
