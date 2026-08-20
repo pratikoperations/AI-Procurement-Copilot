@@ -182,13 +182,17 @@ def test_widget_uses_compact_fixed_panel_and_persistent_session_history():
     assert "sourcemate_widget_launcher" in source
     assert "sourcemate_widget_panel" in source
     assert "position: fixed" in source
-    assert "max-height: min(54vh, 620px)" in source
-    assert "max-height: 52vh" in source
+    assert "max-height: min(46vh, 560px)" in source
+    assert "max-height: 44vh" in source
+    assert "max-height: 24vh" in source
+    assert "max-height: 22vh" in source
     assert "@media (max-width: 640px)" in source
     assert "overflow-y: auto" in source
     assert "st.session_state" in source
     assert '_OPEN_KEY = "sourcemate_widget_open"' in source
     assert '_PENDING_QUESTION_KEY = "sourcemate_pending_question"' in source
+    assert "get_script_run_ctx" not in source
+    assert "_LAST_RENDER_TOKEN" not in source
     assert "st.form(" in source
     assert "st.text_input(" in source
     assert 'placeholder="Ask SourceMate…"' in source
@@ -213,6 +217,7 @@ def test_widget_prioritizes_conversation_and_progressive_disclosure():
     assert "Evidence: " in source
     assert "on_click=_open_panel" in source
     assert "on_click=_close_panel" in source
+    assert 'st.button("✕", key="sourcemate_panel_close", on_click=_close_panel, width="content")' in source
 
 
 def test_context_aware_starter_prompts_are_deterministic_and_bounded():
