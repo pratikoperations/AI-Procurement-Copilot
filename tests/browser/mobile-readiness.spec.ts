@@ -47,7 +47,7 @@ for (const viewport of VIEWPORTS) {
       }
     });
 
-    test('SourceMate stays compact, unique, contextual and viewport-contained', async ({ page }) => {
+    test('SourceMate stays compact, persistent after submit and viewport-contained', async ({ page }) => {
       await waitForApp(page);
 
       const launchers = page.getByRole('button', { name: /SourceMate/i });
@@ -72,16 +72,23 @@ for (const viewport of VIEWPORTS) {
         expect(bounds.y).toBeGreaterThanOrEqual(0);
         expect(bounds.x + bounds.width).toBeLessThanOrEqual(viewport.width + 2);
         expect(bounds.y + bounds.height).toBeLessThanOrEqual(viewport.height + 2);
-        expect(bounds.height).toBeLessThanOrEqual(viewport.height * 0.55 + 4);
+        expect(bounds.height).toBeLessThanOrEqual(viewport.height * 0.47 + 6);
       }
 
       const input = panel.getByPlaceholder('Ask SourceMate…');
       await expect(input).toBeVisible();
-      await input.focus();
-      await expect(input).toBeFocused();
+      await input.fill('What does TCO stand for?');
+      await panel.getByRole('button', { name: 'Send', exact: true }).click();
+
+      await expect(panel).toBeVisible();
+      await expect(panel.getByText(/Total Cost of Ownership/i)).toBeVisible({ timeout: 15_000 });
+      await expect(page.locator('.st-key-sourcemate_widget_launcher')).toHaveCount(0);
 
       const closeButton = panel.getByRole('button', { name: '✕', exact: true });
       await expect(closeButton).toBeVisible();
+      const closeBounds = await closeButton.boundingBox();
+      expect(closeBounds).not.toBeNull();
+      if (closeBounds) expect(closeBounds.width).toBeLessThan(viewport.width * 0.4);
       await closeButton.click();
       await expect(panel).toBeHidden();
       await expect(page.getByRole('button', { name: /SourceMate/i })).toHaveCount(1);
