@@ -90,6 +90,29 @@ for (const viewport of VIEWPORTS) {
   });
 }
 
+test.describe('governed-calculation-explorer-single-mount', () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+  test('renders Calculation Explorer with one SourceMate mount and no Streamlit duplicate-key exception', async ({ page }) => {
+    await page.goto('/Governed_Calculation_Explorer', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-testid="stApp"]')).toBeVisible({ timeout: 45_000 });
+    await page.waitForTimeout(1_000);
+
+    await expect(page.getByText(/StreamlitDuplicateElementKey/)).toHaveCount(0);
+    await expect(page.locator('[data-testid="stException"]')).toHaveCount(0);
+
+    const launchers = page.getByRole('button', { name: /SourceMate/i });
+    await expect(launchers).toHaveCount(1);
+    await launchers.first().click();
+
+    const panel = page.locator('.st-key-sourcemate_widget_panel');
+    await expect(panel).toBeVisible();
+    await expect(panel.getByText(/Governed Calculation Explorer · Read-only · Human review required/)).toBeVisible();
+    await expect(page.locator('.st-key-sourcemate_widget_launcher')).toHaveCount(0);
+    await assertNoPageOverflow(page);
+  });
+});
+
 test.describe('standard-android-post-answer', () => {
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 
