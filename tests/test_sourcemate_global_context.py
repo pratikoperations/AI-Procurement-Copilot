@@ -132,7 +132,7 @@ def test_all_streamlit_entry_points_use_one_shared_sourcemate_shell_contract():
     assert "apply_c1_ux_overrides()" in sidebar_source
     assert 'mount_global_sourcemate("AI Procurement Copilot")' in c1_source
 
-    assert 'mount_global_sourcemate("Governed Calculation Explorer")' in explorer_source
+    assert explorer_source.count("mount_global_sourcemate(") == 1
     assert 'mount_global_sourcemate("Governed Calculation Explorer", presentation=presentation)' in explorer_source
     assert "render_sourcemate_conversation(presentation)" not in explorer_source
 
