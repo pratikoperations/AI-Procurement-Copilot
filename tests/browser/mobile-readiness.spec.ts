@@ -60,10 +60,7 @@ for (const viewport of VIEWPORTS) {
       await expect(panel).toBeVisible();
       await expect(page.locator('.st-key-sourcemate_widget_launcher')).toHaveCount(0);
       await expect(panel.getByText(/Read-only · Human review required/)).toBeVisible();
-      await expect(panel.getByText('How can I help?')).toBeVisible();
-
-      const starterPrompts = panel.locator('.st-key-sourcemate_starter_prompts button');
-      await expect(starterPrompts).toHaveCount(3);
+      await expect(panel.locator('.st-key-sourcemate_starter_prompts')).toHaveCount(0);
 
       const bounds = await panel.boundingBox();
       expect(bounds).not.toBeNull();
@@ -72,7 +69,7 @@ for (const viewport of VIEWPORTS) {
         expect(bounds.y).toBeGreaterThanOrEqual(0);
         expect(bounds.x + bounds.width).toBeLessThanOrEqual(viewport.width + 2);
         expect(bounds.y + bounds.height).toBeLessThanOrEqual(viewport.height + 2);
-        expect(bounds.height).toBeLessThanOrEqual(viewport.height * 0.55 + 4);
+        expect(bounds.height).toBeLessThanOrEqual(viewport.height * 0.48 + 4);
       }
 
       const input = panel.getByPlaceholder('Ask SourceMate…');
@@ -82,6 +79,9 @@ for (const viewport of VIEWPORTS) {
 
       const closeButton = panel.getByRole('button', { name: '✕', exact: true });
       await expect(closeButton).toBeVisible();
+      const closeBounds = await closeButton.boundingBox();
+      expect(closeBounds).not.toBeNull();
+      if (closeBounds) expect(closeBounds.width).toBeLessThanOrEqual(80);
       await closeButton.click();
       await expect(panel).toBeHidden();
       await expect(page.getByRole('button', { name: /SourceMate/i })).toHaveCount(1);
@@ -93,20 +93,20 @@ for (const viewport of VIEWPORTS) {
 test.describe('standard-android-post-answer', () => {
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 
-  test('long SourceMate answer is concise by default and full detail remains available', async ({ page }) => {
+  test('Send keeps SourceMate open with concise answer and full governed detail', async ({ page }) => {
     await waitForApp(page);
 
     const launcher = page.getByRole('button', { name: /SourceMate/i });
     await expect(launcher).toHaveCount(1);
     await launcher.click();
 
-    let panel = page.locator('.st-key-sourcemate_widget_panel');
+    const panel = page.locator('.st-key-sourcemate_widget_panel');
     await expect(panel).toBeVisible();
     await panel.getByPlaceholder('Ask SourceMate…').fill('What are tco parameters');
     await panel.getByRole('button', { name: 'Send', exact: true }).click();
 
-    panel = page.locator('.st-key-sourcemate_widget_panel');
     await expect(panel).toBeVisible();
+    await expect(page.locator('.st-key-sourcemate_widget_launcher')).toHaveCount(0);
     await expect(panel.getByText('What are tco parameters', { exact: true })).toBeVisible();
     const moreDetail = panel.getByText('More detail', { exact: true });
     await expect(moreDetail).toBeVisible();
@@ -119,11 +119,12 @@ test.describe('standard-android-post-answer', () => {
       expect(bounds.y).toBeGreaterThanOrEqual(0);
       expect(bounds.x + bounds.width).toBeLessThanOrEqual(392);
       expect(bounds.y + bounds.height).toBeLessThanOrEqual(846);
-      expect(bounds.height).toBeLessThanOrEqual(844 * 0.55 + 4);
+      expect(bounds.height).toBeLessThanOrEqual(844 * 0.46 + 4);
     }
 
     await moreDetail.click();
     await expect(panel.getByText(/raw-material exposure 60%/i)).toBeVisible();
+    await expect(panel.getByText(/model assumptions, not universal market standards/i)).toBeVisible();
     await assertNoPageOverflow(page);
   });
 });

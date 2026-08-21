@@ -5,7 +5,6 @@ from collections.abc import Mapping
 from typing import Any
 
 import streamlit as st
-from streamlit.runtime.scriptrunner import get_script_run_ctx
 
 from modules.sourcemate_conversation import (
     SOURCEMATE_CONVERSATION_CONTRACT,
@@ -15,9 +14,7 @@ from modules.sourcemate_global_context import current_context, publish_selected_
 
 _SESSION_KEY = "sourcemate_conversation_history"
 _OPEN_KEY = "sourcemate_widget_open"
-_PENDING_QUESTION_KEY = "sourcemate_pending_question"
 _MAX_MESSAGES = 16
-_LAST_RENDER_TOKEN: int | None = None
 
 _WIDGET_CSS = """
 <style>
@@ -41,19 +38,19 @@ _WIDGET_CSS = """
     right: 1rem;
     bottom: 1rem;
     z-index: 1000000;
-    width: min(420px, calc(100vw - 1rem));
-    max-width: min(420px, calc(100vw - 1rem));
-    max-height: min(54vh, 620px);
+    width: min(400px, calc(100vw - 1rem));
+    max-width: min(400px, calc(100vw - 1rem));
+    max-height: min(46vh, 560px);
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: 0.85rem;
+    padding: 0.75rem;
     border: 1px solid rgba(128, 128, 128, 0.38);
     border-radius: 1rem;
     background: var(--background-color, #0e1117);
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.34);
 }
 .st-key-sourcemate_widget_history {
-    max-height: 34vh;
+    max-height: 24vh;
     overflow-y: auto;
     padding-right: 0.15rem;
 }
@@ -62,10 +59,6 @@ _WIDGET_CSS = """
     max-width: 100%;
     overflow-x: auto;
     white-space: nowrap;
-}
-.st-key-sourcemate_starter_prompts button {
-    min-height: 2.35rem;
-    text-align: left;
 }
 @media (max-width: 640px) {
     .st-key-sourcemate_widget_launcher {
@@ -78,27 +71,15 @@ _WIDGET_CSS = """
         bottom: 4.25rem;
         width: calc(100vw - 1rem);
         max-width: calc(100vw - 1rem);
-        max-height: 52vh;
-        padding: 0.7rem;
+        max-height: 44vh;
+        padding: 0.65rem;
     }
     .st-key-sourcemate_widget_history {
-        max-height: 28vh;
+        max-height: 22vh;
     }
 }
 </style>
 """
-
-
-def _current_render_token() -> int | None:
-    """Return a token that changes with each Streamlit script run."""
-    ctx = get_script_run_ctx(suppress_warning=True)
-    return None if ctx is None else id(ctx)
-
-
-def reset_global_mount_guard() -> None:
-    """Allow the next render call while retaining duplicate protection within one run."""
-    global _LAST_RENDER_TOKEN
-    _LAST_RENDER_TOKEN = None
 
 
 def _history() -> list[dict[str, Any]]:
@@ -122,34 +103,8 @@ def _close_panel() -> None:
     st.session_state[_OPEN_KEY] = False
 
 
-def _queue_question(question: str) -> None:
-    st.session_state[_PENDING_QUESTION_KEY] = question
-
-
-def _starter_prompts(active_page: str) -> tuple[str, str, str]:
-    """Return deterministic starter prompts aligned to the active governed surface."""
-    page = active_page.casefold()
-    if "calculation explorer" in page:
-        return (
-            "Explain this calculation",
-            "What assumptions were used?",
-            "What evidence supports this result?",
-        )
-    if "erp upload preview" in page:
-        return (
-            "What can SourceMate determine here?",
-            "What evidence is available here?",
-            "What are the limits of this preview?",
-        )
-    return (
-        "Explain the current recommendation",
-        "Compare the top suppliers",
-        "What risks need human review?",
-    )
-
-
 def _compact_answer_sections(content: str, *, max_summary_chars: int = 320) -> tuple[str, str | None]:
-    """Return a concise visible summary plus optional full governed detail."""
+    """Return concise visible text plus the full governed answer when disclosure is needed."""
     text = str(content or "").strip()
     if len(text) <= max_summary_chars:
         return text, None
@@ -160,18 +115,19 @@ def _compact_answer_sections(content: str, *, max_summary_chars: int = 320) -> t
     else:
         summary = ""
         for marker in (". ", "? ", "! "):
-            position = text.find(marker, 100, max_summary_chars + 1)
+            position = text.find(marker, 60, max_summary_chars + 1)
             if position != -1:
                 candidate = text[: position + 1].strip()
                 if not summary or len(candidate) < len(summary):
                     summary = candidate
         if not summary:
-            clipped = text[:max_summary_chars].rsplit(" ", 1)[0].strip()
-            summary = f"{clipped}…" if clipped else text[:max_summary_chars]
+            split_at = text.rfind(" ", 0, max_summary_chars + 1)
+            if split_at <= 0:
+                split_at = max_summary_chars
+            clipped = text[:split_at].rstrip()
+            summary = f"{clipped}…"
 
-    if text.startswith(summary):
-        remainder = text[len(summary) :].strip()
-        return summary, remainder or None
+    # Full governed content remains available under progressive disclosure.
     return summary, text
 
 
@@ -193,9 +149,29 @@ def _render_message(message: Mapping[str, Any]) -> None:
 
 
 def _render_history(history: list[dict[str, Any]]) -> None:
-    with st.container(key="sourcemate_widget_history"):
-        for message in history:
-            _render_message(message)
+    for message in history:
+        _render_message(message)
+
+
+def _append_exchange(question: str, history: list[dict[str, Any]]) -> None:
+    """Append one deterministic exchange without forcing an additional rerun."""
+    response = answer_question(question, current_context())
+    history.extend(
+        [
+            {"role": "user", "content": question},
+            {
+                "role": "assistant",
+                "content": response["answer"],
+                "evidence_references": response["evidence_references"],
+                "intent": response["intent"],
+                "human_review_required": response["human_review_required"],
+            },
+        ]
+    )
+    if len(history) > _MAX_MESSAGES:
+        del history[:-_MAX_MESSAGES]
+    st.session_state[_SESSION_KEY] = history
+    st.session_state[_OPEN_KEY] = True
 
 
 def render_sourcemate_conversation(
@@ -203,16 +179,11 @@ def render_sourcemate_conversation(
     *,
     global_mount: bool = False,
 ) -> None:
-    """Render one persistent SourceMate launcher and a rerun-safe fixed panel."""
-    global _LAST_RENDER_TOKEN
+    """Render one persistent SourceMate launcher and fixed conversation panel."""
+    del global_mount  # the explicit application shell owns single mounting per entry point
 
     if presentation:
         publish_selected_presentation(presentation)
-
-    render_token = _current_render_token()
-    if render_token is not None and _LAST_RENDER_TOKEN == render_token:
-        return
-    _LAST_RENDER_TOKEN = render_token
 
     st.session_state.setdefault(_OPEN_KEY, False)
     context = current_context()
@@ -232,23 +203,16 @@ def render_sourcemate_conversation(
     with st.container(key="sourcemate_widget_panel"):
         heading_columns = st.columns([6, 1])
         heading_columns[0].markdown("#### SourceMate")
-        heading_columns[1].button("✕", key="sourcemate_panel_close", on_click=_close_panel, width="stretch")
+        heading_columns[1].button(
+            "✕",
+            key="sourcemate_panel_close",
+            on_click=_close_panel,
+            width="content",
+        )
         st.caption(f"{active_page} · Read-only · Human review required")
 
         history = _history()
-        if not history:
-            st.markdown("**How can I help?**")
-            with st.container(key="sourcemate_starter_prompts"):
-                for index, prompt in enumerate(_starter_prompts(active_page)):
-                    st.button(
-                        prompt,
-                        key=f"sourcemate_starter_{index}",
-                        on_click=_queue_question,
-                        args=(prompt,),
-                        width="stretch",
-                    )
-        else:
-            _render_history(history)
+        history_container = st.container(key="sourcemate_widget_history")
 
         with st.form("sourcemate_widget_form", clear_on_submit=True):
             question = st.text_input(
@@ -271,28 +235,12 @@ def render_sourcemate_conversation(
                 width="stretch",
             )
 
-        pending_question = st.session_state.pop(_PENDING_QUESTION_KEY, None)
-        question_to_answer = str(question or "").strip() if submitted else str(pending_question or "").strip()
-        if not question_to_answer:
-            if submitted:
+        if submitted:
+            question_to_answer = str(question or "").strip()
+            if not question_to_answer:
                 st.warning("Enter a project-related question.")
-            return
+            else:
+                _append_exchange(question_to_answer, history)
 
-        response = answer_question(question_to_answer, current_context())
-        history.extend(
-            [
-                {"role": "user", "content": question_to_answer},
-                {
-                    "role": "assistant",
-                    "content": response["answer"],
-                    "evidence_references": response["evidence_references"],
-                    "intent": response["intent"],
-                    "human_review_required": response["human_review_required"],
-                },
-            ]
-        )
-        if len(history) > _MAX_MESSAGES:
-            del history[:-_MAX_MESSAGES]
-        st.session_state[_SESSION_KEY] = history
-        st.session_state[_OPEN_KEY] = True
-        st.rerun()
+        with history_container:
+            _render_history(history)
