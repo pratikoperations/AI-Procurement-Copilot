@@ -129,6 +129,23 @@ test.describe('standard-android-post-answer', () => {
   });
 });
 
+test.describe('governed-calculation-explorer-regression', () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+  test('renders one SourceMate launcher without duplicate-key failure', async ({ page }) => {
+    await page.goto('/Governed_Calculation_Explorer', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-testid="stApp"]')).toBeVisible({ timeout: 45_000 });
+    await page.waitForTimeout(1_000);
+
+    await expect(page.getByText(/StreamlitDuplicateElementKey/)).toHaveCount(0);
+    await expect(page.getByText(/This app has encountered an error/)).toHaveCount(0);
+    const launchers = page.getByRole('button', { name: /SourceMate/i });
+    await expect(launchers).toHaveCount(1);
+    await expect(launchers.first()).toBeVisible();
+    await assertNoPageOverflow(page);
+  });
+});
+
 test.describe('folded-phone-desktop-site-mode', () => {
   test.use({
     viewport: { width: 980, height: 1740 },

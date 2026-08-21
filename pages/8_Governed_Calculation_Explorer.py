@@ -20,7 +20,6 @@ from modules.steel_cost import calculate_steel_should_cost
 from modules.tco import calculate_supplier_tco
 
 st.set_page_config(page_title="Governed Calculation Explorer", page_icon="🔎", layout="wide")
-mount_global_sourcemate("Governed Calculation Explorer")
 
 STEEL_INPUTS = {
     "annual_volume_kg": 500000,
