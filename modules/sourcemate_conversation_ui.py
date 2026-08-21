@@ -148,9 +148,45 @@ def _starter_prompts(active_page: str) -> tuple[str, str, str]:
     )
 
 
+def _compact_answer_sections(content: str, *, max_summary_chars: int = 320) -> tuple[str, str | None]:
+    """Return a concise visible summary plus optional full governed detail."""
+    text = str(content or "").strip()
+    if len(text) <= max_summary_chars:
+        return text, None
+
+    first_paragraph = text.split("\n\n", 1)[0].strip()
+    if 80 <= len(first_paragraph) <= max_summary_chars and not first_paragraph.startswith("|"):
+        summary = first_paragraph
+    else:
+        summary = ""
+        for marker in (". ", "? ", "! "):
+            position = text.find(marker, 100, max_summary_chars + 1)
+            if position != -1:
+                candidate = text[: position + 1].strip()
+                if not summary or len(candidate) < len(summary):
+                    summary = candidate
+        if not summary:
+            clipped = text[:max_summary_chars].rsplit(" ", 1)[0].strip()
+            summary = f"{clipped}…" if clipped else text[:max_summary_chars]
+
+    if text.startswith(summary):
+        remainder = text[len(summary) :].strip()
+        return summary, remainder or None
+    return summary, text
+
+
 def _render_message(message: Mapping[str, Any]) -> None:
-    with st.chat_message(str(message["role"])):
-        st.markdown(str(message["content"]))
+    role = str(message["role"])
+    content = str(message["content"])
+    with st.chat_message(role):
+        if role == "assistant":
+            summary, details = _compact_answer_sections(content)
+            st.markdown(summary)
+            if details:
+                with st.expander("More detail", expanded=False):
+                    st.markdown(details)
+        else:
+            st.markdown(content)
         refs = message.get("evidence_references") or []
         if refs:
             st.caption("Evidence: " + " | ".join(str(item) for item in refs))
