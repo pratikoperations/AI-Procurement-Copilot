@@ -90,6 +90,44 @@ for (const viewport of VIEWPORTS) {
   });
 }
 
+test.describe('standard-android-post-answer', () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+  test('long SourceMate answer is concise by default and full detail remains available', async ({ page }) => {
+    await waitForApp(page);
+
+    const launcher = page.getByRole('button', { name: /SourceMate/i });
+    await expect(launcher).toHaveCount(1);
+    await launcher.click();
+
+    let panel = page.locator('.st-key-sourcemate_widget_panel');
+    await expect(panel).toBeVisible();
+    await panel.getByPlaceholder('Ask SourceMate…').fill('What are tco parameters');
+    await panel.getByRole('button', { name: 'Send', exact: true }).click();
+
+    panel = page.locator('.st-key-sourcemate_widget_panel');
+    await expect(panel).toBeVisible();
+    await expect(panel.getByText('What are tco parameters', { exact: true })).toBeVisible();
+    const moreDetail = panel.getByText('More detail', { exact: true });
+    await expect(moreDetail).toBeVisible();
+    await expect(panel.getByText(/raw-material exposure 60%/i)).toBeHidden();
+
+    const bounds = await panel.boundingBox();
+    expect(bounds).not.toBeNull();
+    if (bounds) {
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.y).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(392);
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(846);
+      expect(bounds.height).toBeLessThanOrEqual(844 * 0.55 + 4);
+    }
+
+    await moreDetail.click();
+    await expect(panel.getByText(/raw-material exposure 60%/i)).toBeVisible();
+    await assertNoPageOverflow(page);
+  });
+});
+
 test.describe('folded-phone-desktop-site-mode', () => {
   test.use({
     viewport: { width: 980, height: 1740 },
