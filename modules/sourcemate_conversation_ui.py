@@ -259,4 +259,5 @@ def render_sourcemate_conversation(
             del history[:-_MAX_MESSAGES]
         st.session_state[_SESSION_KEY] = history
         st.session_state[_OPEN_KEY] = True
+        reset_global_mount_guard()
         st.rerun()

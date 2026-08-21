@@ -47,7 +47,7 @@ for (const viewport of VIEWPORTS) {
       }
     });
 
-    test('SourceMate stays compact, unique, contextual and viewport-contained', async ({ page }) => {
+    test('SourceMate stays compact, unique, contextual and persists after submit', async ({ page }) => {
       await waitForApp(page);
 
       const launchers = page.getByRole('button', { name: /SourceMate/i });
@@ -77,8 +77,13 @@ for (const viewport of VIEWPORTS) {
 
       const input = panel.getByPlaceholder('Ask SourceMate…');
       await expect(input).toBeVisible();
-      await input.focus();
-      await expect(input).toBeFocused();
+      await input.fill('What are project limitations?');
+      await panel.getByRole('button', { name: 'Send', exact: true }).click();
+
+      await expect(panel).toBeVisible({ timeout: 15_000 });
+      await expect(page.locator('.st-key-sourcemate_widget_launcher')).toHaveCount(0);
+      await expect(panel.getByText('What are project limitations?', { exact: true })).toBeVisible();
+      await expect(panel.getByText('How can I help?')).toHaveCount(0);
 
       const closeButton = panel.getByRole('button', { name: '✕', exact: true });
       await expect(closeButton).toBeVisible();
