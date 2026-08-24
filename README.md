@@ -210,4 +210,5 @@ Detailed setup and portability guidance remain in `SETUP_GUIDE.md`, `AI_HANDOFF_
 
 ## Historical relationship
 
-The v1.1 and v1.2 releases remain completed frozen historical baselines. Subsequent authorized work is additive, governed and now stabilization-frozen. It does not rewrite release history or convert the portfolio application into a production, autonomous or live-ERP system.
+- Historical EAS-BIV Gate 5 evidence anchor: starting baseline `834b34db145cc0156196579f7419e7db7b438106`; Quality Checks run 816; 1011 regression tests passed at that historical gate.
+- The v1.1 and v1.2 releases remain completed frozen historical baselines. Subsequent authorized work is additive, governed and now stabilization-frozen. It does not rewrite release history or convert the portfolio application into a production, autonomous or live-ERP system.
