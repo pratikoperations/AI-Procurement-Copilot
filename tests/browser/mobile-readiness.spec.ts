@@ -146,6 +146,48 @@ test.describe('governed-calculation-explorer-regression', () => {
   });
 });
 
+test.describe('governed-calculation-explorer-fold-desktop-site-regression', () => {
+  test.use({
+    viewport: { width: 980, height: 1740 },
+    screen: { width: 412, height: 915 },
+    isMobile: true,
+    hasTouch: true,
+  });
+
+  test('keeps one visible SourceMate launcher and panel on the Fold desktop-site route', async ({ page }) => {
+    await page.goto('/Governed_Calculation_Explorer', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-testid="stApp"]')).toBeVisible({ timeout: 45_000 });
+    await page.waitForTimeout(1_000);
+
+    await expect(page.getByText(/StreamlitDuplicateElementKey/)).toHaveCount(0);
+    await expect(page.getByText(/This app has encountered an error/)).toHaveCount(0);
+    const launchers = page.getByRole('button', { name: /SourceMate/i });
+    await expect(launchers).toHaveCount(1);
+    await expect(launchers.first()).toBeVisible();
+
+    const launcherBounds = await launchers.first().boundingBox();
+    expect(launcherBounds).not.toBeNull();
+    if (launcherBounds) {
+      expect(launcherBounds.x).toBeGreaterThanOrEqual(0);
+      expect(launcherBounds.y).toBeGreaterThanOrEqual(0);
+      expect(launcherBounds.x + launcherBounds.width).toBeLessThanOrEqual(982);
+      expect(launcherBounds.y + launcherBounds.height).toBeLessThanOrEqual(1742);
+    }
+
+    await launchers.first().click();
+    const panel = page.locator('.st-key-sourcemate_widget_panel');
+    await expect(panel).toBeVisible();
+    const panelBounds = await panel.boundingBox();
+    expect(panelBounds).not.toBeNull();
+    if (panelBounds) {
+      expect(panelBounds.x).toBeGreaterThanOrEqual(0);
+      expect(panelBounds.y).toBeGreaterThanOrEqual(0);
+      expect(panelBounds.x + panelBounds.width).toBeLessThanOrEqual(982);
+      expect(panelBounds.y + panelBounds.height).toBeLessThanOrEqual(1742);
+    }
+  });
+});
+
 test.describe('folded-phone-desktop-site-mode', () => {
   test.use({
     viewport: { width: 980, height: 1740 },
