@@ -14,6 +14,7 @@ from modules.sourcemate_global_context import current_context, publish_selected_
 
 _SESSION_KEY = "sourcemate_conversation_history"
 _OPEN_KEY = "sourcemate_widget_open"
+_COMPOSER_KEY = "sourcemate_chat_composer"
 _MAX_MESSAGES = 16
 
 _WIDGET_CSS = """
@@ -60,6 +61,9 @@ _WIDGET_CSS = """
     overflow-x: auto;
     white-space: nowrap;
 }
+.st-key-sourcemate_widget_panel [data-testid="stChatInput"] {
+    margin-top: 0.35rem;
+}
 @media (max-width: 640px) {
     .st-key-sourcemate_widget_launcher {
         right: 0.5rem;
@@ -103,6 +107,16 @@ def _close_panel() -> None:
     st.session_state[_OPEN_KEY] = False
 
 
+def _composer_placeholder(active_page: str) -> str:
+    """Return compact page-aware prompt guidance without adding starter-button clutter."""
+    page = active_page.casefold()
+    if "calculation explorer" in page:
+        return "Ask about this calculation…"
+    if "erp upload preview" in page:
+        return "Ask about this workbook preview…"
+    return "Ask about this sourcing analysis…"
+
+
 def _compact_answer_sections(content: str, *, max_summary_chars: int = 320) -> tuple[str, str | None]:
     """Return concise visible text plus the full governed answer when disclosure is needed."""
     text = str(content or "").strip()
@@ -134,7 +148,8 @@ def _compact_answer_sections(content: str, *, max_summary_chars: int = 320) -> t
 def _render_message(message: Mapping[str, Any]) -> None:
     role = str(message["role"])
     content = str(message["content"])
-    with st.chat_message(role):
+    avatar = "🧭" if role == "assistant" else "👤"
+    with st.chat_message(role, avatar=avatar):
         if role == "assistant":
             summary, details = _compact_answer_sections(content)
             st.markdown(summary)
@@ -211,36 +226,28 @@ def render_sourcemate_conversation(
         )
         st.caption(f"{active_page} · Read-only · Human review required")
 
-        history = _history()
-        history_container = st.container(key="sourcemate_widget_history")
-
-        with st.form("sourcemate_widget_form", clear_on_submit=True):
-            question = st.text_input(
-                "Ask SourceMate",
-                placeholder="Ask SourceMate…",
-                label_visibility="collapsed",
-            )
-            submitted = st.form_submit_button("Send", width="stretch")
-
-        with st.expander("ⓘ Details & controls", expanded=False):
+        with st.expander("ⓘ About & controls", expanded=False):
             st.caption(
                 "Read-only. No web browsing, external evidence retrieval, hidden recalculation, autonomous supplier approval, "
                 "award, production allocation or ERP writeback. Human procurement review remains mandatory."
             )
             st.caption(f"Contract: {SOURCEMATE_CONVERSATION_CONTRACT}")
             st.button(
-                "Clear conversation",
+                "Start new chat",
                 key="sourcemate_clear",
                 on_click=clear_sourcemate_history,
                 width="stretch",
             )
 
-        if submitted:
-            question_to_answer = str(question or "").strip()
-            if not question_to_answer:
-                st.warning("Enter a project-related question.")
-            else:
-                _append_exchange(question_to_answer, history)
+        history = _history()
+        history_container = st.container(key="sourcemate_widget_history")
+        submitted_question = st.chat_input(
+            _composer_placeholder(active_page),
+            key=_COMPOSER_KEY,
+        )
+
+        if submitted_question:
+            _append_exchange(str(submitted_question).strip(), history)
 
         with history_container:
             _render_history(history)
