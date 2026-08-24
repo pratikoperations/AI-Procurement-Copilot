@@ -3,6 +3,7 @@ from pathlib import Path
 from streamlit.testing.v1 import AppTest
 
 APP_PATH = Path("app.py")
+README_PATH = Path("README.md")
 
 
 def _source():
@@ -57,6 +58,26 @@ def test_executive_first_claim_safe_messages_are_compact_and_present():
     assert 'status_columns[1].info("read-only operation")' not in source
     assert 'status_columns[2].info("validation-gated")' not in source
     assert 'status_columns[3].info("no live erp integration")' not in source
+
+
+def test_public_readme_reflects_stabilized_portfolio_positioning():
+    readme = README_PATH.read_text(encoding="utf-8")
+
+    required = (
+        "portfolio/interview product under stabilization freeze",
+        "project-wide, read-only, deterministic assistant",
+        "Human procurement approval remains mandatory",
+        "Production deployment readiness",
+        "no web browsing, external LLM, RAG",
+    )
+    assert all(statement in readme for statement in required)
+
+    stale = (
+        "Gate 5 starting baseline / Gate 4 merged baseline",
+        "SourceMate Basic presents internal evidence references",
+        "Manual hosted desktop and Android observations remain `not performed`",
+    )
+    assert all(statement not in readme for statement in stale)
 
 
 def test_non_blocking_allocation_governance_is_collapsed_not_banner_stacked():
