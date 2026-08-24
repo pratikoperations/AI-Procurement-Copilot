@@ -12,18 +12,19 @@
 
 ## Current repository status
 
-- Gate 5 starting baseline / Gate 4 merged baseline: **`834b34db145cc0156196579f7419e7db7b438106`**
-- Explainability, Assumption Provenance and SourceMate — Basic Interview Version: **Gate 5 provides documentation, evidence and final-closure assurance without changing production functionality**
+- Current stabilized portfolio baseline: **`4e3bfd01fb948ec2996dab2b6e52a44afa01a678`**
+- Operating mode: **portfolio/interview product under stabilization freeze**; routine cosmetic and feature expansion is closed.
+- SourceMate is a **project-wide, read-only, deterministic assistant** available from the main procurement application, Governed Calculation Explorer and ERP Upload Preview. It does not browse the web, call an external LLM, use RAG, recalculate authoritative procurement results or execute procurement actions.
 - Governed Calculation Explorer contract: **`AIPC-GOVERNED-EXPLORER-1.0`**
-- SourceMate Basic contract: **`AIPC-SOURCEMATE-BASIC-1.0`**
+- SourceMate conversation contract: **`AIPC-SOURCEMATE-PROJECT-WIDGET-BIV-1.0`**
 - Calculation trace contract: **`AIPC-CALC-TRACE-1.0`**
-- Accepted Gate 4 CI: **Quality Checks run 816, run ID `30706340753`, job ID `91386012618`, Python 3.11.15, 1011 passed, 0 failures, 0 errors, compilation passed, Streamlit smoke passed**
-- Warning boundary: **one pre-existing pandas FutureWarning; no new Gate 4 warning**
+- Latest exact-head validation before the current baseline merge: **Quality Checks run 1088, run ID `32470097784`, Python 3.11.16, 1520 passed, 0 failures, compilation/Ruff/type checks/dependency audit/Streamlit smoke passed; Mobile Browser Acceptance run 112, run ID `32470097794`, passed.**
+- Test warning boundary: **two non-failing warnings in the latest regression run, including the pre-existing pandas FutureWarning; no test failure.**
 - Frozen v1.2 release baseline: **`4803b1d72fa8a6509d9d7faf0e9decc677c447be`**
 - Frozen v1.1 baseline: **`b85cd37aaae709058eb15350d680b18c03da46ba`**
-- Tag and GitHub Release: **not created by deliberate release decision**
+- Tag and GitHub Release for the later stabilized portfolio build: **not created by deliberate governance decision**
 
-The frozen v1.1 and v1.2 release records remain historical and unchanged. Later controlled builds are additive and do not reclassify those releases as incomplete.
+The v1.1 and v1.2 release records remain historical and unchanged. Later governed work is additive and does not reclassify those releases as incomplete or convert this portfolio application into production enterprise software.
 
 ## Business problem
 
@@ -69,7 +70,8 @@ See [User Workflow](docs/03_USER_WORKFLOW.md).
 - Governed calculation catalogue and assumption provenance
 - Deterministic calculation traces with retained configuration versions
 - Reconciliation and export evidence assurance
-- Governed Calculation Explorer and SourceMate Basic Evidence View
+- Governed Calculation Explorer with readable evidence and calculation payloads
+- Project-wide SourceMate with browser-session conversation continuity and page-aware governed context
 - Explicit adapter-backed and `unsupported_deferred_coverage` states
 - Evidence-derived, read-only human-review checklist
 
@@ -95,10 +97,11 @@ All remaining non-export routes remain `unsupported_deferred_coverage`. Deferred
 - Controlled validation and human-review gates
 - Calculation metadata, assumption provenance and deterministic trace design
 - Reconciliation and evidence-boundary governance
-- Automated testing, branch discipline and staged release governance
+- Automated testing, branch discipline and exact-head change governance
 - Clear separation between business-facing reports and audit outputs
 - Governed ERP-export intake without overstating integration maturity
-- Scope discipline through explicit deferred coverage
+- A project-wide read-only assistant grounded in existing governed application evidence
+- Scope discipline through explicit deferred coverage and stabilization freeze
 
 ## What it does not prove
 
@@ -120,23 +123,25 @@ The application keeps structural intake, analytical execution, explainability, e
 
 See [Architecture](docs/04_ARCHITECTURE.md), [Data and Validation](docs/05_DATA_AND_VALIDATION.md) and [EAS-BIV Final Closure](docs/EAS_BIV_FINAL_CLOSURE.md).
 
-## Test and quality evidence
+## Current test and quality evidence
 
-Accepted EAS-BIV Gate 4 evidence:
+Latest accepted exact-head evidence for the stabilized code tree before merge to the current baseline:
 
-- Gate 4 merged baseline SHA: `834b34db145cc0156196579f7419e7db7b438106`;
-- PR #42 merged the Governed Calculation Explorer and SourceMate Basic Evidence View;
-- Quality Checks run 816, run ID `30706340753`, job ID `91386012618`;
-- Python 3.11.15;
-- 1011 regression tests passed with 0 failures and 0 errors;
+- Source head: `0fc80bf1db344db77082024b0a1b7307e68fbdc8`;
+- resulting stabilized baseline: `4e3bfd01fb948ec2996dab2b6e52a44afa01a678`;
+- Quality Checks run 1088, run ID `32470097784`;
+- Python 3.11.16;
+- 1520 regression tests passed with 0 failures;
 - Python compilation passed;
-- canonical Streamlit smoke passed;
-- one pre-existing pandas FutureWarning remained;
-- no new Gate 4 warning was introduced.
+- Ruff governed checks passed;
+- targeted mypy checks passed;
+- dependency audit reported no known vulnerabilities;
+- canonical Streamlit smoke test passed;
+- Mobile Browser Acceptance run 112, run ID `32470097794`, passed, including governed mobile/Fold coverage and Calculation Explorer SourceMate visibility coverage.
 
-Automated and source-level verification do not constitute physical browser-device certification. Manual hosted desktop and Android observations remain `not performed` unless actual evidence is separately supplied.
+Automated browser acceptance is evidence for the governed test profiles, not certification across every physical device or browser. Hosted behavior is manually rechecked when a hosted defect correction requires it.
 
-See [Test Evidence](docs/06_TEST_EVIDENCE.md), [EAS-BIV Interview Evidence Pack](docs/EAS_BIV_INTERVIEW_EVIDENCE_PACK.md) and [Release Record](docs/09_RELEASE_RECORD.md).
+Historical gate-specific evidence remains available in [Test Evidence](docs/06_TEST_EVIDENCE.md), [EAS-BIV Interview Evidence Pack](docs/EAS_BIV_INTERVIEW_EVIDENCE_PACK.md) and [Release Record](docs/09_RELEASE_RECORD.md).
 
 ## Governance and limitations
 
@@ -144,7 +149,8 @@ See [Test Evidence](docs/06_TEST_EVIDENCE.md), [EAS-BIV Interview Evidence Pack]
 - Formula metadata is documentation only and is never executed.
 - Existing business services produce authoritative results.
 - Unavailable evidence is disclosed and is not reconstructed.
-- SourceMate Basic presents internal evidence references and does not perform external verification.
+- SourceMate is read-only, uses current governed application/project evidence and does not perform external verification.
+- SourceMate has no web browsing, external LLM, RAG, hidden recalculation, autonomous recommendation, supplier approval, award, production allocation or ERP write-back authority.
 - Deferred routes are not represented as adapter-reconciled.
 - The application does not execute transactions or mutate ERP systems.
 - Illustrative monetary outputs are not realized-savings claims.
@@ -198,9 +204,10 @@ Detailed setup and portability guidance remain in `SETUP_GUIDE.md`, `AI_HANDOFF_
 | EAS-BIV Gate 1A | Calculation catalogue and assumption provenance |
 | EAS-BIV Gate 2 | Governed parameter precedence and deterministic traces |
 | EAS-BIV Gate 3 | Reconciliation and export evidence assurance |
-| EAS-BIV Gate 4 | Governed Calculation Explorer and SourceMate Basic, merged as `834b34db145cc0156196579f7419e7db7b438106` |
+| EAS-BIV Gate 4 | Governed Calculation Explorer and initial SourceMate Basic Evidence View |
 | EAS-BIV Gate 5 | Documentation, evidence and final closure |
+| Stabilized portfolio build — Aug 2026 | Cross-category consistency, Steel shared-workflow reconciliation, global SourceMate, governance-presentation cleanup, mobile assurance and hosted defect corrections; no production-scope expansion |
 
 ## Historical relationship
 
-The v1.1 and v1.2 releases remain completed frozen historical baselines. Subsequent authorized work is additive and controlled. It does not rewrite release history or convert the portfolio application into a production, autonomous or live-ERP system.
+The v1.1 and v1.2 releases remain completed frozen historical baselines. Subsequent authorized work is additive, governed and now stabilization-frozen. It does not rewrite release history or convert the portfolio application into a production, autonomous or live-ERP system.
