@@ -18,7 +18,7 @@ SELECTABLE_CONTROL_CSS = """
     border-color: rgba(88, 166, 255, 0.72) !important;
 }
 
-[data-testid="stSelectbox"] .react-aria-ComboBox > [role="group"]:focus-within {
+[data-testid="stSelectbox"] .react-aria-ComboBox > [role="group"]:not(:has(input:disabled)):not(:has(input[aria-disabled="true"])):focus-within {
     background: rgba(47, 128, 237, 0.12) !important;
     border-color: #58A6FF !important;
     box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.35) !important;
@@ -49,7 +49,7 @@ SELECTABLE_CONTROL_CSS = """
     border-color: rgba(88, 166, 255, 0.72) !important;
 }
 
-[data-testid="stSelectbox"] [data-baseweb="select"]:focus-within > div {
+[data-testid="stSelectbox"] [data-baseweb="select"]:not(:has([aria-disabled="true"])):focus-within > div {
     background: rgba(47, 128, 237, 0.12) !important;
     border-color: #58A6FF !important;
     box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.35) !important;
