@@ -36,7 +36,7 @@ render_governance_disclosure(
     (
         "This page performs package-safety and structural checks only.",
         "It does not normalize, persist, analyze, score, recommend or connect to an ERP system.",
-        "SAP and Oracle mappings are illustrative draft static mapping profiles, not certified live integrations.",
+        "SAP and Oracle mappings are illustrative draft static mapping profiles, not live ERP integrations.",
     ),
     title="ERP preview governance",
 )
