@@ -26,6 +26,23 @@ def _install() -> None:
         return
 
     try:
+        from modules.selectable_control_ui import render_selectable_control_distinction
+
+        if not getattr(st.set_page_config, "_aipc_selectable_control_distinction", False):
+            original_set_page_config = st.set_page_config
+
+            def set_page_config_with_selectable_control_distinction(*args, **kwargs):
+                result = original_set_page_config(*args, **kwargs)
+                render_selectable_control_distinction()
+                return result
+
+            set_page_config_with_selectable_control_distinction._aipc_selectable_control_distinction = True
+            st.set_page_config = set_page_config_with_selectable_control_distinction
+    except Exception:
+        # Selectbox visual distinction is presentation-only and must never block an entry point.
+        pass
+
+    try:
         from modules import scoring
         from modules.sourcemate_global_context import publish_scored_context
 
