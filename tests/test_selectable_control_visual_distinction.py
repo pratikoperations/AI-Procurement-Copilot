@@ -21,13 +21,15 @@ def test_selectbox_surface_is_scoped_and_semantically_distinct() -> None:
 
 def test_current_hover_focus_and_invalid_states_are_separate() -> None:
     css = selectable_control_ui.SELECTABLE_CONTROL_CSS
+    enabled_surface = '[role="group"]:not(:has(input:disabled)):not(:has(input[aria-disabled="true"]))'
 
-    assert '[role="group"]:not(:has(input:disabled)):not(:has(input[aria-disabled="true"])):hover' in css
-    assert '[role="group"]:focus-within' in css
+    assert f'{enabled_surface}:hover' in css
+    assert f'{enabled_surface}:focus-within' in css
+    assert '[data-baseweb="select"]:not(:has([aria-disabled="true"])):focus-within > div' in css
     assert 'input[role="combobox"]:focus-visible' in css
     assert '[role="group"]:has(input[aria-invalid="true"])' in css
 
-    focus_block = css.split('[role="group"]:focus-within {', 1)[1].split('}', 1)[0]
+    focus_block = css.split(f'{enabled_surface}:focus-within {{', 1)[1].split('}', 1)[0]
     invalid_block = css.split('[role="group"]:has(input[aria-invalid="true"]) {', 1)[1].split('}', 1)[0]
     assert '#58A6FF' in focus_block
     assert '#C53030' not in focus_block
