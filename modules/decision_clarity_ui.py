@@ -13,6 +13,12 @@ import streamlit as st
 
 from modules.unit_display import format_annual_volume
 from modules.utils import unit_cost
+from modules.ux_maturity_ui import (
+    render_governance_disclosure,
+    render_input_block,
+    render_result_summary,
+    semantic_section,
+)
 
 DECISION_CLARITY_CONTRACT = "AIPC-UX-DECISION-CLARITY-1.0"
 
@@ -118,36 +124,58 @@ def interview_demo_steps() -> tuple[str, ...]:
 
 
 def render_decision_clarity(scored_df, assumptions: Mapping[str, Any], confidence: Any = None) -> None:
-    """Render the compact context, decision card and optional demonstration guide."""
+    """Render context, existing decision outputs and optional demonstration guidance."""
     records = scored_df.to_dict("records") if hasattr(scored_df, "to_dict") else list(scored_df or [])
     context = build_context_strip(assumptions)
     card = build_decision_card(records, assumptions, confidence)
 
     st.subheader("Decision at a glance")
-    with st.container(border=True):
-        columns = st.columns(4)
-        for index, (label, value) in enumerate(context):
-            columns[index % 4].caption(label)
-            columns[index % 4].write(f"**{value}**")
-
-    with st.container(border=True):
-        first = st.columns(4)
-        first[0].metric("Leading supplier", card["supplier"])
-        first[1].metric("Qualification", card["eligibility"])
-        first[2].metric("RFQ quote", card["quote"])
-        first[3].metric("TCO unit cost", card["tco"])
-        second = st.columns(3)
-        second[0].metric("Risk", card["risk"])
-        second[1].metric("Decision confidence", card["confidence"])
-        second[2].metric(
-            "Annual volume",
-            format_annual_volume(
-                assumptions.get("annual_volume", 0),
-                assumptions.get("annual_volume_unit", "unit"),
+    render_input_block(
+        (
+            *context[:6],
+            (
+                "Annual volume",
+                format_annual_volume(
+                    assumptions.get("annual_volume", 0),
+                    assumptions.get("annual_volume_unit", "unit"),
+                ),
             ),
-        )
-        st.info(f"Recommended next action: {card['action']}")
-        st.caption(card["approval"] + ". This card explains existing results and does not create an award decision.")
+        ),
+        title="Current sourcing context",
+        columns=4,
+    )
+
+    render_result_summary(
+        (
+            ("Leading supplier", card["supplier"]),
+            ("RFQ quote", card["quote"]),
+            ("TCO unit cost", card["tco"]),
+            ("Risk", card["risk"]),
+            ("Decision confidence", card["confidence"]),
+        ),
+        title="Current governed decision result",
+        family="supplier",
+        status=card["eligibility"],
+        status_label="Qualification",
+        columns=3,
+    )
+
+    with semantic_section(
+        "supplier",
+        "RECOMMENDATION / DECISION OUTPUT",
+        "Translate the current governed result into the next human procurement review step.",
+    ):
+        st.markdown(f"**Recommended next action:** {card['action']}")
+        st.caption(card["approval"] + ". This view explains existing results and does not create an award decision.")
+
+    render_governance_disclosure(
+        (
+            dict(context).get("Decision status", "Human review required"),
+            "Detailed technical and governance evidence remains available in the relevant workflow sections.",
+            "No approval, supplier award or ERP writeback is created by this presentation layer.",
+        ),
+        title="Decision governance",
+    )
 
     with st.expander("Five-minute interview demonstration path", expanded=False):
         for index, step in enumerate(interview_demo_steps(), start=1):

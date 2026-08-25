@@ -15,15 +15,30 @@ from modules.erp_upload_preview import (
 )
 from modules.erp_workbook_loader import WorkbookLoadError, load_erp_workbook
 from modules.sourcemate_application_shell import mount_global_sourcemate
+from modules.ux_maturity_ui import (
+    render_governance_disclosure,
+    render_input_block,
+    render_page_context,
+    render_result_summary,
+    semantic_section,
+)
 
 st.set_page_config(page_title="ERP Upload Preview", page_icon="📄", layout="wide")
 mount_global_sourcemate("ERP Upload Preview")
 
-st.title("ERP Workbook Upload Preview")
-st.caption("Read-only structural validation — no procurement analysis")
-st.info(
-    "This page performs package-safety and structural checks only. It does not "
-    "normalize, persist, analyze, score, recommend, or connect to an ERP system."
+render_page_context(
+    "ERP Workbook Upload Preview",
+    "Read-only structural validation — no procurement analysis.",
+    (("Mode", "Read-only"), ("Scope", "Structural preview"), ("Decision authority", "Human review")),
+)
+
+render_governance_disclosure(
+    (
+        "This page performs package-safety and structural checks only.",
+        "It does not normalize, persist, analyze, score, recommend or connect to an ERP system.",
+        "SAP and Oracle mappings are illustrative draft static mapping profiles, not live ERP integrations.",
+    ),
+    title="ERP preview governance",
 )
 
 profiles = load_default_mapping_profiles()
@@ -32,17 +47,21 @@ profile_labels = {
     "Oracle Fusion — Draft static mapping": "ORACLE_FUSION",
     "Custom template — Draft": "CUSTOM",
 }
-selected_label = st.selectbox("Static draft mapping profile", tuple(profile_labels))
-st.caption(
-    "SAP and Oracle selections are illustrative draft field mappings, not live "
-    "integrations, certified universal mappings, or automated transformations."
-)
 
-uploaded_file = st.file_uploader(
-    "Upload one XLSX workbook",
-    type=["xlsx"],
-    accept_multiple_files=False,
-)
+with semantic_section(
+    "governance",
+    "INPUT / ASSUMPTION",
+    "Choose the existing draft mapping profile and provide one workbook for structural review.",
+):
+    selected_label = st.selectbox("Static draft mapping profile", tuple(profile_labels))
+    st.caption(
+        "Selected mapping is display/review context only; no automated transformation or ERP connection is created."
+    )
+    uploaded_file = st.file_uploader(
+        "Upload one XLSX workbook",
+        type=["xlsx"],
+        accept_multiple_files=False,
+    )
 
 if uploaded_file is None:
     st.warning("Upload one .xlsx workbook to begin the structural preview.")
@@ -56,34 +75,42 @@ except WorkbookLoadError as exc:
     st.stop()
 
 metrics = build_workbook_metrics(summary)
-metric_columns = st.columns(5)
-metric_columns[0].metric("Filename", metrics["filename"])
-metric_columns[1].metric("File size (bytes)", metrics["file_size_bytes"])
-metric_columns[2].metric("Detected sheets", metrics["detected_sheet_count"])
-metric_columns[3].metric("Required sheets", metrics["required_sheet_count"])
-metric_columns[4].metric("Unknown sheets", metrics["unknown_sheet_count"])
-
-st.subheader("Detected sheet metadata")
-st.dataframe(build_sheet_inventory(summary), use_container_width=True, hide_index=True)
-st.caption("Headers and structural counts only; workbook business-data rows are not displayed.")
+render_input_block(
+    (
+        ("Filename", metrics["filename"]),
+        ("File size (bytes)", metrics["file_size_bytes"]),
+        ("Mapping profile", selected_label),
+    ),
+    title="Workbook review context",
+    columns=3,
+)
 
 validation = validate_workbook_structure(summary)
 gate = build_processing_gate(validation)
-
-st.subheader("Structural validation result")
-if gate["status"] == "PASS":
-    st.success(gate["status"])
-elif gate["status"] == "PASS WITH WARNINGS":
-    st.warning(gate["status"])
-else:
-    st.error(gate["status"])
+render_result_summary(
+    (
+        ("Detected sheets", metrics["detected_sheet_count"]),
+        ("Required sheets", metrics["required_sheet_count"]),
+        ("Unknown sheets", metrics["unknown_sheet_count"]),
+    ),
+    title="Structural validation result",
+    family="governance",
+    status=gate["status"],
+    status_label="Structural gate",
+    columns=3,
+)
 st.write(gate["status_message"])
 
+with st.expander("Workbook structure detail", expanded=False):
+    st.dataframe(build_sheet_inventory(summary), use_container_width=True, hide_index=True)
+    st.caption("Headers and structural counts only; workbook business-data rows are not displayed.")
+
 finding_rows = build_finding_rows(validation)
-if finding_rows:
-    st.dataframe(finding_rows, use_container_width=True, hide_index=True)
-else:
-    st.write("No structural findings were recorded.")
+with st.expander("Structural findings", expanded=gate["status"] != "PASS"):
+    if finding_rows:
+        st.dataframe(finding_rows, use_container_width=True, hide_index=True)
+    else:
+        st.write("No structural findings were recorded.")
 
 if validation.status == BLOCKED:
     st.error("Static mapping preview is suppressed while the workbook is BLOCKED.")
@@ -91,18 +118,27 @@ if validation.status == BLOCKED:
     st.stop()
 
 selected_profile = profiles[profile_labels[selected_label]]
-st.subheader("Static draft mapping preview")
-st.write(
-    f"Profile: **{selected_profile.profile_id}** | Status: **{selected_profile.status}**"
-)
-mapping_rows = build_mapping_rows(selected_profile)
-if mapping_rows:
-    st.dataframe(mapping_rows, use_container_width=True, hide_index=True)
-else:
-    st.info("The custom draft template contains no configured field mappings.")
+with semantic_section(
+    "governance",
+    "ANALYSIS",
+    "Review the existing static draft mapping after the workbook has passed the structural gate.",
+):
+    st.write(
+        f"Profile: **{selected_profile.profile_id}** | Status: **{selected_profile.status}**"
+    )
+    mapping_rows = build_mapping_rows(selected_profile)
+    with st.expander("Static draft mapping detail", expanded=False):
+        if mapping_rows:
+            st.dataframe(mapping_rows, use_container_width=True, hide_index=True)
+        else:
+            st.info("The custom draft template contains no configured field mappings.")
 
 st.success("Preview complete.")
-st.caption(
-    "No data was saved. No normalization, matching, procurement decision, ERP "
-    "connection, or downstream processing was performed. Human review remains mandatory."
+render_governance_disclosure(
+    (
+        "No data was saved.",
+        "No normalization, matching, procurement decision, ERP connection or downstream processing was performed.",
+        "Human review remains mandatory.",
+    ),
+    title="Completion boundary",
 )
