@@ -5,8 +5,8 @@ score, qualify, recommend, allocate, approve or mutate procurement data.
 """
 from __future__ import annotations
 
+from collections.abc import Iterable, Iterator, Sequence
 from contextlib import contextmanager
-from collections.abc import Iterable, Iterator, Mapping, Sequence
 from typing import Any
 
 import streamlit as st
@@ -78,7 +78,11 @@ def render_phase_label(
 ) -> None:
     """Render a restrained semantic section marker with text-first meaning."""
     spec = _family(family)
-    purpose_html = f"<div style='margin-top:0.15rem;color:var(--text-color);opacity:0.78;font-size:0.9rem'>{_escape(purpose)}</div>" if purpose else ""
+    purpose_html = (
+        f"<div style='margin-top:0.15rem;color:var(--text-color);opacity:0.78;font-size:0.9rem'>{_escape(purpose)}</div>"
+        if purpose
+        else ""
+    )
     st.markdown(
         (
             f"<div style='border-left:4px solid {spec['accent']};padding:0.15rem 0 0.15rem 0.75rem;margin:0.1rem 0 0.7rem 0'>"

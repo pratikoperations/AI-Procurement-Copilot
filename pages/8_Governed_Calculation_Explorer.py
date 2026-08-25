@@ -19,6 +19,12 @@ from modules.sourcemate_application_shell import mount_global_sourcemate
 from modules.sourcemate_global_context import publish_selected_presentation
 from modules.steel_cost import calculate_steel_should_cost
 from modules.tco import calculate_supplier_tco
+from modules.ux_maturity_ui import (
+    render_governance_disclosure,
+    render_page_context,
+    render_result_summary,
+    semantic_section,
+)
 
 st.set_page_config(page_title="Governed Calculation Explorer", page_icon="🔎", layout="wide")
 mount_global_sourcemate("Governed Calculation Explorer")
@@ -101,33 +107,47 @@ def _authoritative_output(route_name: str):
     return calculate_supplier_tco(supplier, 500000)
 
 
-st.title("Governed Calculation Explorer")
-st.caption("Basic Interview Version — read-only explanation, provenance, trace, reconciliation, evidence and human-review boundaries.")
-st.warning(
-    "Formula metadata is documentation only. Existing authoritative services produce business results. "
-    "Evidence references do not prove external verification. Human approval remains mandatory."
-)
-route_name = st.selectbox(
-    "Select a controlled demonstration route",
-    tuple(ROUTES),
-    help="This selects an existing authoritative route; it does not edit assumptions or calculations.",
+render_page_context(
+    "Governed Calculation Explorer",
+    "Inspect authoritative calculation outputs, provenance, trace and reconciliation without editing business logic.",
+    (("Mode", "Read-only"), ("Decision authority", "Human review")),
 )
 
-currency_columns = st.columns(2)
-display_currency = currency_columns[0].radio(
-    "Explorer Display Currency",
-    ("USD", "INR", "Both"),
-    index=1,
-    horizontal=True,
-    help="Display-only selection. Canonical calculations remain in USD.",
-)
-fx_rate = currency_columns[1].number_input(
-    "USD-INR FX Rate",
-    min_value=60.0,
-    max_value=150.0,
-    value=float(DEFAULT_FX_RATE),
-    step=1.0,
-    help="Used only for display conversion. Trace and reconciliation remain on canonical USD values.",
+with semantic_section(
+    "governance",
+    "INPUT / ASSUMPTION",
+    "Choose an existing authoritative route and display-only currency context.",
+):
+    route_name = st.selectbox(
+        "Select a controlled demonstration route",
+        tuple(ROUTES),
+        help="This selects an existing authoritative route; it does not edit assumptions or calculations.",
+    )
+
+    currency_columns = st.columns(2)
+    display_currency = currency_columns[0].radio(
+        "Explorer Display Currency",
+        ("USD", "INR", "Both"),
+        index=1,
+        horizontal=True,
+        help="Display-only selection. Canonical calculations remain in USD.",
+    )
+    fx_rate = currency_columns[1].number_input(
+        "USD-INR FX Rate",
+        min_value=60.0,
+        max_value=150.0,
+        value=float(DEFAULT_FX_RATE),
+        step=1.0,
+        help="Used only for display conversion. Trace and reconciliation remain on canonical USD values.",
+    )
+
+render_governance_disclosure(
+    (
+        "Formula metadata is documentation only; existing authoritative services produce business results.",
+        "Evidence references do not prove external verification.",
+        "Human procurement approval remains mandatory.",
+    ),
+    title="Calculation governance",
 )
 
 route = ROUTES[route_name]
@@ -182,11 +202,29 @@ presentation = build_governed_explorer_presentation(
     trace=None if trace is None else asdict(trace),
     reconciliation=None if reconciliation is None else asdict(reconciliation),
 )
-render_currency_aware_calculation_explorer(
-    presentation,
-    display_currency=display_currency,
-    fx_rate=fx_rate,
+
+render_result_summary(
+    (
+        ("Calculation", route["calculation_id"]),
+        ("Coverage", route["coverage_id"]),
+        ("Route", route_name),
+        ("Display", display_currency),
+    ),
+    title="Current calculation context",
+    family="cost",
+    columns=4,
 )
+
+with semantic_section(
+    "cost",
+    "SYSTEM ANALYSIS / OUTPUT",
+    "Review the existing authoritative result, trace and reconciliation evidence without recalculation.",
+):
+    render_currency_aware_calculation_explorer(
+        presentation,
+        display_currency=display_currency,
+        fx_rate=fx_rate,
+    )
 publish_selected_presentation(presentation)
 
 st.markdown("---")

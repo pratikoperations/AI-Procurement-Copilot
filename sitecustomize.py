@@ -72,6 +72,14 @@ def _install() -> None:
         pass
 
     try:
+        from modules.ux_maturity_install import install_ux_maturity_layer
+
+        install_ux_maturity_layer()
+    except Exception:
+        # The bounded maturity layer is presentation-only and must never block business routes.
+        pass
+
+    try:
         # Preserve the established public intent catalogue for compatibility.
         # Live-supplier and glossary handling remain internal deterministic subroutes.
         from modules import sourcemate_conversation
