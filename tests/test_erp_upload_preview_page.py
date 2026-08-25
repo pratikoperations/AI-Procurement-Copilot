@@ -64,8 +64,8 @@ def test_governance_wording_is_present():
         "human review remains mandatory",
     )
     assert all(phrase in source for phrase in required_phrases)
-    assert "not live " in source
-    assert "integrations, certified universal mappings" in source
+    assert "not live erp integrations" in source
+    assert "no automated transformation or erp connection is created" in source
 
 
 def test_page_does_not_offer_normalization_or_processing_actions():
