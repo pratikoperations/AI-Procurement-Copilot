@@ -44,7 +44,6 @@ async function borderOf(surface: ReturnType<Page['locator']>): Promise<string> {
 
 async function assertBlueSlateSelectSurface(
   select: ReturnType<Page['locator']>,
-  *,
   verifyHover: boolean,
 ): Promise<void> {
   await expect(select).toBeVisible();
@@ -87,13 +86,13 @@ for (const profile of PROFILES) {
       await waitForApp(page);
       await openSidebarIfNeeded(page);
       const sidebarSelect = page.locator('[data-testid="stSidebar"] [data-testid="stSelectbox"]').first();
-      await assertBlueSlateSelectSurface(sidebarSelect, { verifyHover: profile.name === 'desktop' });
+      await assertBlueSlateSelectSurface(sidebarSelect, profile.name === 'desktop');
     });
 
     test('main-page selectbox uses the same surface without recolouring expanders', async ({ page }) => {
       await waitForApp(page, '/Governed_Calculation_Explorer');
       const mainSelect = page.locator('[data-testid="stMain"] [data-testid="stSelectbox"]').first();
-      await assertBlueSlateSelectSurface(mainSelect, { verifyHover: profile.name === 'desktop' });
+      await assertBlueSlateSelectSurface(mainSelect, profile.name === 'desktop');
 
       const expander = page.locator('[data-testid="stExpander"]').first();
       if (await expander.isVisible()) {
