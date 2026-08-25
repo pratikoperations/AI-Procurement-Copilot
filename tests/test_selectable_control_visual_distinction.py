@@ -8,6 +8,8 @@ def test_selectbox_surface_is_scoped_and_semantically_distinct() -> None:
     css = selectable_control_ui.SELECTABLE_CONTROL_CSS
 
     assert '[data-testid="stSelectbox"]' in css
+    assert '.react-aria-ComboBox > [role="group"]' in css
+    assert '[data-baseweb="select"]' in css  # compatibility fallback only
     assert 'rgba(47, 128, 237, 0.08)' in css
     assert 'rgba(47, 128, 237, 0.14)' in css
     assert '#58A6FF' in css
@@ -17,15 +19,16 @@ def test_selectbox_surface_is_scoped_and_semantically_distinct() -> None:
     assert '[data-testid="stMetric"]' not in css
 
 
-def test_hover_focus_and_invalid_states_are_separate() -> None:
+def test_current_hover_focus_and_invalid_states_are_separate() -> None:
     css = selectable_control_ui.SELECTABLE_CONTROL_CSS
 
-    assert ':hover > div' in css
-    assert ':focus-within > div' in css
-    assert ':has([aria-invalid="true"]) > div' in css
+    assert '[role="group"]:not(:has(input:disabled)):not(:has(input[aria-disabled="true"])):hover' in css
+    assert '[role="group"]:focus-within' in css
+    assert 'input[role="combobox"]:focus-visible' in css
+    assert '[role="group"]:has(input[aria-invalid="true"])' in css
 
-    focus_block = css.split(':focus-within > div {', 1)[1].split('}', 1)[0]
-    invalid_block = css.split(':has([aria-invalid="true"]) > div {', 1)[1].split('}', 1)[0]
+    focus_block = css.split('[role="group"]:focus-within {', 1)[1].split('}', 1)[0]
+    invalid_block = css.split('[role="group"]:has(input[aria-invalid="true"]) {', 1)[1].split('}', 1)[0]
     assert '#58A6FF' in focus_block
     assert '#C53030' not in focus_block
     assert '#C53030' in invalid_block
@@ -33,7 +36,8 @@ def test_hover_focus_and_invalid_states_are_separate() -> None:
 
 def test_disabled_selectboxes_are_not_presented_as_active_selectable_controls() -> None:
     css = selectable_control_ui.SELECTABLE_CONTROL_CSS
-    assert ':not(:has([aria-disabled="true"]))' in css
+    assert ':not(:has(input:disabled))' in css
+    assert ':not(:has(input[aria-disabled="true"]))' in css
 
 
 def test_global_entry_points_use_page_config_and_bootstrap_installs_surface() -> None:
