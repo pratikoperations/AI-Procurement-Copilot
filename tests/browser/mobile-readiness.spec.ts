@@ -47,7 +47,7 @@ for (const viewport of VIEWPORTS) {
       }
     });
 
-    test('SourceMate stays compact, unique, contextual and viewport-contained', async ({ page }) => {
+    test('SourceMate stays compact, unique, contextual and uses a native chat composer', async ({ page }) => {
       await waitForApp(page);
 
       const launchers = page.getByRole('button', { name: /SourceMate/i });
@@ -72,8 +72,9 @@ for (const viewport of VIEWPORTS) {
         expect(bounds.height).toBeLessThanOrEqual(viewport.height * 0.48 + 4);
       }
 
-      const input = panel.getByPlaceholder('Ask SourceMate…');
+      const input = panel.getByPlaceholder('Ask about this sourcing analysis…');
       await expect(input).toBeVisible();
+      await expect(panel.locator('[data-testid="stChatInput"]')).toHaveCount(1);
       await input.focus();
       await expect(input).toBeFocused();
 
@@ -93,7 +94,7 @@ for (const viewport of VIEWPORTS) {
 test.describe('standard-android-post-answer', () => {
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 
-  test('Send keeps SourceMate open with concise answer and full governed detail', async ({ page }) => {
+  test('native chat submit keeps SourceMate open with concise answer and full governed detail', async ({ page }) => {
     await waitForApp(page);
 
     const launcher = page.getByRole('button', { name: /SourceMate/i });
@@ -102,8 +103,9 @@ test.describe('standard-android-post-answer', () => {
 
     const panel = page.locator('.st-key-sourcemate_widget_panel');
     await expect(panel).toBeVisible();
-    await panel.getByPlaceholder('Ask SourceMate…').fill('What are tco parameters');
-    await panel.getByRole('button', { name: 'Send', exact: true }).click();
+    const composer = panel.getByPlaceholder('Ask about this sourcing analysis…');
+    await composer.fill('What are tco parameters');
+    await composer.press('Enter');
 
     await expect(panel).toBeVisible();
     await expect(page.locator('.st-key-sourcemate_widget_launcher')).toHaveCount(0);
@@ -132,7 +134,7 @@ test.describe('standard-android-post-answer', () => {
 test.describe('governed-calculation-explorer-regression', () => {
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 
-  test('renders one SourceMate launcher without duplicate-key failure', async ({ page }) => {
+  test('renders one SourceMate launcher without duplicate-key failure and uses calculation-aware composer guidance', async ({ page }) => {
     await page.goto('/Governed_Calculation_Explorer', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('[data-testid="stApp"]')).toBeVisible({ timeout: 45_000 });
     await page.waitForTimeout(1_000);
@@ -142,6 +144,9 @@ test.describe('governed-calculation-explorer-regression', () => {
     const launchers = page.getByRole('button', { name: /SourceMate/i });
     await expect(launchers).toHaveCount(1);
     await expect(launchers.first()).toBeVisible();
+    await launchers.first().click();
+    const panel = page.locator('.st-key-sourcemate_widget_panel');
+    await expect(panel.getByPlaceholder('Ask about this calculation…')).toBeVisible();
     await assertNoPageOverflow(page);
   });
 });
@@ -177,6 +182,7 @@ test.describe('governed-calculation-explorer-fold-desktop-site-regression', () =
     await launchers.first().click();
     const panel = page.locator('.st-key-sourcemate_widget_panel');
     await expect(panel).toBeVisible();
+    await expect(panel.getByPlaceholder('Ask about this calculation…')).toBeVisible();
     const panelBounds = await panel.boundingBox();
     expect(panelBounds).not.toBeNull();
     if (panelBounds) {
@@ -217,6 +223,7 @@ test.describe('folded-phone-desktop-site-mode', () => {
     const sourceMatePanel = page.locator('.st-key-sourcemate_widget_panel');
     await expect(sourceMatePanel).toBeVisible();
     await expect(page.locator('.st-key-sourcemate_widget_launcher')).toHaveCount(0);
+    await expect(sourceMatePanel.getByPlaceholder('Ask about this sourcing analysis…')).toBeVisible();
     const sourceMateBounds = await sourceMatePanel.boundingBox();
     expect(sourceMateBounds).not.toBeNull();
     if (sourceMateBounds) {

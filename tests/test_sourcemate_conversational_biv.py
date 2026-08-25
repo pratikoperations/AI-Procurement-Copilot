@@ -174,7 +174,7 @@ def test_limitations_disclose_no_web_or_autonomous_authority():
     assert "Human approval" in response["answer"]
 
 
-def test_widget_uses_compact_fixed_panel_and_persistent_session_history():
+def test_widget_uses_native_chat_composer_and_persistent_session_history():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
     shell = Path("modules/sourcemate_application_shell.py").read_text(encoding="utf-8")
     explorer = Path("pages/8_Governed_Calculation_Explorer.py").read_text(encoding="utf-8")
@@ -188,36 +188,42 @@ def test_widget_uses_compact_fixed_panel_and_persistent_session_history():
     assert "overflow-y: auto" in source
     assert "st.session_state" in source
     assert '_OPEN_KEY = "sourcemate_widget_open"' in source
+    assert '_COMPOSER_KEY = "sourcemate_chat_composer"' in source
     assert "sourcemate_pending_question" not in source
-    assert "st.form(" in source
-    assert "st.text_input(" in source
-    assert 'placeholder="Ask SourceMate…"' in source
-    assert "st.form_submit_button(\"Send\"" in source
+    assert "st.chat_input(" in source
+    assert "def _composer_placeholder(" in source
+    assert "Ask about this calculation…" in source
+    assert "Ask about this workbook preview…" in source
+    assert "Ask about this sourcing analysis…" in source
+    assert "st.form(" not in source
+    assert "st.text_input(" not in source
+    assert "st.form_submit_button(" not in source
     assert "render_sourcemate_conversation" in shell
     assert "mount_global_sourcemate" in explorer
     assert "mount_global_sourcemate" in erp_page
     assert "render_sourcemate_conversation(presentation)" not in explorer
 
 
-def test_widget_prioritizes_conversation_and_progressive_disclosure():
+def test_widget_prioritizes_conversation_identity_and_progressive_disclosure():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
     assert 'markdown("#### SourceMate")' in source
     assert "SourceMate — Project Assistant" not in source
     assert "Ask about live supplier results" not in source
     assert "The panel stays open after Send" not in source
     assert "✕ Close SourceMate" not in source
-    assert 'st.expander("ⓘ Details & controls"' in source
+    assert 'st.expander("ⓘ About & controls"' in source
     assert "SOURCEMATE_CONVERSATION_CONTRACT" in source
-    assert "Clear conversation" in source
+    assert "Start new chat" in source
     assert "Human review required" in source
     assert "Evidence: " in source
     assert 'st.expander("More detail", expanded=False)' in source
+    assert 'avatar = "🧭" if role == "assistant" else "👤"' in source
     assert "on_click=_open_panel" in source
     assert "on_click=_close_panel" in source
     assert 'width="content"' in source
 
 
-def test_starter_prompts_and_duplicate_render_suppression_are_removed():
+def test_starter_prompts_and_duplicate_render_suppression_remain_removed():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
     assert "def _starter_prompts(" not in source
     assert "sourcemate_starter_prompts" not in source
