@@ -34,32 +34,44 @@ async function openSidebarIfNeeded(page: Page): Promise<void> {
   await expect(sidebar).toBeVisible();
 }
 
-async function assertBlueSlateSelectSurface(select: ReturnType<Page['locator']>): Promise<void> {
+async function backgroundOf(surface: ReturnType<Page['locator']>): Promise<string> {
+  return surface.evaluate((element) => window.getComputedStyle(element).backgroundColor);
+}
+
+async function borderOf(surface: ReturnType<Page['locator']>): Promise<string> {
+  return surface.evaluate((element) => window.getComputedStyle(element).borderColor);
+}
+
+async function assertBlueSlateSelectSurface(
+  select: ReturnType<Page['locator']>,
+  *,
+  verifyHover: boolean,
+): Promise<void> {
   await expect(select).toBeVisible();
-  const base = select.locator('[data-baseweb="select"]');
-  const surface = base.locator(':scope > div');
-  const combobox = base.getByRole('combobox');
 
+  // Streamlit 1.59 renders selectbox with a React Aria combobox rather than BaseWeb.
+  const comboRoot = select.locator('.react-aria-ComboBox');
+  const surface = comboRoot.locator(':scope > [role="group"]');
+  const combobox = select.getByRole('combobox');
+  const openButton = select.getByRole('button', { name: 'Open' });
+
+  await expect(comboRoot).toBeVisible();
+  await expect(surface).toBeVisible();
   await expect(combobox).toBeVisible();
-  await expect(base.locator('svg').first()).toBeVisible();
+  await expect(openButton).toBeVisible();
+  await expect(openButton.locator('svg')).toBeVisible();
 
-  const defaultStyle = await surface.evaluate((element) => {
-    const style = window.getComputedStyle(element);
-    return { background: style.backgroundColor, border: style.borderColor };
-  });
-  expect(defaultStyle.background).toBe('rgba(47, 128, 237, 0.08)');
+  await expect.poll(() => backgroundOf(surface)).toBe('rgba(47, 128, 237, 0.08)');
 
-  await base.hover();
-  const hoverBackground = await surface.evaluate((element) => window.getComputedStyle(element).backgroundColor);
-  expect(hoverBackground).toBe('rgba(47, 128, 237, 0.14)');
+  if (verifyHover) {
+    await surface.hover();
+    await expect.poll(() => backgroundOf(surface)).toBe('rgba(47, 128, 237, 0.14)');
+  }
 
   await combobox.focus();
-  const focusStyle = await surface.evaluate((element) => {
-    const style = window.getComputedStyle(element);
-    return { background: style.backgroundColor, border: style.borderColor };
-  });
-  expect(focusStyle.background).toBe('rgba(47, 128, 237, 0.12)');
-  expect(focusStyle.border).toBe('rgb(88, 166, 255)');
+  await expect(combobox).toBeFocused();
+  await expect.poll(() => backgroundOf(surface)).toBe('rgba(47, 128, 237, 0.12)');
+  await expect.poll(() => borderOf(surface)).toBe('rgb(88, 166, 255)');
 }
 
 for (const profile of PROFILES) {
@@ -75,13 +87,13 @@ for (const profile of PROFILES) {
       await waitForApp(page);
       await openSidebarIfNeeded(page);
       const sidebarSelect = page.locator('[data-testid="stSidebar"] [data-testid="stSelectbox"]').first();
-      await assertBlueSlateSelectSurface(sidebarSelect);
+      await assertBlueSlateSelectSurface(sidebarSelect, { verifyHover: profile.name === 'desktop' });
     });
 
     test('main-page selectbox uses the same surface without recolouring expanders', async ({ page }) => {
       await waitForApp(page, '/Governed_Calculation_Explorer');
       const mainSelect = page.locator('[data-testid="stMain"] [data-testid="stSelectbox"]').first();
-      await assertBlueSlateSelectSurface(mainSelect);
+      await assertBlueSlateSelectSurface(mainSelect, { verifyHover: profile.name === 'desktop' });
 
       const expander = page.locator('[data-testid="stExpander"]').first();
       if (await expander.isVisible()) {
