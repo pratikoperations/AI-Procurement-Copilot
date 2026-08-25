@@ -64,7 +64,7 @@ def render_page_context(
     context_items: Sequence[tuple[str, Any]] = (),
 ) -> None:
     """Render compact page orientation without a marketing-style hero."""
-    st.markdown(f"## {_escape(title)}")
+    st.title(str(title))
     st.caption(purpose)
     if context_items:
         compact = " · ".join(f"{_escape(label)}: **{_escape(value)}**" for label, value in context_items)

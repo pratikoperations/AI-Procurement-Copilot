@@ -28,7 +28,7 @@ mount_global_sourcemate("ERP Upload Preview")
 
 render_page_context(
     "ERP Workbook Upload Preview",
-    "Validate workbook package structure and draft field mapping without running procurement analysis.",
+    "Read-only structural validation — no procurement analysis.",
     (("Mode", "Read-only"), ("Scope", "Structural preview"), ("Decision authority", "Human review")),
 )
 
@@ -36,7 +36,7 @@ render_governance_disclosure(
     (
         "This page performs package-safety and structural checks only.",
         "It does not normalize, persist, analyze, score, recommend or connect to an ERP system.",
-        "SAP and Oracle mappings are illustrative draft mappings, not certified live integrations.",
+        "SAP and Oracle mappings are illustrative draft static mapping profiles, not certified live integrations.",
     ),
     title="ERP preview governance",
 )

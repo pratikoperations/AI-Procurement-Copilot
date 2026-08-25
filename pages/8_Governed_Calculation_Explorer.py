@@ -145,7 +145,7 @@ render_governance_disclosure(
     (
         "Formula metadata is documentation only; existing authoritative services produce business results.",
         "Evidence references do not prove external verification.",
-        "Human procurement approval remains mandatory.",
+        "Human approval remains mandatory; final procurement authority stays with the reviewer.",
     ),
     title="Calculation governance",
 )
