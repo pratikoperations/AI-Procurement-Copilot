@@ -57,6 +57,11 @@ with semantic_section(
     st.caption(
         "Selected mapping is display/review context only; no automated transformation or ERP connection is created."
     )
+    st.warning(
+        "Public portfolio demo: Upload only synthetic or sanitized files. "
+        "Do not upload confidential supplier quotations, contracts, proprietary company information, "
+        "personal data, credentials, or commercially sensitive documents."
+    )
     uploaded_file = st.file_uploader(
         "Upload one XLSX workbook",
         type=["xlsx"],
