@@ -87,8 +87,18 @@ with st.expander("Selected Category Intelligence", expanded=False):
 uploaded_file = None
 is_governed_route = assumptions["data_source"] == "Governed v1.3 Workbook Review Preview"
 if assumptions["data_source"] == "Upload RFQ CSV/Excel":
+    st.warning(
+        "Public portfolio demo: Upload only synthetic or sanitized files. "
+        "Do not upload confidential supplier quotations, contracts, proprietary company information, "
+        "personal data, credentials, or commercially sensitive documents."
+    )
     uploaded_file = st.file_uploader("Upload RFQ CSV or Excel file", type=["csv", "xlsx"])
 elif is_governed_route:
+    st.warning(
+        "Public portfolio demo: Upload only synthetic or sanitized files. "
+        "Do not upload confidential supplier quotations, contracts, proprietary company information, "
+        "personal data, credentials, or commercially sensitive documents."
+    )
     uploaded_file = st.file_uploader("Upload governed v1.3 workbook", type=["xlsx"])
 
 if is_governed_route:
