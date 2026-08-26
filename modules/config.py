@@ -3,9 +3,9 @@
 from modules.category_engine import get_supported_categories
 
 APP_NAME = "AI Procurement Copilot"
-EDITION = "Portfolio Presentation Release v1.2"
+EDITION = "Portfolio Presentation Release v1.2 · Synthetic / Illustrative Demo Data"
 BUILD = "Version 1.2 - Portfolio Presentation Release"
-STATUS = "Portfolio Demonstration"
+STATUS = "Portfolio Demonstration · Synthetic / Illustrative Data"
 
 DEFAULT_FX_RATE = 83
 DEFAULT_CATEGORY = "Packaging Procurement"
