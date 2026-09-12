@@ -3,66 +3,64 @@
 ## Project
 AI Procurement Copilot
 
-## Release
-Portfolio Edition v1.0.1
+## Current Product Position
+**Stabilized portfolio/interview product under controlled freeze.**
 
-## Status
-Release candidate — documentation closure pending owner approval, merge, tag and GitHub release
+The repository has progressed beyond the earlier v1.0.1 release-closure state. Historical v1.0.0, v1.0.1, v1.1 and v1.2 records remain evidence of prior governed stages and must not be rewritten as if they were current release candidates.
 
-## Release Basis
-- Recovery R1 merged maintenance baseline: `18c009fd2947cf66dba564f0d063c726ffc45319`
-- Display-version correction on current main: `ae50bca09e5cb33ed58439c6aecfcde4f391a846`
-- Historical stable foundation: Portfolio Edition v1.0.0
-- Reconciled release-closure branch: `release/v1.0.1-closure-reconciled`
+## Current Canonical References
+- Repository: `pratikoperations/AI-Procurement-Copilot`
+- Stable branch: `main`
+- Current `main` HEAD at Codex-governance bootstrap: `e75d930d06403bbefe919bace4d134d118e987df`
+- Current public portfolio baseline documented by the application: `dc05fcb86e5be53212443834b3d6c46cc5aeca5c`
+- Latest accepted exact-head validation source: `b895815fe1c0511b7f025c53773ca2e5ba60dbdc`
+- Frozen v1.2 historical baseline: `4803b1d72fa8a6509d9d7faf0e9decc677c447be`
+- Frozen v1.1 historical baseline: `b85cd37aaae709058eb15350d680b18c03da46ba`
 
-## Active Category Engines
-- Packaging Procurement — Stable
-- Raw Material Procurement — Stable
+## Current Capability Position
+The stabilized portfolio build includes governed RFQ comparison, category-aware procurement analysis, should-cost/TCO/risk/scoring workflows, scenario and allocation support, negotiation intelligence, governed ERP workbook review boundaries, calculation provenance/traces/reconciliation, a Governed Calculation Explorer and project-wide read-only SourceMate.
 
-## v1.0.1 Maintenance Scope
-- Governed USD, INR and Both display handling across supported business-facing surfaces.
-- Supplier Intelligence risk-adjusted TCO source-preservation correction.
-- Preservation of original and normalized quotation values, FX metadata, units and comparison basis.
-- Preservation of supplier rankings, formulas, recommendation eligibility, thresholds and human approval controls.
-- Mobile-priority business currency columns and governed readable exports.
-- Displayed edition and build metadata corrected to v1.0.1 with regression coverage.
+## Current Governance Boundary
+- Human procurement approval is mandatory.
+- No autonomous sourcing, supplier qualification, award or approval.
+- No live SAP/Oracle write-back.
+- No production allocation execution.
+- Formula metadata is documentation only and is not executable authority.
+- SourceMate is read-only and does not use external LLMs, web browsing, RAG or hidden recalculation.
+- Unsupported/deferred coverage must remain explicitly labelled rather than fabricated.
+- Public demonstration must use synthetic or sanitized data.
 
-## Release Integrity
-- Original and normalized quotation data remain separated.
-- Currency and unit consistency remain governed.
-- No double conversion is permitted.
-- Canonical audit fields remain unchanged by display-mode selection.
-- Supplier rankings and award-control behaviour remain unchanged.
-- Human approval remains mandatory.
-- No Version 1.1 or ERP feature implementation is included.
+## Current Accepted Validation Evidence
+For the code tree that produced the current public baseline:
+- Quality Checks run 1117 / run ID `32959567882`
+- Python 3.11.16
+- 1534 tests passed, 0 failures
+- compilation passed
+- Ruff governed checks passed
+- targeted mypy checks passed
+- dependency audit reported no known vulnerabilities
+- Streamlit smoke passed
+- Mobile Browser Acceptance run 136 / run ID `32959567861`, passed
+- two non-failing warnings retained
 
-## Validation Status
-- Standalone pre-maintenance main: 114 passed, 0 failed, 0 skipped, 1 warning; Streamlit smoke PASS.
-- Reconstructed v1.0.1 candidate: 162 passed, 0 failed, 0 skipped, 1 warning; Streamlit smoke PASS.
-- Final PR #9 Quality Checks: PASS.
-- Recovery R1 hosted deployment startup: PASS.
-- Six-supplier hosted acceptance: VERIFIED COMPLETE through owner-observed manual validation.
-- Hosted USD, INR and Both acceptance: VERIFIED COMPLETE through owner-observed manual validation.
-- Primary `main` deployment after PR #9: VERIFIED COMPLETE through owner-observed manual validation.
-- Display-version metadata and regression coverage on current main: VERIFIED COMPLETE.
-- Critical defects open for v1.0.1 scope: 0.
-- Major defects open for v1.0.1 scope: 0.
+Validation is exact-head evidence. Later commits require their own evidence before being described as equivalently validated.
 
-## Release Governance
-- v1.0.1 is frozen as the stable maintenance release after closure approval, merge, tagging and release publication.
-- v1.0.0 remains the historical first stable portfolio release and must not be modified or retagged.
-- v1.0.1 is maintenance-only and introduces no new feature scope.
-- Tag `v1.0.1` must target the approved release-closure main SHA after the documentation PR is merged.
-- Version 1.1 remains a separately governed development stream.
+## Historical Release Integrity
+- v1.0.0 remains the first stable Portfolio Edition baseline.
+- v1.0.1 remains a governed maintenance milestone.
+- v1.1 remains the completed ERP structural foundation / read-only ERP Upload Preview historical stage.
+- v1.2 remains the completed Portfolio Presentation Release historical stage.
+- Later stabilized work is additive and does not convert the portfolio application into production enterprise software.
+- No historical tag, release record or baseline may be moved or rewritten without explicit owner authorization.
 
-## Evidence
-- `RECOVERY_R1_BASELINE_VERIFICATION.md`
-- `RECOVERY_R1_MAIN_TEST_EVIDENCE.md`
-- `RECOVERY_R1_MAINTENANCE_TEST_EVIDENCE.md`
-- `RECOVERY_R1_CURRENCY_VALIDATION_MATRIX.md`
-- `RECOVERY_R1_SUPPLIER_SELECTOR_VALIDATION.md`
-- `RECOVERY_R1_DEPLOYMENT_EVIDENCE.md`
-- `RECOVERY_R1_MAINTENANCE_RECONCILIATION_PLAN.md`
+## Current Change Policy
+The project is under stabilization freeze. Permitted work must be separately authorized and bounded to defect correction, security/privacy hardening, evidence/test/governance improvement, documentation reconciliation or other clearly justified launch/interview-readiness work. Routine feature expansion is closed.
+
+## Codex Bootstrap
+- Branch: `codex/governance-bootstrap`
+- Draft PR: #108
+- Purpose: establish Codex operating rules and reconcile current control documents.
+- Expected product impact: none.
 
 ## Next Controlled Action
-Run final Quality Checks on the reconciled documentation-only PR, merge after owner approval, capture final `main`, then create annotated tag `v1.0.1` and GitHub release `Portfolio Edition v1.0.1`.
+Complete exact-head verification of PR #108 and merge only after confirming its diff is limited to approved governance/documentation changes and no runtime or business-rule behaviour changed.
