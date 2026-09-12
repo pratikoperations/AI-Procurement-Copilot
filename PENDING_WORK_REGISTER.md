@@ -1,29 +1,25 @@
 # Pending Work Register
 
-Formal status values use exactly one approved classification.
+This register reflects the **current stabilized portfolio state**. Historical v1.0.1 closure tasks remain preserved in Git history and are not active blockers.
+
+Formal status values use the approved classification taxonomy.
 
 | ID | Work item | Current status | Evidence / dependency | Acceptance criterion |
 |---|---|---|---|---|
-| REC-001 | Recovery R1 baseline capture | VERIFIED COMPLETE | Direct branch refs | Exact SHAs preserved |
-| REC-002 | Standalone main regression | VERIFIED COMPLETE | 114 passed, 1 warning; smoke PASS | Evidence retained |
-| REC-003 | Reconstructed v1.0.1 regression | VERIFIED COMPLETE | 162 passed, 1 warning; smoke PASS | Evidence retained |
-| REC-004 | Recovery R1 merge | VERIFIED COMPLETE | PR #9 merged as `18c009fd...` | Main contains validated maintenance |
-| DEF-001 | Original INR/display inconsistency | VERIFIED COMPLETE | Corrected and merged through PR #9 | No recurrence in release evidence |
-| DEF-002 | Risk-TCO source preservation | VERIFIED COMPLETE | Focused/full tests and hosted acceptance | USD/INR/Both remain correct |
-| UX-001 | Supplier selector and Supplier 360 profiles | VERIFIED COMPLETE | Automated and owner-observed acceptance | Six suppliers remain mapped correctly |
-| CUR-001 | Hosted USD/INR/Both modes | VERIFIED COMPLETE | Owner-observed Recovery R1 and primary-main acceptance | Labels, values, rankings and audit fields accepted |
-| REL-001 | Recovery R1 maintenance merge | VERIFIED COMPLETE | Main `18c009fd...` | Validated maintenance preserved |
-| REL-002 | Displayed v1.0.1 metadata correction | VERIFIED COMPLETE | Main `ae50bca0...`; scoped audit | Edition/build/docstring and regression tests preserved |
-| REL-003 | Audit unexpected main commit | VERIFIED COMPLETE | Five-file commit audit | No procurement logic, formula, schema, v1.1 or ERP change |
-| REL-004 | Reconstruct release closure from current main | VERIFIED COMPLETE | PR #10 rebuilt from `ae50bca0...` | Eight Markdown documents only |
-| REL-005 | Verify final eight-file PR boundary | VERIFIED COMPLETE | PR #10 filename review | Only approved Markdown paths remain |
-| REL-006 | Run final reconciled Quality Checks | VERIFIED COMPLETE | Run 411 | Install and compile PASS; 165 passed, 1 warning; smoke PASS |
-| REL-007 | Merge release-closure PR | NOT STARTED | Renewed owner approval | Documentation-only PR merged to main |
-| REL-008 | Create annotated tag `v1.0.1` | NOT STARTED | REL-007 and final main SHA | Tag points to final approved main SHA |
-| REL-009 | Create GitHub release `Portfolio Edition v1.0.1` | NOT STARTED | REL-008 | Approved notes published without changing v1.0.0 |
-| ERP-001 | v1.1 ERP foundation | VERIFIED PARTIAL | Separate branch and authorization | Remains outside v1.0.1 closure |
-| FUT-001 | Time-aware analytics and production integrations | DEFERRED | Separate roadmap | No premature scope expansion |
-| OOS-001 | Autonomous award and unapproved AI-provider expansion | OUT OF SCOPE | Governance boundary | Must not enter v1.0.1 |
+| GOV-001 | Establish root-level Codex operating rules | IMPLEMENTED BUT UNTESTED | PR #108 / `AGENTS.md` | Rules reviewed and merged without runtime impact |
+| GOV-002 | Reconcile active status/version/recovery documents | IMPLEMENTED BUT UNTESTED | PR #108 | Active control documents agree with current stabilized state |
+| GOV-003 | Verify PR #108 exact head and diff boundary | NOT STARTED | Final PR head | Only approved governance/documentation files changed; no runtime/business logic impact |
+| GOV-004 | Merge Codex governance bootstrap | NOT STARTED | GOV-003 + owner approval | Exact verified head merged to `main` |
+| GOV-005 | Use governed Codex workflow for next authorized task | NOT STARTED | GOV-004 | Focused branch, acceptance criteria, tests, diff review and exact-head merge discipline used |
+| STAB-001 | Preserve stabilization freeze | VERIFIED COMPLETE | Current README/governance state | No routine feature or cosmetic expansion without explicit authorization |
+| STAB-002 | Preserve human procurement decision boundary | VERIFIED COMPLETE | Current application/governance | No autonomous award, approval, qualification, production allocation or ERP write-back |
+| STAB-003 | Preserve SourceMate read-only boundary | VERIFIED COMPLETE | Current public baseline | No external LLM, RAG, web browsing, hidden recalculation or transaction authority |
+| QA-001 | Preserve accepted public-baseline validation evidence | VERIFIED COMPLETE | Source head `b895815f...`; Quality Checks run 1117 | Evidence remains tied to exact validated head and is not overstated for later commits |
+| QA-002 | Run task-specific verification for future Codex changes | DEFERRED | Next authorized implementation task | Tests/checks match change risk and repository requirements |
+| SEC-001 | Maintain synthetic/sanitized public-demo data boundary | VERIFIED COMPLETE | Current public warnings/governance | No confidential supplier, contract, personal, credential or commercially sensitive data introduced |
+| REL-001 | Historical v1.0.0 / v1.0.1 / v1.1 / v1.2 records | VERIFIED COMPLETE | Git history and frozen baselines | Historical records remain unchanged unless explicitly governed |
+| FUT-001 | New feature expansion | DEFERRED | Separate business case + owner authorization | Must pass objective, scope, architecture and governance review before implementation |
+| OOS-001 | Autonomous procurement execution / live ERP write-back | OUT OF SCOPE | Governance boundary | Must not be introduced by Codex or any other agent |
 
 ## Priority Rule
-Complete REL-007 through REL-009 in sequence. Do not begin Version 1.1 implementation during v1.0.1 release closure.
+Complete `GOV-003` and `GOV-004` before using Codex for new implementation. After bootstrap, each new task must be independently authorized; this register does not grant blanket permission for feature development.
