@@ -6,19 +6,22 @@ AI Procurement Copilot
 ## Current Product Position
 **Stabilized portfolio/interview product under controlled freeze.**
 
-The repository has progressed beyond the earlier v1.0.1 release-closure state. Historical v1.0.0, v1.0.1, v1.1 and v1.2 records remain evidence of prior governed stages and must not be rewritten as if they were current release candidates.
+The repository has progressed beyond the historical v1.0.0, v1.0.1, v1.1 and v1.2 stages. Those records remain evidence of prior governed stages and must not be rewritten as current release candidates.
 
 ## Current Canonical References
 - Repository: `pratikoperations/AI-Procurement-Copilot`
 - Stable branch: `main`
-- Current `main` HEAD at Codex-governance bootstrap: `e75d930d06403bbefe919bace4d134d118e987df`
-- Current public portfolio baseline documented by the application: `dc05fcb86e5be53212443834b3d6c46cc5aeca5c`
-- Latest accepted exact-head validation source: `b895815fe1c0511b7f025c53773ca2e5ba60dbdc`
+- Current accepted `main` HEAD: `d6d1e741205e6c0ceb37a8d3617e9aafd6d26e55`
+- Latest governed extension: MRO-0 / PR #109
+- MRO-0 source head: `9a35873b8ae08a3fd7c5bc9747287ad4fe9880c0`
+- Post-merge Quality Checks run: 1138 / run ID `38204618690` — SUCCESS
 - Frozen v1.2 historical baseline: `4803b1d72fa8a6509d9d7faf0e9decc677c447be`
 - Frozen v1.1 historical baseline: `b85cd37aaae709058eb15350d680b18c03da46ba`
 
 ## Current Capability Position
-The stabilized portfolio build includes governed RFQ comparison, category-aware procurement analysis, should-cost/TCO/risk/scoring workflows, scenario and allocation support, negotiation intelligence, governed ERP workbook review boundaries, calculation provenance/traces/reconciliation, a Governed Calculation Explorer and project-wide read-only SourceMate.
+The stabilized portfolio build includes governed RFQ comparison, category-aware procurement analysis, should-cost/TCO/risk/scoring workflows for active analytical categories, scenario and allocation support, negotiation intelligence, governed ERP workbook review boundaries, calculation provenance/traces/reconciliation, a Governed Calculation Explorer and project-wide read-only SourceMate.
+
+MRO-0 adds a **Foundation Preview** for MRO / Industrial Supplies using Industrial Bearings. It introduces identity, source-status, technical, commercial, evidence and supplier-data contracts while intentionally withholding MRO analytical execution.
 
 ## Current Governance Boundary
 - Human procurement approval is mandatory.
@@ -27,23 +30,19 @@ The stabilized portfolio build includes governed RFQ comparison, category-aware 
 - No production allocation execution.
 - Formula metadata is documentation only and is not executable authority.
 - SourceMate is read-only and does not use external LLMs, web browsing, RAG or hidden recalculation.
+- MRO Approved Equivalent substitution requires explicit human approval.
+- MRO-0 does not activate should-cost, scoring, scenario, negotiation or allocation execution.
 - Unsupported/deferred coverage must remain explicitly labelled rather than fabricated.
 - Public demonstration must use synthetic or sanitized data.
 
 ## Current Accepted Validation Evidence
-For the code tree that produced the current public baseline:
-- Quality Checks run 1117 / run ID `32959567882`
-- Python 3.11.16
-- 1534 tests passed, 0 failures
-- compilation passed
-- Ruff governed checks passed
-- targeted mypy checks passed
-- dependency audit reported no known vulnerabilities
-- Streamlit smoke passed
-- Mobile Browser Acceptance run 136 / run ID `32959567861`, passed
-- two non-failing warnings retained
+For MRO-0:
+- PR Quality Checks run 1137 / run ID `38203428348` — SUCCESS
+- PR Mobile Browser Acceptance run 153 / run ID `38203428355` — SUCCESS
+- resulting main SHA `d6d1e741205e6c0ceb37a8d3617e9aafd6d26e55`
+- post-merge main Quality Checks run 1138 / run ID `38204618690` — SUCCESS
 
-Validation is exact-head evidence. Later commits require their own evidence before being described as equivalently validated.
+Validation is exact-head evidence. Hosted behavior remains a separate manual gate and must not be inferred from CI.
 
 ## Historical Release Integrity
 - v1.0.0 remains the first stable Portfolio Edition baseline.
@@ -56,11 +55,9 @@ Validation is exact-head evidence. Later commits require their own evidence befo
 ## Current Change Policy
 The project is under stabilization freeze. Permitted work must be separately authorized and bounded to defect correction, security/privacy hardening, evidence/test/governance improvement, documentation reconciliation or other clearly justified launch/interview-readiness work. Routine feature expansion is closed.
 
-## Codex Bootstrap
-- Branch: `codex/governance-bootstrap`
-- Draft PR: #108
-- Purpose: establish Codex operating rules and reconcile current control documents.
-- Expected product impact: none.
+## Completed Governance Milestones
+- PR #108 — Codex governance bootstrap and control-document reconciliation — merged and complete.
+- PR #109 — MRO-0 Industrial Supplies category foundation — merged and complete.
 
 ## Next Controlled Action
-Complete exact-head verification of PR #108 and merge only after confirming its diff is limited to approved governance/documentation changes and no runtime or business-rule behaviour changed.
+Complete manual hosted acceptance of the post-MRO-0 deployed application when practical. No new feature build, including MRO-1, is pre-authorized.

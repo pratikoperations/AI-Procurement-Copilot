@@ -1,7 +1,7 @@
 # Build Instructions
 
 ## Purpose
-This file explains how to resume and continue AI Procurement Copilot under the current stabilized, governed Codex workflow if chat history is lost.
+This file explains how to resume and continue AI Procurement Copilot under the current stabilized, governed workflow if chat history is lost.
 
 ## Recovery Start Point
 Always begin by reading these files in order:
@@ -12,7 +12,7 @@ Always begin by reading these files in order:
 4. `VERSION_MANIFEST.md`
 5. `CONTRIBUTING.md`
 6. `PROJECT_RECOVERY_MANIFEST.md`
-7. `PROJECT_BUILD_PLAN.md`
+7. `PENDING_WORK_REGISTER.md`
 8. current architecture, governance and test-evidence documents relevant to the task
 9. `DECISION_LOG.md`, `BUILD_HISTORY.md` and `CHANGELOG.md` for historical context
 
@@ -43,6 +43,7 @@ The following boundaries must be preserved unless explicitly re-authorized throu
 - no production allocation execution;
 - no live ERP write-back;
 - SourceMate remains read-only and deterministic, without external LLM, RAG, web-browsing or hidden recalculation authority;
+- MRO / Industrial Supplies remains Foundation Preview unless a separately governed capability explicitly changes that status;
 - public demonstration uses only synthetic or sanitized data;
 - confidential supplier, contract, personal, credential or commercially sensitive data must not be introduced into the public demo or assistant workflow.
 
@@ -80,13 +81,22 @@ python -m pytest
 
 Additional quality gates may include compile, Ruff, targeted mypy, dependency audit, Streamlit smoke and browser/mobile acceptance depending on the change.
 
-## Current Controlled Build
-**Codex Governance Bootstrap**
+## Current Canonical Baseline
+- `main`: `d6d1e741205e6c0ceb37a8d3617e9aafd6d26e55`
+- Latest governed extension: MRO-0 / PR #109
+- Post-merge main Quality Checks: run 1138 / run ID `38204618690` — SUCCESS
+- Project mode: stabilized portfolio/interview product under controlled freeze
 
-- Branch: `codex/governance-bootstrap`
-- Draft PR: #108
-- Scope: root `AGENTS.md` plus reconciliation of active governance/status/recovery/build-control documentation.
-- Intended runtime/business-rule impact: none.
+## Current Controlled Build
+**Final closure documentation reconciliation**
+
+Purpose:
+- remove stale PR #108 bootstrap instructions;
+- record the post-MRO-0 current baseline and validation evidence;
+- preserve the hosted-acceptance boundary;
+- leave runtime/business behavior unchanged.
 
 ## Next Build
-No feature build is pre-authorized. After PR #108 is verified and merged, the next task must be separately selected, justified and approved before Codex implementation begins.
+No feature build is pre-authorized. After this documentation reconciliation is merged, the project should remain frozen unless a separate business case authorizes a new task.
+
+Manual hosted acceptance of the deployed post-MRO-0 application remains the next evidence gate; it is not a feature build and does not by itself authorize runtime changes.
