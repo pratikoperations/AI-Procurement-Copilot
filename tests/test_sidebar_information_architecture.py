@@ -51,8 +51,8 @@ def test_commercial_scenario_allocation_and_roadmap_default_collapsed() -> None:
 
 def test_steel_hides_nonoperative_generic_controls_but_keeps_contract_defaults() -> None:
     assert 'is_steel = category == "Raw Material Procurement" and commodity == "Steel"' in SIDEBAR_SOURCE
-    assert "_render_generic_scenario_inputs(commodity, enabled=not is_steel)" in SIDEBAR_SOURCE
-    assert "_render_generic_allocation_rules(enabled=not is_steel)" in SIDEBAR_SOURCE
+    assert 'is_active_category = category_profile["engine_status"] == "Active"' in SIDEBAR_SOURCE
+    assert "enabled=is_active_category and not is_steel" in SIDEBAR_SOURCE
     assert sidebar.GENERIC_SCENARIO_DEFAULTS == {
         "raw_material_shock": 0.0,
         "freight_shock": 0.0,
