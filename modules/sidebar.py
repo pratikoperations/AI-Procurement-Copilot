@@ -120,8 +120,8 @@ def _render_sourcing_setup():
     category_profile = ensure_category_profile(get_category_profile(category, commodity))
     if category_profile["engine_status"] != "Active":
         st.sidebar.warning(
-            "Raw-material architecture is available as a foundation preview. "
-            "Full category-specific scoring is planned for Build 0.9.4."
+            f"{category} — {category_profile['engine_status']}. "
+            f"{category_profile['implementation_note']}"
         )
     return data_source, category, commodity, category_profile
 
@@ -320,11 +320,17 @@ def render_sidebar():
     kraft_values = _render_kraft_inputs(category, commodity)
     laminate_values = _render_laminate_inputs(category, commodity)
     is_steel = category == "Raw Material Procurement" and commodity == "Steel"
+    is_active_category = category_profile["engine_status"] == "Active"
     steel_values = render_steel_sidebar_controls({}) if is_steel else {}
 
     annual_volume, annual_volume_unit, fx_rate, display_currency = _render_commercial_basis(category_profile)
-    generic_scenario_values = _render_generic_scenario_inputs(commodity, enabled=not is_steel)
-    generic_allocation_values = _render_generic_allocation_rules(enabled=not is_steel)
+    generic_scenario_values = _render_generic_scenario_inputs(
+        commodity,
+        enabled=is_active_category and not is_steel,
+    )
+    generic_allocation_values = _render_generic_allocation_rules(
+        enabled=is_active_category and not is_steel,
+    )
     _render_about_roadmap()
 
     return build_sidebar_result(
