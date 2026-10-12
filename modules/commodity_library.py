@@ -33,6 +33,42 @@ COMMODITIES = {
             "risk_signals": ["artwork control", "adhesive performance", "colour variation", "MOQ"],
         },
     },
+    "MRO / Industrial Supplies": {
+        "Industrial Bearings": {
+            "family": "Industrial Bearings",
+            "unit": "piece",
+            "identity_fields": ["manufacturer", "manufacturer_part_number"],
+            "source_statuses": ["OEM", "Authorized Distributor", "Approved Equivalent"],
+            "required_technical_fields": [
+                "bearing_type",
+                "bore_diameter_mm",
+                "outside_diameter_mm",
+                "width_mm",
+                "seal_or_shield",
+                "clearance_class",
+            ],
+            "primary_cost_drivers": [
+                "manufacturer and part identity",
+                "authorized sourcing channel",
+                "availability",
+                "lead time",
+                "minimum order quantity",
+                "freight",
+            ],
+            "risk_signals": [
+                "counterfeit and authenticity risk",
+                "technical mismatch and substitution risk",
+                "manufacturer / channel authorization risk",
+                "obsolescence and lifecycle risk",
+                "availability and stockout risk",
+                "lead-time continuity risk",
+                "quality and traceability risk",
+                "single-source concentration risk",
+            ],
+            "assumption_profile_version": "MRO-0",
+            "source_label": "Controlled synthetic MRO-0 demonstration evidence; not manufacturer certification",
+        },
+    },
     "Raw Material Procurement": {
         "PET Resin": {
             "family": "Polymers",
