@@ -5,6 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
+from modules.category_engine import is_production_ready
 from modules.commodity_library import COMMODITIES, get_commodity_profile
 from modules.data_loader import get_demo_data
 from modules.multi_supplier_allocation_adapter import (
@@ -61,6 +62,7 @@ def _demo(category: str, commodity: str) -> pd.DataFrame:
     [
         (category, commodity)
         for category, commodities in COMMODITIES.items()
+        if is_production_ready(category)
         for commodity in commodities
     ],
 )
