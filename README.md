@@ -214,5 +214,6 @@ Detailed setup and portability guidance remain in `SETUP_GUIDE.md`, `AI_HANDOFF_
 
 ## Historical relationship
 
+- Historical EAS-BIV Gate 5 starting baseline: `834b34db145cc0156196579f7419e7db7b438106`; this remains a preserved historical evidence anchor and is not the current product baseline.
 - Historical release and gate evidence remains preserved and must not be rewritten as if later work formed part of those earlier baselines.
 - Later governed work is additive, stabilization-frozen and bounded; it does not convert the portfolio application into a production, autonomous or live-ERP system.
