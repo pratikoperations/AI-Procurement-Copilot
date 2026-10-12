@@ -84,6 +84,14 @@ with st.expander("Selected Category Intelligence", expanded=False):
     st.write("**Risk signals:** " + ", ".join(profile["risk_signals"]))
     st.caption(profile["implementation_note"])
 
+if profile["engine_status"] != "Active":
+    st.info(
+        f"{profile['category']} is exposed as {profile['engine_status']} only. "
+        "Its governed foundation contracts are available for review, but scoring, should-cost, "
+        "scenario, negotiation and allocation execution are intentionally disabled."
+    )
+    st.stop()
+
 uploaded_file = None
 is_governed_route = assumptions["data_source"] == "Governed v1.3 Workbook Review Preview"
 if assumptions["data_source"] == "Upload RFQ CSV/Excel":
