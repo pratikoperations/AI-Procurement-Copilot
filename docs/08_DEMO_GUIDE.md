@@ -2,97 +2,108 @@
 
 > Presentation aid for the project owner. This content is intentionally outside the public application navigation.
 
-## Original v1.2 five-minute sequence
+## Recommended current five-minute sequence
 
-### 0:00–0:30 — Business problem
+### 0:00–0:35 — Business problem
 
-Explain that supplier decisions are often spread across spreadsheets and that lowest price can obscure total cost, risk and evidence quality.
+Explain that supplier decisions often sit across spreadsheets and fragmented assumptions. Lowest price alone can obscure total cost, risk, evidence quality and decision confidence.
 
-### 0:30–1:10 — Decision context
+### 0:35–1:20 — Governed sourcing workflow
 
-Show category, commodity, volume, currency and scenario assumptions. Emphasize visible inputs and comparison basis.
+Show an active analytical category and briefly demonstrate:
+- category/commodity context;
+- visible assumptions;
+- quotation validation;
+- supplier comparison;
+- recommendation gating.
 
-### 1:10–2:10 — Validation and comparison
+State: “Validation and eligibility come before recommendation language.”
 
-Show quotation readiness, supplier comparison and the distinction between lowest price and broader best value. Explain that failed controls can withhold award-oriented language.
+### 1:20–2:20 — Calculation explainability
 
-### 2:10–3:10 — Scenario, allocation and negotiation
+Open **Governed Calculation Explorer** on a supported route such as Corrugated Board.
 
-Show how sourcing options, concentration limits, backup supply and negotiation preparation support a controlled commercial decision.
-
-### 3:10–4:00 — Intelligence and outputs
-
-Show Procurement Intelligence, Supplier Intelligence, executive memo and governed downloads. Explain the separation of business reports and machine-readable audit files.
-
-### 4:00–4:40 — ERP Preview
-
-Show read-only XLSX structural preview, package-safety checks and draft mappings. State explicitly that there is no live SAP or Oracle connection, normalization, matching or write-back.
-
-### 4:40–5:00 — Close
-
-State that the project proves procurement workflow understanding, application design, validation, testing and governance. It does not prove production adoption, realized savings or autonomous procurement.
-
-## EAS-BIV governed five-minute sequence
-
-### 0:00–0:35 — Explainability problem
-
-Explain that procurement results can be difficult to trust when formulas, assumptions, source functions and evidence are spread across separate spreadsheets or category models.
-
-### 0:35–1:15 — Authoritative result
-
-Open **Governed Calculation Explorer**, select **Corrugated Board**, and show:
-
+Show:
 - calculation ID and business name;
-- formula ID and version;
-- authoritative source module and function;
-- result and unit.
+- formula/version identity;
+- authoritative source module/function;
+- assumptions and provenance;
+- deterministic trace;
+- reconciliation status.
 
 State: “Formula metadata is documentation only. The existing business service produces the result.”
 
-### 1:15–2:00 — Assumption provenance
+### 2:20–3:15 — SourceMate
 
-Open **Assumptions** and show supplied, defaulted, inferred and derived classifications. Explain that uncatalogued or unavailable evidence remains visible rather than being silently discarded.
+Open **SourceMate** and demonstrate its chat-style, project-wide, read-only evidence experience.
 
-### 2:00–2:50 — Trace identity and configuration versions
+Show:
+- page-aware governed context;
+- source references;
+- evidence classifications;
+- concise governed answers;
+- browser-session conversation continuity.
 
-Open **Calculation Trace** and show:
+State: “SourceMate helps navigate internal governed evidence. It does not browse the web, externally verify suppliers, call an external LLM, use RAG, recalculate authoritative results or execute procurement actions.”
 
-- deterministic trace ID;
-- trace contract `AIPC-CALC-TRACE-1.0`;
-- input snapshot and authoritative raw output;
-- intermediate evidence;
-- retained configuration versions;
-- explicit unavailable-evidence disclosure.
+### 3:15–4:00 — MRO / Industrial Supplies Foundation Preview
 
-### 2:50–3:35 — Reconciliation
+Select **MRO / Industrial Supplies → Industrial Bearings**.
 
-Open **Reconciliation** and show exact matches, tolerated differences, mismatches, unavailable evidence, blocking status and mandatory human review.
+Explain:
+- manufacturer + manufacturer-part-number identity;
+- OEM / Authorized Distributor / Approved Equivalent status;
+- technical/evidence requirements;
+- fail-closed compatibility;
+- human approval for equivalent substitution.
 
-### 3:35–4:20 — SourceMate Basic
+State: “This is a Foundation Preview, not a production MRO analytics engine.”
 
-Open **SourceMate** and show source references, evidence classifications, registered Excel/JSON locations, review-expiry warnings and runtime-presence limitations.
+Explicitly note that MRO should-cost, scoring, scenarios, negotiation and allocation execution are intentionally disabled.
 
-State: “SourceMate is an internal evidence navigator, not external verification.”
+### 4:00–4:35 — Honest limitation handling
 
-### 4:20–5:00 — Deferred adapter and governance close
+Show either:
+- a deferred adapter route such as Packaging TCO; or
+- an unavailable evidence state.
 
-Select **Packaging TCO** and demonstrate:
-
-- the authoritative service is available;
-- the dedicated governed adapter remains deferred;
+Explain:
+- unavailable/deferred evidence remains visible;
 - no trace or reconciliation is fabricated;
-- checklist status reflects unavailable evidence;
-- no autonomous award or production allocation occurs;
-- human approval remains mandatory.
+- human review remains mandatory.
+
+### 4:35–5:00 — Close
+
+State that the project proves:
+- procurement workflow understanding;
+- governed decision-support design;
+- explainability and evidence discipline;
+- cross-category extensibility;
+- automated testing and GitHub governance.
+
+It does **not** prove production adoption, realized savings, autonomous procurement or live ERP execution.
+
+## Optional deeper EAS-BIV sequence
+
+For technical interviewers, use the earlier explainability-focused path:
+
+1. Corrugated Board authoritative result.
+2. Assumption provenance.
+3. Deterministic calculation trace.
+4. Reconciliation.
+5. SourceMate evidence navigation.
+6. Deferred adapter coverage.
+
+Historical EAS-BIV evidence remains preserved in the Interview Evidence Pack and Final Closure documents.
 
 ## Cross-category confirmation
 
-After the primary Corrugated Board route, use short confirmations only:
-
-- PET Resin — packaging raw-material transferability;
+Use short confirmations only:
+- PET Resin — raw-material-style transferability;
 - Kraft Paper — commodity packaging should-cost;
 - Flexible Laminates — conversion complexity;
 - Steel — non-packaging transferability;
+- Industrial Bearings — governed MRO foundation;
 - Packaging TCO — honest deferred-coverage boundary.
 
 ## Strong phrases
@@ -102,8 +113,9 @@ After the primary Corrugated Board route, use short confirmations only:
 - Validation and eligibility come before recommendation language.
 - Formula metadata is documentation only; authoritative services produce results.
 - Unavailable evidence is disclosed and is not reconstructed.
-- SourceMate presents internal evidence references; it does not externally verify them.
+- SourceMate presents governed internal evidence; it does not externally verify it.
 - Deferred routes are not represented as adapter-reconciled.
+- MRO equivalent substitution requires human approval.
 - Human procurement review remains mandatory.
 
 ## Demonstration discipline
@@ -113,11 +125,11 @@ After the primary Corrugated Board route, use short confirmations only:
 - Do not call draft mapping profiles integrations.
 - Do not call registered evidence external verification.
 - Do not call a deferred route reconciled.
+- Do not describe MRO-0 as a production-ready MRO analytics engine.
 - Keep technical detail subordinate to procurement value.
 - Do not claim physical browser/mobile certification unless actual evidence is recorded.
-- Use the final verified hosted candidate only after release-gate confirmation.
+- Hosted acceptance remains separate from CI evidence.
 
 See also:
-
 - [EAS-BIV Final Closure](EAS_BIV_FINAL_CLOSURE.md)
 - [EAS-BIV Interview Evidence Pack](EAS_BIV_INTERVIEW_EVIDENCE_PACK.md)
