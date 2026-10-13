@@ -9,6 +9,7 @@ The Category Engine separates shared procurement decision logic from category-sp
 - Packaging Procurement — Active production engine
 - Raw Material Procurement — Active production engine
 - MRO / Industrial Supplies — Foundation Preview (MRO-0)
+- Logistics & Freight — Foundation Preview (LOGISTICS-0)
 
 ## Architecture
 
@@ -18,8 +19,10 @@ Category Engine Router
 │   └── Packaging commodity metadata
 ├── Raw Material Engine
 │   └── Raw-material commodity metadata
-└── MRO / Industrial Supplies Engine
-    └── Industrial Bearings foundation contracts and synthetic metadata
+├── MRO / Industrial Supplies Engine
+│   └── Industrial Bearings foundation contracts and synthetic metadata
+└── Logistics & Freight Engine
+    └── Domestic Road Transportation — FTL lane, carrier, evidence, and service contracts
 ```
 
 ## Common Category Contract
@@ -65,3 +68,19 @@ MRO-0 introduces a dedicated MRO / Industrial Supplies engine with Industrial Be
 - MRO risk dimensions are qualitative in MRO-0; no unsupported numerical weights are introduced.
 - No MRO should-cost, supplier scoring, scenario, negotiation, or percentage-allocation engine is active.
 - Synthetic demonstration evidence is isolated and must not be represented as manufacturer certification or live supplier verification.
+
+
+## LOGISTICS-0 Foundation Governance
+
+LOGISTICS-0 introduces a dedicated Logistics & Freight engine with Domestic Road Transportation — Full Truck Load (FTL) as the first representative service.
+
+- Lane identity is explicit: origin, destination, transport mode, and service type.
+- Vehicle type and minimum payload capacity are explicit service-compatibility fields.
+- Carrier status is explicit: Contracted Carrier, Approved Carrier, or Spot / Unverified Carrier.
+- Lane/service compatibility is fail-closed when required evidence is missing or conflicting.
+- Spot / unverified carrier use requires explicit human approval before the offer can be treated as compatible for human review.
+- Commercial evidence captures base freight rate, rate basis, fuel-surcharge treatment, toll treatment, detention, loading/unloading, payment terms, and quote validity without calculating a normalized freight cost.
+- Performance evidence can record capacity status, transit time, OTIF, and damage/claim rate without applying score weights or thresholds.
+- Logistics risk dimensions remain qualitative in LOGISTICS-0; no unsupported numerical weights are introduced.
+- No freight-cost engine, carrier scoring, scenario, allocation, route optimization, negotiation, live fuel/route data, telematics, TMS integration, or autonomous carrier award is active.
+- Synthetic demonstration evidence must not be represented as live carrier certification, live route data, fuel-market data, or external verification.

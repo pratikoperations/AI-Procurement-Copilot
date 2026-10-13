@@ -69,6 +69,56 @@ COMMODITIES = {
             "source_label": "Controlled synthetic MRO-0 demonstration evidence; not manufacturer certification",
         },
     },
+    "Logistics & Freight": {
+        "Domestic Road Transportation — FTL": {
+            "family": "Domestic Road Transportation",
+            "unit": "trip",
+            "identity_fields": [
+                "origin_location",
+                "destination_location",
+                "transport_mode",
+                "service_type",
+            ],
+            "carrier_statuses": [
+                "Contracted Carrier",
+                "Approved Carrier",
+                "Spot / Unverified Carrier",
+            ],
+            "required_service_fields": [
+                "origin_location",
+                "destination_location",
+                "transport_mode",
+                "service_type",
+                "vehicle_type",
+                "minimum_payload_capacity_tonnes",
+            ],
+            "rate_basis_options": ["Per Trip", "Per Tonne", "Per Tonne-Km"],
+            "primary_cost_drivers": [
+                "lane distance and route conditions",
+                "vehicle type and payload requirement",
+                "base freight rate",
+                "fuel surcharge treatment",
+                "tolls and accessorial charges",
+                "detention and turnaround terms",
+                "capacity availability",
+            ],
+            "risk_signals": [
+                "carrier capacity availability risk",
+                "lane coverage and continuity risk",
+                "transit-time and service reliability risk",
+                "damage and claims risk",
+                "detention and turnaround-time risk",
+                "fuel and toll commercial volatility",
+                "carrier concentration risk",
+                "compliance, safety, and evidence-quality risk",
+            ],
+            "assumption_profile_version": "LOGISTICS-0",
+            "source_label": (
+                "Controlled synthetic LOGISTICS-0 demonstration evidence; "
+                "not live route, fuel-market, telematics, or carrier-certification data"
+            ),
+        },
+    },
     "Raw Material Procurement": {
         "PET Resin": {
             "family": "Polymers",

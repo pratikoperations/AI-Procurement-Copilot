@@ -8,11 +8,14 @@ from modules.raw_material_engine import CATEGORY_NAME as RAW_MATERIAL_CATEGORY
 from modules.raw_material_engine import get_engine_profile as get_raw_material_profile
 from modules.mro_engine import CATEGORY_NAME as MRO_CATEGORY
 from modules.mro_engine import get_engine_profile as get_mro_profile
+from modules.logistics_engine import CATEGORY_NAME as LOGISTICS_CATEGORY
+from modules.logistics_engine import get_engine_profile as get_logistics_profile
 
 CATEGORY_REGISTRY = {
     PACKAGING_CATEGORY: get_packaging_profile,
     RAW_MATERIAL_CATEGORY: get_raw_material_profile,
     MRO_CATEGORY: get_mro_profile,
+    LOGISTICS_CATEGORY: get_logistics_profile,
 }
 
 DEFAULT_CATEGORY_PROFILE = {
