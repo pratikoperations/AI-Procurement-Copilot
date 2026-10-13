@@ -105,11 +105,13 @@ def test_external_forecast_still_fails_closed():
     assert response["calculation_executed"] is False
 
 
-def test_explicit_application_shell_replaces_implicit_widget_bootstrap_and_keeps_scoring_context_read_only():
+def test_global_page_shell_mounts_sourcemate_and_keeps_scoring_context_read_only():
     bootstrap_source = Path("sitecustomize.py").read_text(encoding="utf-8")
     shell_source = Path("modules/sourcemate_application_shell.py").read_text(encoding="utf-8")
 
-    assert "set_page_config_with_sourcemate" not in bootstrap_source
+    assert "def set_page_config_with_global_shell" in bootstrap_source
+    assert "mount_global_sourcemate(page_title)" in bootstrap_source
+    assert '_aipc_global_page_shell' in bootstrap_source
     assert "render_sourcemate_conversation(current_context(page), global_mount=True)" not in bootstrap_source
     assert "def mount_global_sourcemate(" in shell_source
     assert "set_active_page(page_title)" in shell_source
@@ -121,29 +123,27 @@ def test_explicit_application_shell_replaces_implicit_widget_bootstrap_and_keeps
     assert "return result" in bootstrap_source
 
 
-def test_all_streamlit_entry_points_use_one_shared_sourcemate_shell_contract():
+def test_all_streamlit_entry_points_rely_on_one_global_sourcemate_shell_contract():
+    bootstrap_source = Path("sitecustomize.py").read_text(encoding="utf-8")
     app_source = Path("app.py").read_text(encoding="utf-8")
-    sidebar_source = Path("modules/sidebar.py").read_text(encoding="utf-8")
     c1_source = Path("modules/c1_ux.py").read_text(encoding="utf-8")
     explorer_source = Path("pages/8_Governed_Calculation_Explorer.py").read_text(encoding="utf-8")
     erp_source = Path("pages/9_ERP_Upload_Preview.py").read_text(encoding="utf-8")
 
-    assert "assumptions = render_sidebar()" in app_source
-    assert "apply_c1_ux_overrides()" in sidebar_source
-    assert 'mount_global_sourcemate("AI Procurement Copilot")' in c1_source
+    assert "def set_page_config_with_global_shell" in bootstrap_source
+    assert "mount_global_sourcemate(page_title)" in bootstrap_source
+    assert 'st.set_page_config(page_title=APP_NAME' in app_source
+    assert 'st.set_page_config(page_title="Governed Calculation Explorer"' in explorer_source
+    assert 'st.set_page_config(page_title="ERP Upload Preview"' in erp_source
 
-    explorer_mount = 'mount_global_sourcemate("Governed Calculation Explorer")'
+    assert "mount_global_sourcemate(" not in c1_source
+    assert "mount_global_sourcemate(" not in explorer_source
+    assert "mount_global_sourcemate(" not in erp_source
+
     explorer_publish = "publish_selected_presentation(presentation)"
-    assert explorer_source.count('mount_global_sourcemate("Governed Calculation Explorer"') == 1
-    assert explorer_mount in explorer_source
-    assert explorer_source.index(explorer_mount) < explorer_source.index("STEEL_INPUTS = {")
     assert explorer_publish in explorer_source
     assert explorer_source.index(explorer_publish) > explorer_source.index("presentation = build_governed_explorer_presentation(")
-    assert 'mount_global_sourcemate("Governed Calculation Explorer", presentation=presentation)' not in explorer_source
     assert "render_sourcemate_conversation(presentation)" not in explorer_source
-
-    assert 'mount_global_sourcemate("ERP Upload Preview")' in erp_source
-    assert erp_source.index('mount_global_sourcemate("ERP Upload Preview")') < erp_source.index("if uploaded_file is None:")
 
 
 def test_widget_uses_shared_history_and_persistent_panel_without_fragile_render_guard():

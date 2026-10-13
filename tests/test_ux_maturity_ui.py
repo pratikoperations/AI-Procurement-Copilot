@@ -75,7 +75,7 @@ def test_explicit_pages_use_shared_hierarchy_without_touching_business_services(
     assert "semantic_section(" in explorer
     assert "render_result_summary(" in explorer
     assert "render_governance_disclosure(" in explorer
-    assert 'mount_global_sourcemate("Governed Calculation Explorer")' in explorer
+    assert "mount_global_sourcemate(" not in explorer
     assert "render_currency_aware_calculation_explorer(" in explorer
     assert "publish_selected_presentation(presentation)" in explorer
 
@@ -84,7 +84,7 @@ def test_explicit_pages_use_shared_hierarchy_without_touching_business_services(
     assert "render_input_block(" in erp
     assert "render_result_summary(" in erp
     assert "render_governance_disclosure(" in erp
-    assert 'mount_global_sourcemate("ERP Upload Preview")' in erp
+    assert "mount_global_sourcemate(" not in erp
     assert "load_erp_workbook(" in erp
     assert "validate_workbook_structure(summary)" in erp
 

@@ -94,9 +94,6 @@ def build_supplier_snapshot_display(scored_df, assumptions=None):
         "technical_ineligibility_reasons": "Technical Ineligibility Reasons",
         "generic_failure_probability": "Generic Failure Probability",
         "laminate_failure_probability": "Laminate Failure Probability",
-        "generic_risk_penalty_usd": "Generic Risk Penalty USD/kg",
-        "laminate_risk_penalty_usd": "Laminate Risk Penalty USD/kg",
-        "combined_risk_penalty_usd": "Combined Risk Penalty USD/kg",
         "generic_risk_score": "Generic Supplier Risk",
         "steel_risk_score": "Steel-Specific Risk",
         "governed_total_score": "Governed Steel Score",
@@ -108,6 +105,9 @@ def build_supplier_snapshot_display(scored_df, assumptions=None):
         "scenario_unit_price_usd": "Scenario Unit Price",
         "adjusted_tco_unit_usd": "Risk-Adjusted TCO",
         "annual_tco_usd": "Annual TCO",
+        "generic_risk_penalty_usd": "Generic Risk Penalty",
+        "laminate_risk_penalty_usd": "Laminate Risk Penalty",
+        "combined_risk_penalty_usd": "Combined Risk Penalty",
     }
     return build_currency_display_frame(display, currency_mapping, currency, fx_rate)
 
@@ -173,7 +173,12 @@ def render_executive_dashboard(scored_df, assumptions, confidence=None):
     c8.metric("Lowest Quote", lowest["Supplier"])
     if is_flexible_laminate_context(assumptions):
         context = build_flexible_laminate_context(assumptions)
-        st.info(f"Structure: {context['Selected Laminate Structure']} | Basis: kg | Comparison: USD/kg | Total micron: {context['Total Micron']} (metadata only)")
+        display_currency, _ = _display_settings(assumptions)
+        comparison_currency = "USD / INR" if display_currency == "Both" else display_currency
+        st.info(
+            f"Structure: {context['Selected Laminate Structure']} | Basis: kg | "
+            f"Comparison: {comparison_currency}/kg | Total micron: {context['Total Micron']} (metadata only)"
+        )
         st.caption(context["Confidence Governance"])
         st.warning(context["Synthetic Assumption Disclosure"])
     if recommended["Supplier"] != lowest["Supplier"]:

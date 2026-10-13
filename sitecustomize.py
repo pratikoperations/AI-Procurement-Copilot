@@ -27,19 +27,23 @@ def _install() -> None:
 
     try:
         from modules.selectable_control_ui import render_selectable_control_distinction
+        from modules.sourcemate_application_shell import mount_global_sourcemate
 
-        if not getattr(st.set_page_config, "_aipc_selectable_control_distinction", False):
+        if not getattr(st.set_page_config, "_aipc_global_page_shell", False):
             original_set_page_config = st.set_page_config
 
-            def set_page_config_with_selectable_control_distinction(*args, **kwargs):
+            def set_page_config_with_global_shell(*args, **kwargs):
                 result = original_set_page_config(*args, **kwargs)
                 render_selectable_control_distinction()
+                page_title = str(kwargs.get("page_title") or "AI Procurement Copilot")
+                mount_global_sourcemate(page_title)
                 return result
 
-            set_page_config_with_selectable_control_distinction._aipc_selectable_control_distinction = True
-            st.set_page_config = set_page_config_with_selectable_control_distinction
+            set_page_config_with_global_shell._aipc_global_page_shell = True
+            set_page_config_with_global_shell._aipc_selectable_control_distinction = True
+            st.set_page_config = set_page_config_with_global_shell
     except Exception:
-        # Selectbox visual distinction is presentation-only and must never block an entry point.
+        # Shared presentation shell must never block an entry point.
         pass
 
     try:
