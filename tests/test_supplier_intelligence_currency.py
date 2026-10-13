@@ -73,6 +73,21 @@ def test_inr_mode_derives_business_values_once_and_hides_all_usd_audit_fields():
     pd.testing.assert_frame_equal(source, original)
 
 
+
+def test_inr_mode_drops_raw_usd_quote_columns_when_normalized_price_is_present():
+    source = _comparison_frame()
+    source["Quoted Price USD"] = 1.25
+    source["Quoted Unit Price USD"] = 1.25
+
+    result = build_supplier_intelligence_display_frame(source, "INR", 83)
+
+    assert "Quoted Price USD" not in result.columns
+    assert "Quoted Unit Price USD" not in result.columns
+    assert "Quoted Price (USD)" not in result.columns
+    assert "Risk-Adjusted TCO (USD)" not in result.columns
+    assert result.loc[0, "Quoted Price (INR)"] == 103.75
+    assert result.loc[0, "Risk-Adjusted TCO (INR)"] == 124.5
+
 def test_both_mode_shows_separate_usd_and_inr_business_columns_only():
     result = build_supplier_intelligence_display_frame(_comparison_frame(), "Both", 83)
 
