@@ -1,95 +1,92 @@
 # EAS-BIV Interview Evidence Pack
 
-## Positioning statement
+## Current positioning statement
 
-AI Procurement Copilot is a governed procurement decision-support portfolio. The EAS-BIV programme adds calculation explainability, assumption provenance, deterministic traces, reconciliation, internal evidence navigation and explicit human-review controls without replacing the existing business engines.
+AI Procurement Copilot is a governed procurement decision-support portfolio. The EAS-BIV programme added calculation explainability, assumption provenance, deterministic traces, reconciliation, internal evidence navigation and explicit human-review controls without replacing the existing business engines.
 
-## Five-minute demonstration script
+The current stabilized portfolio extends that foundation with:
+- project-wide chat-style SourceMate;
+- cross-category presentation hardening;
+- public-demo safety controls;
+- MRO / Industrial Supplies Foundation Preview.
+
+## Current five-minute demonstration script
 
 ### 0:00–0:35 — Business problem
 
-“Procurement calculations often sit across spreadsheets, category models and undocumented assumptions. A result may be numerically correct but difficult to explain, reproduce or govern. This project makes the calculation source, assumptions, trace, reconciliation and evidence boundaries visible.”
+“Procurement decisions often sit across spreadsheets, category models and undocumented assumptions. A result may be numerically correct but still difficult to explain, reproduce or govern.”
 
 ### 0:35–1:15 — Authoritative Corrugated Board result
 
-Open the Governed Calculation Explorer and select the Corrugated Board route.
+Open Governed Calculation Explorer and select Corrugated Board.
 
 Explain:
-
 - the result comes from the existing authoritative should-cost service;
 - formula text is documentation only;
 - the Explorer does not independently recalculate the answer;
-- the source module, source function, calculation ID and formula version remain visible.
+- source module, source function, calculation ID and formula version remain visible.
 
 ### 1:15–2:00 — Assumption provenance
 
 Open **Assumptions**.
 
 Explain:
-
 - supplied values originate from the current case;
 - defaulted values come from governed defaults;
-- inferred values are explicitly labelled rather than hidden;
-- derived values are calculated outputs rather than source claims;
-- uncatalogued or unavailable evidence remains visible.
+- inferred values are explicitly labelled;
+- derived values are calculated outputs;
+- unavailable evidence remains visible.
 
-### 2:00–2:50 — Trace and configuration identity
+### 2:00–2:45 — Trace and reconciliation
 
-Open **Calculation Trace**.
+Open **Calculation Trace** and **Reconciliation**.
 
 Show:
-
 - deterministic trace ID;
 - `AIPC-CALC-TRACE-1.0`;
-- calculation and formula identity;
 - input snapshot and authoritative raw output;
-- available intermediate steps;
-- configuration versions;
-- explicit unavailable-evidence disclosure where evidence is absent.
+- retained configuration versions;
+- exact matches, tolerated differences, mismatches and unavailable evidence;
+- mandatory human review.
 
 Say: “The trace supports review and repeatability. It does not create another calculation engine.”
 
-### 2:50–3:35 — Reconciliation
-
-Open **Reconciliation**.
-
-Show:
-
-- exact matches;
-- tolerated differences;
-- mismatches;
-- unavailable evidence;
-- blocking or review-required status;
-- mandatory human review.
-
-Say: “The system does not convert an unresolved mismatch into an approved result.”
-
-### 3:35–4:20 — SourceMate Basic
+### 2:45–3:35 — Current SourceMate
 
 Open **SourceMate**.
 
 Show:
+- chat-style UX;
+- page-aware governed context;
+- source/evidence references;
+- concise deterministic answers;
+- browser-session conversation continuity.
 
-- source module and function;
-- formula and catalogue references;
-- assumption source references;
-- registered Excel and JSON evidence locations;
-- evidence classification and review-expiry warnings;
-- runtime-presence and external-verification limitations.
+Say: “SourceMate is a read-only internal evidence navigator. It does not browse, use an external LLM, use RAG, externally verify suppliers, recalculate authoritative results or execute procurement actions.”
 
-Say: “SourceMate is an internal evidence navigator, not a web-research agent or external verification service.”
+Current SourceMate conversation contract: `AIPC-SOURCEMATE-PROJECT-WIDGET-BIV-1.0`.
 
-### 4:20–5:00 — Deferred coverage and governance close
+### 3:35–4:20 — MRO Foundation Preview
 
-Select Packaging TCO.
+Select **MRO / Industrial Supplies → Industrial Bearings**.
 
 Explain:
+- manufacturer + manufacturer-part-number identity;
+- OEM / Authorized Distributor / Approved Equivalent source status;
+- technical/evidence contracts;
+- fail-closed compatibility;
+- explicit human approval for equivalent substitution.
 
-- the existing authoritative service executes;
-- a dedicated governed trace adapter remains deferred;
-- no trace or reconciliation evidence is fabricated;
-- the checklist records unavailable evidence honestly;
-- no autonomous recommendation, award or production allocation occurs;
+Say: “This proves governed category extensibility without pretending MRO analytics are production-ready.”
+
+### 4:20–5:00 — Limitation and governance close
+
+Demonstrate a deferred evidence route such as Packaging TCO, or summarize the boundary:
+
+- no fabricated trace/reconciliation;
+- no autonomous award;
+- no production allocation execution;
+- no ERP write-back;
 - human approval remains mandatory.
 
 Close with:
@@ -105,9 +102,10 @@ Close with:
 | Kraft Paper | Commodity packaging model | Adapter-backed trace and reconciliation |
 | Flexible Laminates | Multi-component conversion complexity | Adapter-backed trace and reconciliation |
 | Steel | Transferability beyond packaging | Adapter-backed trace and reconciliation |
+| Industrial Bearings | MRO category extensibility | Foundation Preview; fail-closed compatibility + human substitution approval |
 | Packaging TCO | Honest limitation demonstration | `unsupported_deferred_coverage`; no fabricated trace |
 
-The registry also retains adapter-backed coverage for generic scoring and recommendation eligibility, but they are not required in the five-minute hosted demonstration.
+The registry also retains adapter-backed coverage for generic scoring and recommendation eligibility, but they are not required in the five-minute demonstration.
 
 ## Strongest business-value messages
 
@@ -116,14 +114,24 @@ The registry also retains adapter-backed coverage for generic scoring and recomm
 3. **Defensible decisions:** trace and reconciliation evidence explain how a supported route aligns with its authoritative service.
 4. **Controlled limitation handling:** deferred coverage and unavailable evidence are disclosed rather than hidden.
 5. **Human accountability:** the system supports procurement judgement but does not approve or award suppliers.
-6. **Cross-category transferability:** the same governance pattern works across packaging, raw-material and steel examples.
+6. **Cross-category transferability:** the governance pattern works across packaging, raw-material, steel and MRO foundation examples.
+7. **Scope discipline:** MRO-0 intentionally stops before unsupported analytical execution.
 
-## Technical evidence
+## Current portfolio evidence
 
+- Current canonical main: `b7037fe21aa64aff799f38b911a6ed3e64d355c0`
+- MRO-0 merged through PR #109
+- Final documentation reconciliation merged through PR #110
+- Current SourceMate contract: `AIPC-SOURCEMATE-PROJECT-WIDGET-BIV-1.0`
 - Trace contract: `AIPC-CALC-TRACE-1.0`
 - Explorer contract: `AIPC-GOVERNED-EXPLORER-1.0`
-- SourceMate contract: `AIPC-SOURCEMATE-BASIC-1.0`
-- Gate 4 merge commit: `834b34db145cc0156196579f7419e7db7b438106`
+
+## Historical EAS-BIV Gate evidence
+
+The following evidence remains intentionally preserved as historical Gate-5/earlier programme evidence:
+
+- Gate 5 starting baseline / Gate 4 merged baseline: `834b34db145cc0156196579f7419e7db7b438106`
+- Historical SourceMate Basic contract: `AIPC-SOURCEMATE-BASIC-1.0`
 - Accepted CI: Quality Checks run `816`
 - Run ID: `30706340753`
 - Job ID: `91386012618`
@@ -148,14 +156,14 @@ All remaining non-export routes remain `unsupported_deferred_coverage`.
 ## Procurement evidence
 
 The showcase demonstrates practical understanding of:
-
 - category-specific should-cost review;
 - assumption governance;
 - sourcing evidence and auditability;
 - total-cost and decision-quality boundaries;
 - supplier-review controls;
 - validation before recommendation language;
-- separation of business results from human approval.
+- separation of business results from human approval;
+- MRO identity and equivalent-substitution governance.
 
 ## Governance evidence
 
@@ -166,13 +174,14 @@ The showcase demonstrates practical understanding of:
 - deferred routes are not presented as reconciled;
 - checklist statuses are evidence-derived;
 - no approval persistence exists;
+- MRO equivalent substitution requires human approval;
 - human review remains mandatory.
 
 ## Difficult interviewer objections and defensible answers
 
 ### “Is this just a dashboard over hardcoded examples?”
 
-**Answer:** “The public demonstration uses controlled synthetic inputs, but the governance layer is connected to existing category services and governed contracts. The key evidence is not the visual layout alone: calculation identities, provenance, trace construction, reconciliation classifications and export evidence are covered by automated tests. It still does not prove enterprise production adoption.”
+**Answer:** “The public demonstration uses controlled synthetic inputs, but the governance layer is connected to existing category services and governed contracts. Calculation identities, provenance, trace construction, reconciliation classifications and evidence boundaries are covered by automated tests. It still does not prove enterprise production adoption.”
 
 ### “Does the formula shown in the Explorer generate the result?”
 
@@ -180,31 +189,27 @@ The showcase demonstrates practical understanding of:
 
 ### “Can SourceMate verify supplier evidence from the internet?”
 
-**Answer:** “No. SourceMate Basic presents registered internal evidence references, classifications and limitations. It does not browse, use RAG, run OCR or claim external verification.”
+**Answer:** “No. SourceMate presents governed internal evidence and application context. It does not browse, use an external LLM, use RAG or claim external verification.”
 
 ### “Why are some routes marked deferred?”
 
-**Answer:** “The BIV deliberately implements representative governed adapters rather than pretending every service has equivalent trace assurance. Deferred routes remain usable through their authoritative service, but they are labelled `unsupported_deferred_coverage` and are not represented as reconciled.”
+**Answer:** “The project deliberately implements representative governed adapters rather than pretending every service has equivalent trace assurance. Deferred routes remain usable through their authoritative service, but they are labelled `unsupported_deferred_coverage` and are not represented as reconciled.”
+
+### “Is MRO now fully implemented?”
+
+**Answer:** “No. MRO-0 is intentionally a Foundation Preview. It establishes identity, source-status, technical/evidence contracts and fail-closed compatibility. It does not claim MRO should-cost, scoring, scenario, negotiation or allocation execution.”
 
 ### “Does the tool recommend or award a supplier?”
 
 **Answer:** “It provides controlled decision support and may display recommendation-oriented analysis where validation allows it, but no autonomous award, production allocation or approval persistence exists. Human procurement approval remains mandatory.”
 
-### “Does 1,011 tests mean production-ready?”
+### “Do automated tests make it production-ready?”
 
-**Answer:** “No. It means the repository has strong automated regression, compilation and startup evidence. Production readiness would additionally require enterprise identity, security, privacy, monitoring, operational ownership, live-data validation and scale testing.”
+**Answer:** “No. Strong automated regression and CI evidence support software quality, but production readiness would additionally require enterprise identity, security, privacy, monitoring, operational ownership, live-data validation and scale testing.”
 
 ### “Have you proven realized savings?”
 
 **Answer:** “No. Demonstration values are illustrative and must not be presented as realized savings. The project proves workflow and governance capability, not organizational financial outcomes.”
-
-### “Has mobile behavior been certified?”
-
-**Answer:** “No formal device certification is claimed. Source and automated controls exist, but physical desktop and Android observations remain `not performed` unless separately evidenced.”
-
-### “Why not add all remaining adapters before calling it complete?”
-
-**Answer:** “The objective is a Basic Interview Version, not exhaustive production coverage. The representative routes prove the architecture, while the deferred registry demonstrates scope discipline and honest assurance boundaries.”
 
 ## What the showcase proves
 
@@ -213,7 +218,9 @@ The showcase demonstrates practical understanding of:
 - explainability without duplicate calculation logic;
 - explicit provenance and evidence boundaries;
 - deterministic trace and reconciliation controls;
+- project-wide read-only evidence assistance;
 - cross-category design transferability;
+- governed MRO foundation design;
 - automated testing and staged GitHub governance;
 - ability to communicate limitations clearly.
 
@@ -222,6 +229,7 @@ The showcase demonstrates practical understanding of:
 - production deployment readiness;
 - live ERP integration or write-back;
 - universal adapter coverage;
+- production-ready MRO analytics;
 - enterprise-scale performance or security;
 - external evidence verification;
 - supplier qualification, legal or audit completion;
@@ -235,9 +243,10 @@ Use these statements without dilution:
 
 - “Formula metadata is documentation only; authoritative services produce business results.”
 - “Unavailable evidence is disclosed and is not reconstructed.”
-- “SourceMate Basic presents internal evidence references and does not perform external verification.”
+- “SourceMate presents governed internal evidence and does not perform external verification.”
 - “Deferred routes are not represented as adapter-reconciled.”
 - “Illustrative outputs are not realized-savings claims.”
+- “MRO-0 is a Foundation Preview and does not activate MRO analytical execution.”
 - “No autonomous award or production allocation is performed.”
 - “Human procurement approval remains mandatory.”
 - “Automated and source-level validation do not constitute physical browser-device certification.”
@@ -248,6 +257,7 @@ Use these statements without dilution:
 - keep procurement value ahead of technical implementation detail;
 - do not call internal evidence registration external verification;
 - do not call a deferred route reconciled;
+- do not call MRO-0 production-ready MRO analytics;
 - do not claim production readiness or realized savings;
-- do not conceal `not_available` checklist states;
+- do not conceal unavailable/deferred evidence;
 - close with the human-review boundary.
