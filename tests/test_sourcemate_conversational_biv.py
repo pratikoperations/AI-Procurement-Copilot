@@ -177,6 +177,7 @@ def test_limitations_disclose_no_web_or_autonomous_authority():
 def test_widget_uses_native_chat_composer_and_persistent_session_history():
     source = Path("modules/sourcemate_conversation_ui.py").read_text(encoding="utf-8")
     shell = Path("modules/sourcemate_application_shell.py").read_text(encoding="utf-8")
+    bootstrap = Path("sitecustomize.py").read_text(encoding="utf-8")
     explorer = Path("pages/8_Governed_Calculation_Explorer.py").read_text(encoding="utf-8")
     erp_page = Path("pages/9_ERP_Upload_Preview.py").read_text(encoding="utf-8")
     assert "sourcemate_widget_launcher" in source
@@ -199,8 +200,9 @@ def test_widget_uses_native_chat_composer_and_persistent_session_history():
     assert "st.text_input(" not in source
     assert "st.form_submit_button(" not in source
     assert "render_sourcemate_conversation" in shell
-    assert "mount_global_sourcemate" in explorer
-    assert "mount_global_sourcemate" in erp_page
+    assert "mount_global_sourcemate(page_title)" in bootstrap
+    assert "mount_global_sourcemate" not in explorer
+    assert "mount_global_sourcemate" not in erp_page
     assert "render_sourcemate_conversation(presentation)" not in explorer
 
 
