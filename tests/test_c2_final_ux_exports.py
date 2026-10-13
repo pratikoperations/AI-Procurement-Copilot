@@ -83,6 +83,22 @@ def test_supplier_snapshot_contains_required_c2_decision_fields():
     assert required.issubset(display.columns)
 
 
+
+def test_inr_only_supplier_snapshot_hides_c2_usd_business_columns():
+    assumptions, _, scored, _, _ = _outputs()
+    assumptions["display_currency"] = "INR"
+
+    display = build_supplier_snapshot_display(scored, assumptions)
+
+    assert "Quoted Unit Price (USD)" not in display.columns
+    assert "Risk-Adjusted TCO (USD)" not in display.columns
+    assert "Generic Risk Penalty USD/kg" not in display.columns
+    assert "Laminate Risk Penalty USD/kg" not in display.columns
+    assert "Combined Risk Penalty USD/kg" not in display.columns
+    assert "Generic Risk Penalty (INR)" in display.columns
+    assert "Laminate Risk Penalty (INR)" in display.columns
+    assert "Combined Risk Penalty (INR)" in display.columns
+
 def test_scenario_table_exposes_canonical_status_and_tooling_metadata():
     _, _, _, _, scenarios = _outputs()
     assert len(scenarios) == 7
