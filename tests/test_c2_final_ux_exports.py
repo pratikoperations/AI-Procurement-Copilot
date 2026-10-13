@@ -76,9 +76,9 @@ def test_supplier_snapshot_contains_required_c2_decision_fields():
         "Technical Ineligibility Reasons",
         "Generic Failure Probability",
         "Laminate Failure Probability",
-        "Generic Risk Penalty USD/kg",
-        "Laminate Risk Penalty USD/kg",
-        "Combined Risk Penalty USD/kg",
+        "Generic Risk Penalty (USD)",
+        "Laminate Risk Penalty (USD)",
+        "Combined Risk Penalty (USD)",
     }
     assert required.issubset(display.columns)
 
