@@ -82,12 +82,17 @@ def _build_full_currency_frame(comparison_df, display_currency="USD", fx_rate=83
         columns=[column for column in DISPLAY_COLUMNS if column in original.columns],
         errors="ignore",
     )
+    raw_quote_columns = [
+        column for column in ("Quoted Price USD", "Quoted Unit Price USD")
+        if column in source.columns
+    ]
     mapping = {}
 
     if "Normalized Unit Price" in source.columns:
         insert_at = source.columns.get_loc("Normalized Unit Price") + 1
         source.insert(insert_at, _QUOTED_PRICE_SOURCE, source["Normalized Unit Price"])
         mapping[_QUOTED_PRICE_SOURCE] = "Quoted Price"
+        source = source.drop(columns=raw_quote_columns, errors="ignore")
     else:
         quoted_source = _first_available(source.columns, ("Quoted Price USD", "Quoted Unit Price USD"))
         if quoted_source:
