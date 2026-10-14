@@ -164,9 +164,9 @@ PROJECT_KNOWLEDGE = (
     ),
     _entry(
         "category engines",
-        ("category engine", "categories", "packaging", "raw material", "steel", "flexible laminate", "kraft", "pet resin"),
-        "The portfolio includes Packaging Procurement, Raw Material Procurement and governed category-specific routes for Corrugated Board, Kraft Paper, PET Resin, Flexible Laminates and Steel. Category routing selects existing deterministic services; SourceMate does not create a new calculation route.",
-        ("modules/category_engine.py", "modules/category_cost_router.py", "pages/8_Governed_Calculation_Explorer.py"),
+        ("category engine", "categories", "packaging", "raw material", "steel", "flexible laminate", "kraft", "pet resin", "mro", "logistics", "freight", "ftl"),
+        "The portfolio includes Packaging Procurement, Raw Material Procurement, MRO / Industrial Supplies Foundation Preview, and Logistics & Freight Foundation Preview. Governed category-specific routes include Corrugated Board, Kraft Paper, PET Resin, Flexible Laminates, Steel, Industrial Bearings foundation contracts, and Domestic Road Transportation — FTL. Category routing selects existing deterministic services; SourceMate does not create a new calculation route.",
+        ("modules/category_engine.py", "modules/category_cost_router.py", "modules/mro_engine.py", "modules/logistics_engine.py", "pages/8_Governed_Calculation_Explorer.py"),
     ),
     _entry(
         "should-cost methodology",
@@ -221,6 +221,24 @@ PROJECT_KNOWLEDGE = (
         ("scenario", "stress test", "what if", "shock", "demand change", "freight shock", "raw material shock"),
         "Scenario analysis changes controlled inputs such as raw-material shock, freight shock, demand change, FX or category-specific stress assumptions and reruns the existing deterministic route. Scenario outputs are comparative decision support, not forecasts or external market predictions.",
         ("modules/scenario.py", "modules/scenario_engine.py", "modules/steel_scenario.py"),
+    ),
+    _entry(
+        "logistics and freight decision support",
+        (
+            "logistics", "freight", "ftl", "full truck load", "road transport",
+            "carrier performance", "carrier allocation", "freight normalization",
+            "logistics negotiation", "carrier negotiation", "transport scenario",
+            "detention", "toll", "fuel surcharge",
+        ),
+        "The Logistics & Freight Foundation Preview covers Domestic Road Transportation — FTL through four governed analytical layers. LOGISTICS-1 normalizes explicit INR freight quotations across Per Trip, Per Tonne and Per Tonne-Km bases using explicit payload, distance and charge inputs. LOGISTICS-2 evaluates carrier evidence against explicit buyer thresholds for capacity confirmation, transit time, OTIF, damage/claim rate, compliance and evidence quality without creating a composite score or ranking. LOGISTICS-3 evaluates human-proposed carrier allocation shares against explicit annual trip demand, capacity, evidence eligibility and demand-change scenarios; it does not select carriers or optimize shares. LOGISTICS-4 turns explicit buyer negotiation positions into transparent commercial deltas and a decision summary; it does not invent targets, negotiate autonomously or commit terms. All outputs remain decision support for human procurement review.",
+        (
+            "modules/logistics_engine.py",
+            "modules/logistics_performance.py",
+            "modules/logistics_allocation.py",
+            "modules/logistics_negotiation.py",
+            "docs/CATEGORY_ENGINE.md",
+        ),
+        limitations="Foundation Preview only. No live market/route/telematics feeds, carrier ranking, automatic share optimization, route optimization, autonomous negotiation, award authority, production allocation or TMS/ERP writeback. Human procurement approval remains mandatory.",
     ),
     _entry(
         "RFQ processing",

@@ -61,7 +61,19 @@ State: “This is a Foundation Preview, not a production MRO analytics engine.�
 
 Explicitly note that MRO should-cost, scoring, scenarios, negotiation and allocation execution are intentionally disabled.
 
-### 4:00–4:35 — Honest limitation handling
+### 4:00–4:35 — Logistics & Freight decision support
+
+Select **Logistics & Freight → Domestic Road Transportation — FTL**.
+
+Explain the four governed layers:
+- freight-rate normalization from explicit commercial inputs;
+- buyer-threshold carrier performance evaluation;
+- human-proposed allocation and demand-stress scenarios;
+- explicit buyer negotiation positions and commercial deltas.
+
+State: “The Logistics workflow evaluates evidence and explicit scenarios. It does not rank carriers with hidden weights, optimize award shares, infer live route/fuel data, negotiate autonomously or execute an award.”
+
+### 4:35–4:50 — Honest limitation handling
 
 Show either:
 - a deferred adapter route such as Packaging TCO; or
@@ -72,7 +84,7 @@ Explain:
 - no trace or reconciliation is fabricated;
 - human review remains mandatory.
 
-### 4:35–5:00 — Close
+### 4:50–5:00 — Close
 
 State that the project proves:
 - procurement workflow understanding;
@@ -104,6 +116,7 @@ Use short confirmations only:
 - Flexible Laminates — conversion complexity;
 - Steel — non-packaging transferability;
 - Industrial Bearings — governed MRO foundation;
+- Domestic Road Transportation — FTL — governed freight normalization, carrier policy checks, human-proposed allocation scenarios and negotiation deltas;
 - Packaging TCO — honest deferred-coverage boundary.
 
 ## Strong phrases
@@ -116,6 +129,8 @@ Use short confirmations only:
 - SourceMate presents governed internal evidence; it does not externally verify it.
 - Deferred routes are not represented as adapter-reconciled.
 - MRO equivalent substitution requires human approval.
+- Logistics allocation scenarios are human-proposed; the system does not optimize carrier awards.
+- Logistics negotiation targets are explicit buyer inputs; potential savings are scenario deltas, not realized savings.
 - Human procurement review remains mandatory.
 
 ## Demonstration discipline

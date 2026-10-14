@@ -177,6 +177,47 @@ The showcase demonstrates practical understanding of:
 - MRO equivalent substitution requires human approval;
 - human review remains mandatory.
 
+
+## Logistics & Freight interview evidence
+
+The Logistics & Freight extension is a governed **Foundation Preview** for Domestic Road Transportation — Full Truck Load (FTL). It demonstrates transfer of the procurement governance pattern into a service category without claiming production transport-management capability.
+
+### What is implemented
+
+- **LOGISTICS-0 — Category foundation:** explicit lane, service, vehicle, carrier-status, commercial-evidence and provenance contracts.
+- **LOGISTICS-1 — Freight normalization:** deterministic INR normalization across Per Trip, Per Tonne and Per Tonne-Km bases using explicit payload, distance, fuel-surcharge, toll and accessorial inputs.
+- **LOGISTICS-2 — Carrier performance & risk evaluation:** explicit buyer thresholds for capacity, transit time, OTIF, damage/claims and compliance; criterion-level PASS / FAIL / REVIEW; no hidden weights or composite carrier score.
+- **LOGISTICS-3 — Carrier allocation & scenario analysis:** evaluates human-proposed carrier shares against explicit annual trip demand, capacity and evidence eligibility; demand stress recalculates volume, headroom and portfolio freight cost; no auto-selection or share optimization.
+- **LOGISTICS-4 — Negotiation intelligence & decision presentation:** explicit buyer freight target, commercial ceiling, payment, detention and service positions; transparent commercial deltas; no invented targets or autonomous negotiation.
+- **LOGISTICS-5 — SourceMate/evidence integration:** SourceMate can explain the Logistics architecture, governance boundaries and evidence sources without recalculating Logistics outputs.
+
+### Defensible interviewer explanation
+
+**Question:** “Does the Logistics module optimize freight awards?”
+
+**Answer:** “No. The system deliberately separates evaluation from authority. It can normalize explicit freight quotations, test carrier evidence against buyer-defined thresholds, evaluate human-proposed allocation scenarios and quantify explicit negotiation positions. It does not rank carriers with hidden weights, optimize award shares, negotiate autonomously or execute an award. That boundary is intentional.”
+
+**Question:** “Where do freight distance, fuel and toll values come from?”
+
+**Answer:** “They must be explicit inputs. The portfolio does not infer route distance, live fuel price, tolls, telematics or market rates from external services.”
+
+**Question:** “Are the savings shown realized savings?”
+
+**Answer:** “No. LOGISTICS-4 shows target-versus-current commercial deltas under explicit buyer positions. Those are scenario values, not realized financial outcomes.”
+
+### Logistics limitation language
+
+Use these statements without dilution:
+
+- “Logistics is a Foundation Preview, not a production TMS or carrier-management platform.”
+- “Buyer thresholds and negotiation positions are explicit inputs; the system does not invent them.”
+- “Carrier allocation scenarios are human-proposed; the system does not optimize award shares.”
+- “No live market, route, fuel, toll, telematics or compliance feeds are used.”
+- “Potential savings are scenario deltas, not realized-savings claims.”
+- “No autonomous carrier award, production allocation or TMS/ERP writeback is performed.”
+- “Human procurement approval remains mandatory.”
+
+
 ## Difficult interviewer objections and defensible answers
 
 ### “Is this just a dashboard over hardcoded examples?”
