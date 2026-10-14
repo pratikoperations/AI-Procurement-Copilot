@@ -49,7 +49,7 @@ def test_global_entry_points_use_page_config_and_bootstrap_installs_surface() ->
     erp = Path('pages/9_ERP_Upload_Preview.py').read_text(encoding='utf-8')
 
     assert 'render_selectable_control_distinction' in bootstrap
-    assert 'set_page_config_with_global_shell' in bootstrap
+    assert 'set_page_config_with_selectable_control_distinction' in bootstrap
     assert 'st.set_page_config' in app
     assert 'st.set_page_config' in explorer
     assert 'st.set_page_config' in erp

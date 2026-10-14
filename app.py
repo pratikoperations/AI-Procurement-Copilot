@@ -47,10 +47,12 @@ from modules.sidebar import render_sidebar
 from modules.strategy_engine import recommend_strategy
 from modules.supplier_comparison import build_supplier_intelligence
 from modules.supplier_intelligence_currency_ui import render_supplier_intelligence
+from modules.sourcemate_application_shell import mount_global_sourcemate
 from modules.validation import validate_rfq_dataframe, validate_scored_output
 from modules.validation_assurance import run_validation_assurance, safe_executive_text
 
 st.set_page_config(page_title=APP_NAME, page_icon="🤖", layout="wide", initial_sidebar_state="expanded")
+mount_global_sourcemate(APP_NAME)
 
 assumptions = render_sidebar()
 profile = ensure_category_profile(assumptions.get("category_profile"))

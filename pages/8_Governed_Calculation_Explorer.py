@@ -15,6 +15,7 @@ from modules.data_loader import get_demo_suppliers
 from modules.flexible_laminate_cost import calculate_flexible_laminate_should_cost
 from modules.raw_material_cost import calculate_raw_material_should_cost
 from modules.should_cost import calculate_packaging_should_cost
+from modules.sourcemate_application_shell import mount_global_sourcemate
 from modules.sourcemate_global_context import publish_selected_presentation
 from modules.steel_cost import calculate_steel_should_cost
 from modules.tco import calculate_supplier_tco
@@ -26,6 +27,7 @@ from modules.ux_maturity_ui import (
 )
 
 st.set_page_config(page_title="Governed Calculation Explorer", page_icon="🔎", layout="wide")
+mount_global_sourcemate("Governed Calculation Explorer")
 
 STEEL_INPUTS = {
     "annual_volume_kg": 500000,

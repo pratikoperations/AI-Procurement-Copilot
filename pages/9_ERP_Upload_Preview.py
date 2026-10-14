@@ -14,6 +14,7 @@ from modules.erp_upload_preview import (
     build_workbook_metrics,
 )
 from modules.erp_workbook_loader import WorkbookLoadError, load_erp_workbook
+from modules.sourcemate_application_shell import mount_global_sourcemate
 from modules.ux_maturity_ui import (
     render_governance_disclosure,
     render_input_block,
@@ -23,6 +24,7 @@ from modules.ux_maturity_ui import (
 )
 
 st.set_page_config(page_title="ERP Upload Preview", page_icon="📄", layout="wide")
+mount_global_sourcemate("ERP Upload Preview")
 
 render_page_context(
     "ERP Workbook Upload Preview",

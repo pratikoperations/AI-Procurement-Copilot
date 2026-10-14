@@ -200,9 +200,9 @@ def test_widget_uses_native_chat_composer_and_persistent_session_history():
     assert "st.text_input(" not in source
     assert "st.form_submit_button(" not in source
     assert "render_sourcemate_conversation" in shell
-    assert "mount_global_sourcemate(page_title)" in bootstrap
-    assert "mount_global_sourcemate" not in explorer
-    assert "mount_global_sourcemate" not in erp_page
+    assert "mount_global_sourcemate" not in bootstrap
+    assert 'mount_global_sourcemate("Governed Calculation Explorer")' in explorer
+    assert 'mount_global_sourcemate("ERP Upload Preview")' in erp_page
     assert "render_sourcemate_conversation(presentation)" not in explorer
 
 
