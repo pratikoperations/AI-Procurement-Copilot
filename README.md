@@ -27,6 +27,18 @@
 
 Historical v1.1 and v1.2 records remain unchanged. Later governed work is additive and does not convert this portfolio application into production enterprise software.
 
+## Procurement taxonomy
+
+The application uses three user-facing procurement categories:
+
+- **Packaging Materials**
+- **Raw Materials**
+- **Indirect Procurement**
+  - MRO / Industrial Supplies
+  - Logistics & Freight
+
+MRO and Logistics remain separate governed engines underneath Indirect Procurement. The taxonomy is an information-architecture layer; it does not merge their business rules or calculation contracts.
+
 ## Business problem
 
 Procurement teams often compare supplier quotations across disconnected spreadsheets, inconsistent assumptions and incomplete evidence. A lowest-price result can be mistaken for a best-value decision, while formula source, assumption provenance, trace identity and evidence quality remain difficult to explain.
