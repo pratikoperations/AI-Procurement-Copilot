@@ -9,7 +9,7 @@ The Category Engine separates shared procurement decision logic from category-sp
 - Packaging Procurement — Active production engine
 - Raw Material Procurement — Active production engine
 - MRO / Industrial Supplies — Foundation Preview (MRO-0)
-- Logistics & Freight — Foundation Preview (LOGISTICS-0)
+- Logistics & Freight — Foundation Preview (LOGISTICS-0 + bounded LOGISTICS-1 freight normalization)
 
 ## Architecture
 
@@ -22,7 +22,7 @@ Category Engine Router
 ├── MRO / Industrial Supplies Engine
 │   └── Industrial Bearings foundation contracts and synthetic metadata
 └── Logistics & Freight Engine
-    └── Domestic Road Transportation — FTL lane, carrier, evidence, and service contracts
+    └── Domestic Road Transportation — FTL lane, carrier, evidence, service, and governed rate-normalization contracts
 ```
 
 ## Common Category Contract
@@ -84,3 +84,20 @@ LOGISTICS-0 introduces a dedicated Logistics & Freight engine with Domestic Road
 - Logistics risk dimensions remain qualitative in LOGISTICS-0; no unsupported numerical weights are introduced.
 - No freight-cost engine, carrier scoring, scenario, allocation, route optimization, negotiation, live fuel/route data, telematics, TMS integration, or autonomous carrier award is active.
 - Synthetic demonstration evidence must not be represented as live carrier certification, live route data, fuel-market data, or external verification.
+
+
+## LOGISTICS-1 Freight Cost & Rate Normalization Governance
+
+LOGISTICS-1 extends the FTL foundation with a deterministic commercial normalization layer while the category remains a Foundation Preview.
+
+- Supported quotation currency is INR only in LOGISTICS-1. No FX rate or foreign-currency conversion is inferred.
+- Supported rate bases are Per Trip, Per Tonne, and Per Tonne-Km.
+- Payload tonnes and lane distance kilometres are explicit required inputs; neither is inferred from vehicle class, route names, maps, or external services.
+- Base freight is normalized to INR/trip and then to INR/tonne and INR/tonne-km.
+- Fuel surcharge treatment is explicit: Included, Fixed Amount Per Trip, or Percent of Base Freight.
+- Toll treatment is explicit: Included or Fixed Amount Per Trip.
+- Detention, loading/unloading, and other accessorial amounts are explicit inputs. Missing charges are not estimated.
+- Evidence status and source label are mandatory provenance fields.
+- The result preserves a component-level calculation trace and states that no external data or market benchmark was used.
+- Carrier scoring, performance weighting, scenarios, carrier allocation, route optimization, negotiation recommendations, TMS/ERP integration, and autonomous award remain disabled.
+- Human procurement approval remains mandatory.

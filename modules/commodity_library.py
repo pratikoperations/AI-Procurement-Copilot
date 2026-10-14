@@ -113,6 +113,8 @@ COMMODITIES = {
                 "compliance, safety, and evidence-quality risk",
             ],
             "assumption_profile_version": "LOGISTICS-0",
+            "freight_normalization_contract_version": "LOGISTICS-1",
+            "comparison_units": ["INR/trip", "INR/tonne", "INR/tonne-km"],
             "source_label": (
                 "Controlled synthetic LOGISTICS-0 demonstration evidence; "
                 "not live route, fuel-market, telematics, or carrier-certification data"
