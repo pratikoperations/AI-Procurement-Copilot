@@ -9,7 +9,7 @@ The Category Engine separates shared procurement decision logic from category-sp
 - Packaging Procurement — Active production engine
 - Raw Material Procurement — Active production engine
 - MRO / Industrial Supplies — Foundation Preview (MRO-0)
-- Logistics & Freight — Foundation Preview (LOGISTICS-0 + bounded LOGISTICS-1 freight normalization)
+- Logistics & Freight — Foundation Preview (LOGISTICS-0 + LOGISTICS-1 normalization + LOGISTICS-2 carrier evaluation)
 
 ## Architecture
 
@@ -22,7 +22,7 @@ Category Engine Router
 ├── MRO / Industrial Supplies Engine
 │   └── Industrial Bearings foundation contracts and synthetic metadata
 └── Logistics & Freight Engine
-    └── Domestic Road Transportation — FTL lane, carrier, evidence, service, and governed rate-normalization contracts
+    └── Domestic Road Transportation — FTL lane, rate-normalization, carrier-performance, evidence, and risk contracts
 ```
 
 ## Common Category Contract
@@ -100,4 +100,19 @@ LOGISTICS-1 extends the FTL foundation with a deterministic commercial normaliza
 - Evidence status and source label are mandatory provenance fields.
 - The result preserves a component-level calculation trace and states that no external data or market benchmark was used.
 - Carrier scoring, performance weighting, scenarios, carrier allocation, route optimization, negotiation recommendations, TMS/ERP integration, and autonomous award remain disabled.
+- Human procurement approval remains mandatory.
+
+
+## LOGISTICS-2 Carrier Performance & Risk Evaluation Governance
+
+LOGISTICS-2 adds deterministic carrier performance evaluation without introducing hidden scoring policy.
+
+- Buyer policy thresholds are mandatory inputs; LOGISTICS-2 does not provide universal default service thresholds.
+- Carrier evidence must explicitly provide capacity confirmation, transit time, OTIF, damage/claim rate, compliance status, evidence status, and source label.
+- Evaluated dimensions are capacity confirmation, transit time, OTIF, damage/claims, compliance evidence, and evidence quality.
+- Each criterion is returned as PASS, FAIL, or REVIEW with the actual value, buyer policy reference, and related logistics risk dimension.
+- Unverified or synthetic evidence can be evaluated for demonstration but is explicitly flagged for human review.
+- Policy breaches are counted and exposed; they are not converted into a hidden weighted score.
+- No composite carrier score, rank, recommendation, allocation, route optimization, or autonomous award is generated.
+- No external carrier database, telematics, live compliance service, or market feed is queried.
 - Human procurement approval remains mandatory.
