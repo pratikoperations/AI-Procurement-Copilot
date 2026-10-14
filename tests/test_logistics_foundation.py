@@ -47,7 +47,7 @@ def test_logistics_category_is_registered_as_foundation_preview_only():
 
     assert profile["default_weightings"] == {}
     assert profile["default_assumptions"] == {}
-    assert profile["allocation_model"] == "Not enabled in LOGISTICS-0"
+    assert profile["allocation_model"] == "Not enabled through LOGISTICS-2"
     assert profile["cost_model"] == "No freight-cost calculation model in LOGISTICS-0"
 
 
