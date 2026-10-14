@@ -28,8 +28,10 @@ def test_sourcing_setup_remains_always_visible() -> None:
         SIDEBAR_SOURCE.index("def _render_sourcing_setup"):SIDEBAR_SOURCE.index("def _render_kraft_inputs")
     ]
     assert 'radio("Data Source"' in section
-    assert 'selectbox("Category Engine"' in section
-    assert 'selectbox("Commodity / Material"' in section
+    assert '"Procurement Category"' in section
+    assert '"Indirect Category"' in section
+    assert '"Commodity / Service"' in section
+    assert "resolve_category_engine(procurement_category, indirect_category)" in section
     assert "st.sidebar.expander" not in section
 
 
@@ -103,7 +105,7 @@ def test_steel_controls_render_once_before_dashboard() -> None:
 
 def test_backward_compatible_sidebar_return_keys_are_retained() -> None:
     expected_keys = {
-        "data_source", "category", "commodity", "category_profile", "fx_rate",
+        "data_source", "procurement_category", "indirect_category", "category", "commodity", "category_profile", "fx_rate",
         "display_currency", "annual_volume", "annual_volume_unit",
         "raw_material_shock", "freight_shock", "demand_change",
         "procurement_intelligence_scenario",
