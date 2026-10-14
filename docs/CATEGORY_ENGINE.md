@@ -9,7 +9,7 @@ The Category Engine separates shared procurement decision logic from category-sp
 - Packaging Procurement — Active production engine
 - Raw Material Procurement — Active production engine
 - MRO / Industrial Supplies — Foundation Preview (MRO-0)
-- Logistics & Freight — Foundation Preview (LOGISTICS-0 + LOGISTICS-1 normalization + LOGISTICS-2 carrier evaluation + LOGISTICS-3 scenario analysis)
+- Logistics & Freight — Foundation Preview (LOGISTICS-0 + LOGISTICS-1 normalization + LOGISTICS-2 carrier evaluation + LOGISTICS-3 scenario analysis + LOGISTICS-4 negotiation intelligence)
 
 ## Architecture
 
@@ -22,7 +22,7 @@ Category Engine Router
 ├── MRO / Industrial Supplies Engine
 │   └── Industrial Bearings foundation contracts and synthetic metadata
 └── Logistics & Freight Engine
-    └── Domestic Road Transportation — FTL lane, rate-normalization, carrier-performance, allocation-scenario, evidence, and risk contracts
+    └── Domestic Road Transportation — FTL lane, rate-normalization, carrier-performance, allocation-scenario, negotiation, evidence, and risk contracts
 ```
 
 ## Common Category Contract
@@ -133,3 +133,17 @@ LOGISTICS-3 adds deterministic evaluation of explicit human-proposed FTL carrier
 - Scenario comparison presents outcomes without selecting a winner.
 - No carrier ranking, automatic share optimization, route optimization, negotiation recommendation, TMS/ERP writeback, or autonomous carrier award is generated.
 - Human procurement approval remains mandatory.
+
+
+## LOGISTICS-4 Negotiation Intelligence & Decision Presentation Governance
+
+LOGISTICS-4 adds deterministic negotiation intelligence based only on explicit carrier commercial evidence and explicit buyer-entered negotiation positions.
+
+- Buyer negotiation targets are mandatory inputs; LOGISTICS-4 does not invent freight-rate targets, commercial ceilings, payment-term targets, detention terms, or service commitments.
+- Carrier commercial inputs include current landed INR/trip and allocated annual trips from the governed Logistics decision flow.
+- The engine calculates target savings per trip, annual target savings, ceiling savings, and price-position state.
+- Negotiation priorities are presented as advisory discussion areas, including freight rate, payment terms, detention terms, and service commitments.
+- Decision presentation combines the governed LOGISTICS-3 scenario result with carrier negotiation briefs.
+- Potential savings are scenario/target deltas only; they are not realized-savings claims.
+- No autonomous negotiation, commercial commitment, carrier selection, scenario-winner selection, award recommendation, route optimization, or TMS/ERP writeback is performed.
+- Human procurement approval remains mandatory before any supplier/carrier commitment.
