@@ -9,7 +9,7 @@ The Category Engine separates shared procurement decision logic from category-sp
 - Packaging Procurement — Active production engine
 - Raw Material Procurement — Active production engine
 - MRO / Industrial Supplies — Foundation Preview (MRO-0)
-- Logistics & Freight — Foundation Preview (LOGISTICS-0 + LOGISTICS-1 normalization + LOGISTICS-2 carrier evaluation)
+- Logistics & Freight — Foundation Preview (LOGISTICS-0 + LOGISTICS-1 normalization + LOGISTICS-2 carrier evaluation + LOGISTICS-3 scenario analysis)
 
 ## Architecture
 
@@ -22,7 +22,7 @@ Category Engine Router
 ├── MRO / Industrial Supplies Engine
 │   └── Industrial Bearings foundation contracts and synthetic metadata
 └── Logistics & Freight Engine
-    └── Domestic Road Transportation — FTL lane, rate-normalization, carrier-performance, evidence, and risk contracts
+    └── Domestic Road Transportation — FTL lane, rate-normalization, carrier-performance, allocation-scenario, evidence, and risk contracts
 ```
 
 ## Common Category Contract
@@ -115,4 +115,21 @@ LOGISTICS-2 adds deterministic carrier performance evaluation without introducin
 - Policy breaches are counted and exposed; they are not converted into a hidden weighted score.
 - No composite carrier score, rank, recommendation, allocation, route optimization, or autonomous award is generated.
 - No external carrier database, telematics, live compliance service, or market feed is queried.
+- Human procurement approval remains mandatory.
+
+
+## LOGISTICS-3 Carrier Allocation & Scenario Analysis Governance
+
+LOGISTICS-3 adds deterministic evaluation of explicit human-proposed FTL carrier allocations and demand scenarios.
+
+- Carrier shares are explicit human inputs; LOGISTICS-3 does not auto-select carriers or optimize allocation percentages.
+- Positive allocation is permitted only when the supplied LOGISTICS-2 performance status is eligible for human review.
+- Available carrier capacity is an explicit input in annual trips; capacity is not inferred from fleet size, route history, telematics, or external systems.
+- Proposed carrier allocation must reconcile to 100% before a scenario can be treated as feasible.
+- Allocated trip volume is reconciled to scenario-adjusted demand.
+- Portfolio freight cost is calculated from explicit LOGISTICS-1 landed INR/trip inputs and proposed carrier shares.
+- Demand-change scenarios recalculate trip volume, capacity headroom, portfolio annual freight cost, and weighted INR/trip.
+- Unverified performance evidence can remain feasible only with an explicit review flag.
+- Scenario comparison presents outcomes without selecting a winner.
+- No carrier ranking, automatic share optimization, route optimization, negotiation recommendation, TMS/ERP writeback, or autonomous carrier award is generated.
 - Human procurement approval remains mandatory.
