@@ -278,7 +278,7 @@ def get_engine_profile(commodity: str | None = None) -> dict[str, Any]:
         "risk_signals": list(RISK_DIMENSIONS),
         "default_weightings": {},
         "default_assumptions": {},
-        "allocation_model": "Not enabled through LOGISTICS-2",
+        "allocation_model": "Human-proposed scenario evaluation enabled in LOGISTICS-3; automatic allocation optimization remains disabled",
         "lane_service_contract": deepcopy(LANE_SERVICE_CONTRACT),
         "commercial_contract": deepcopy(COMMERCIAL_CONTRACT),
         "performance_contract": deepcopy(PERFORMANCE_CONTRACT),
@@ -286,9 +286,10 @@ def get_engine_profile(commodity: str | None = None) -> dict[str, Any]:
         "carrier_data_contract": deepcopy(CARRIER_DATA_CONTRACT),
         "implementation_note": (
             "Foundation Preview only. Lane/service compatibility is fail-closed, LOGISTICS-1 provides bounded "
-            "freight normalization, and LOGISTICS-2 evaluates explicit carrier evidence against buyer-supplied "
-            "service thresholds. No composite carrier scoring, ranking, scenario allocation, route optimization, "
-            "negotiation, live route/fuel data, or autonomous award engine is active. Human approval remains mandatory."
+            "freight normalization, LOGISTICS-2 evaluates explicit carrier evidence against buyer-supplied service "
+            "thresholds, and LOGISTICS-3 evaluates human-proposed allocation scenarios. No composite carrier scoring, "
+            "carrier ranking, automatic share optimization, route optimization, negotiation, live route/fuel data, "
+            "or autonomous award engine is active. Human approval remains mandatory."
         ),
     }
 
