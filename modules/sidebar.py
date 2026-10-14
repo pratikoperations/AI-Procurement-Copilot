@@ -330,6 +330,8 @@ def _render_generic_allocation_rules(enabled):
 
 
 def _render_about_roadmap():
+    if not FUTURE_CATEGORIES:
+        return
     with st.sidebar.expander("About / Roadmap", expanded=False):
         st.caption("Planned category engines are roadmap information, not active decision controls.")
         for item in FUTURE_CATEGORIES:
