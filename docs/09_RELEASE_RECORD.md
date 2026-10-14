@@ -96,6 +96,29 @@ Code and automated verification established that:
 
 Automated checks and source inspection do not constitute formal browser-device certification or formal WCAG certification. Browser-computed layout, focus appearance and physical scrollbar behavior remain matters for manual visual review where required.
 
+## Logistics & Freight controlled evolution — October 2026
+
+A separately governed Logistics & Freight programme added Domestic Road Transportation — Full Truck Load (FTL) as a Foundation Preview.
+
+Delivered stages:
+
+- LOGISTICS-0 — governed lane, carrier, commercial, evidence and compatibility foundation;
+- LOGISTICS-1 — deterministic INR freight normalization;
+- LOGISTICS-2 — buyer-threshold carrier performance and risk evaluation without composite scoring or ranking;
+- LOGISTICS-3 — human-proposed carrier allocation and demand-scenario evaluation without automatic share optimization;
+- LOGISTICS-4 — explicit buyer negotiation positions, transparent commercial deltas and decision presentation without autonomous negotiation or award;
+- LOGISTICS-5 — SourceMate evidence integration and interview/demo polish.
+
+Authoritative LOGISTICS-5 closure evidence before final documentation reconciliation:
+
+- PR #119 source head: `eb5f32dda920b9eeb01b08f930fb9f80dbec8be0`;
+- PR Quality Checks run #1167: SUCCESS;
+- PR Mobile Browser Acceptance run #173: SUCCESS;
+- merged main SHA: `80f6330ccb1a98fe3410359761505831efef9ef8`;
+- post-merge Quality Checks run #1168 / run ID `38610533168`: SUCCESS.
+
+The Logistics programme remains portfolio/interview decision support. It does not establish production TMS capability, live carrier-market data, route optimization, autonomous carrier ranking/allocation/negotiation, carrier award authority, realized savings or TMS/ERP writeback.
+
 ## Current governance boundary
 
 The application remains:

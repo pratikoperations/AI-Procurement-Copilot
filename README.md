@@ -12,11 +12,12 @@
 
 ## Current repository status
 
-- Current canonical `main` baseline: **`d6d1e741205e6c0ceb37a8d3617e9aafd6d26e55`**.
-- Latest governed extension: **MRO-0 / PR #109**, merged as a bounded Industrial Supplies foundation using Industrial Bearings as the first representative commodity.
-- Post-merge authoritative Quality Checks: **run 1138 / run ID `38204618690` — SUCCESS** on the exact current main SHA.
+- Current canonical `main` baseline: **`80f6330ccb1a98fe3410359761505831efef9ef8`**.
+- Latest governed extension: **Logistics & Freight / LOGISTICS-0 through LOGISTICS-5**, using Domestic Road Transportation — Full Truck Load (FTL) as the representative service.
+- Latest post-merge authoritative Quality Checks: **run 1168 / run ID `38610533168` — SUCCESS** on exact main SHA `80f6330ccb1a98fe3410359761505831efef9ef8`.
 - Operating mode: **portfolio/interview product under stabilization freeze**. Routine feature and cosmetic expansion remains closed.
-- MRO / Industrial Supplies is exposed as **Foundation Preview only**. It defines governed identity, evidence, commercial and technical-compatibility contracts but does not activate MRO should-cost, supplier scoring, scenario, negotiation or allocation execution.
+- MRO / Industrial Supplies remains a **Foundation Preview only** with governed identity, evidence, commercial and technical-compatibility contracts.
+- Logistics & Freight is also a **Foundation Preview**. Its FTL route supports governed freight normalization, buyer-threshold carrier evaluation, human-proposed allocation scenarios, explicit negotiation-position analysis and SourceMate evidence integration without autonomous ranking, allocation, negotiation or award authority.
 - SourceMate remains a **project-wide, read-only, deterministic assistant with chat-style UX, browser-session conversation continuity and page-aware governed context**. It does not browse the web, call an external LLM, use RAG, recalculate authoritative procurement results or execute procurement actions.
 - Public upload safety remains explicit: use only synthetic or sanitized files; do not upload confidential supplier quotations, contracts, proprietary company information, personal data, credentials or commercially sensitive documents.
 - Frozen v1.2 release baseline: **`4803b1d72fa8a6509d9d7faf0e9decc677c447be`**.
@@ -75,6 +76,7 @@ See [User Workflow](docs/03_USER_WORKFLOW.md).
 - Governed Calculation Explorer with readable evidence and calculation payloads
 - Project-wide SourceMate with chat-style UX, browser-session conversation continuity and page-aware governed context
 - MRO / Industrial Supplies Foundation Preview with explicit manufacturer + part-number identity, source-status governance, fail-closed technical compatibility and human substitution approval
+- Logistics & Freight Foundation Preview for Domestic Road Transportation — FTL with governed freight normalization, carrier policy evaluation, human-proposed allocation scenarios, negotiation-position analysis and SourceMate evidence
 - Explicit adapter-backed and `unsupported_deferred_coverage` states
 - Evidence-derived, read-only human-review checklist
 - Responsive/mobile acceptance coverage for governed test profiles
@@ -119,7 +121,7 @@ All remaining non-export routes remain `unsupported_deferred_coverage`. Deferred
 - Clear separation between business-facing reports and audit outputs
 - Governed ERP-export intake without overstating integration maturity
 - A project-wide read-only assistant grounded in existing governed application evidence
-- Extensible category architecture with a bounded MRO foundation that does not overstate analytical maturity
+- Extensible category architecture with bounded MRO and Logistics foundations that do not overstate analytical or production maturity
 - Scope discipline through explicit deferred coverage and stabilization freeze
 - Public-demo privacy and data-handling boundary awareness
 
@@ -135,16 +137,17 @@ All remaining non-export routes remain `unsupported_deferred_coverage`. Deferred
 - Approval persistence, production allocation or ERP write-back
 - Formal browser/mobile or WCAG certification
 - Production-ready MRO analytics or automated equivalent-part approval
+- Production TMS capability, live freight-market feeds, route optimization, autonomous carrier allocation/negotiation or carrier-award authority
 
 ## Current test and quality evidence
 
 Current main baseline:
 
-- exact `main` SHA: `d6d1e741205e6c0ceb37a8d3617e9aafd6d26e55`;
-- MRO-0 PR source head: `9a35873b8ae08a3fd7c5bc9747287ad4fe9880c0`;
-- PR Quality Checks run 1137 / run ID `38203428348` — SUCCESS;
-- PR Mobile Browser Acceptance run 153 / run ID `38203428355` — SUCCESS;
-- post-merge main Quality Checks run 1138 / run ID `38204618690` — SUCCESS.
+- exact `main` SHA: `80f6330ccb1a98fe3410359761505831efef9ef8`;
+- LOGISTICS-5 PR #119 source head: `eb5f32dda920b9eeb01b08f930fb9f80dbec8be0`;
+- PR Quality Checks run 1167 — SUCCESS;
+- PR Mobile Browser Acceptance run 173 — SUCCESS;
+- post-merge main Quality Checks run 1168 / run ID `38610533168` — SUCCESS.
 
 Earlier exact-head regression evidence remains historical and valid only for its stated baseline. Automated browser acceptance is evidence for governed test profiles, not certification across every physical device/browser. Hosted behavior remains a separate manual acceptance gate when required.
 
@@ -159,6 +162,7 @@ Historical gate-specific evidence remains available in [Test Evidence](docs/06_T
 - SourceMate is read-only, uses current governed application/project evidence and does not perform external verification.
 - SourceMate has no web browsing, external LLM, RAG, hidden recalculation, autonomous recommendation, supplier approval, award, production allocation or ERP write-back authority.
 - MRO Foundation Preview has no should-cost, scoring, scenario, negotiation or allocation execution authority.
+- Logistics Foundation Preview does not use live market/route/telematics feeds, does not rank carriers with hidden weights, does not optimize carrier shares, does not negotiate autonomously and does not execute awards or TMS/ERP writeback.
 - Deferred routes are not represented as adapter-reconciled.
 - The application does not execute transactions or mutate ERP systems.
 - Illustrative monetary outputs are not realized-savings claims.
@@ -182,6 +186,7 @@ See [Governance and Limitations](docs/07_GOVERNANCE_AND_LIMITATIONS.md).
 - [S1 Build Closure](docs/S1_BUILD_CLOSURE.md)
 - [EAS-BIV Final Closure](docs/EAS_BIV_FINAL_CLOSURE.md)
 - [EAS-BIV Interview Evidence Pack](docs/EAS_BIV_INTERVIEW_EVIDENCE_PACK.md)
+- [Logistics Final Closure](docs/LOGISTICS_FINAL_CLOSURE.md)
 
 ## Technical setup
 
@@ -211,6 +216,7 @@ Detailed setup and portability guidance remain in `SETUP_GUIDE.md`, `AI_HANDOFF_
 | EAS-BIV Gates 1A–5 | Calculation provenance, traces, reconciliation, governed explorer, SourceMate evidence view and closure |
 | Stabilized portfolio build — Aug 2026 | Cross-category consistency, Steel shared-workflow reconciliation, project-wide SourceMate, chat-style UX, decision-result hierarchy, mobile assurance and public-demo hardening |
 | MRO-0 — Oct 2026 | Industrial Supplies Foundation Preview with Industrial Bearings, evidence/source-status contracts, fail-closed compatibility and human approval boundaries |
+| LOGISTICS-0–5 — Oct 2026 | Logistics & Freight Foundation Preview for Domestic Road Transportation — FTL covering freight normalization, carrier policy evaluation, human-proposed allocation scenarios, negotiation intelligence, SourceMate evidence integration and interview closure |
 
 ## Historical relationship
 
