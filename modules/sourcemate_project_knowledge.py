@@ -228,7 +228,7 @@ PROJECT_KNOWLEDGE = (
             "logistics", "freight", "ftl", "full truck load", "road transport",
             "carrier performance", "carrier allocation", "freight normalization",
             "logistics negotiation", "carrier negotiation", "transport scenario",
-            "otif", "detention", "toll", "fuel surcharge",
+            "detention", "toll", "fuel surcharge",
         ),
         "The Logistics & Freight Foundation Preview covers Domestic Road Transportation — FTL through four governed analytical layers. LOGISTICS-1 normalizes explicit INR freight quotations across Per Trip, Per Tonne and Per Tonne-Km bases using explicit payload, distance and charge inputs. LOGISTICS-2 evaluates carrier evidence against explicit buyer thresholds for capacity confirmation, transit time, OTIF, damage/claim rate, compliance and evidence quality without creating a composite score or ranking. LOGISTICS-3 evaluates human-proposed carrier allocation shares against explicit annual trip demand, capacity, evidence eligibility and demand-change scenarios; it does not select carriers or optimize shares. LOGISTICS-4 turns explicit buyer negotiation positions into transparent commercial deltas and a decision summary; it does not invent targets, negotiate autonomously or commit terms. All outputs remain decision support for human procurement review.",
         (
