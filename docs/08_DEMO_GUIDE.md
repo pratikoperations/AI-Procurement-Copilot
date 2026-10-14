@@ -48,7 +48,7 @@ State: “SourceMate helps navigate internal governed evidence. It does not brow
 
 ### 3:15–4:00 — MRO / Industrial Supplies Foundation Preview
 
-Select **MRO / Industrial Supplies → Industrial Bearings**.
+Select **Indirect Procurement → MRO / Industrial Supplies → Industrial Bearings**.
 
 Explain:
 - manufacturer + manufacturer-part-number identity;
@@ -63,7 +63,7 @@ Explicitly note that MRO should-cost, scoring, scenarios, negotiation and alloca
 
 ### 4:00–4:35 — Logistics & Freight decision support
 
-Select **Logistics & Freight → Domestic Road Transportation — FTL**.
+Select **Indirect Procurement → Logistics & Freight → Domestic Road Transportation — FTL**.
 
 Explain the four governed layers:
 - freight-rate normalization from explicit commercial inputs;
