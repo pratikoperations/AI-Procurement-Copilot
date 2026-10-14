@@ -68,7 +68,7 @@ Current SourceMate conversation contract: `AIPC-SOURCEMATE-PROJECT-WIDGET-BIV-1.
 
 ### 3:35–4:20 — MRO Foundation Preview
 
-Select **MRO / Industrial Supplies → Industrial Bearings**.
+Select **Indirect Procurement → MRO / Industrial Supplies → Industrial Bearings**.
 
 Explain:
 - manufacturer + manufacturer-part-number identity;
@@ -177,6 +177,16 @@ The showcase demonstrates practical understanding of:
 - MRO equivalent substitution requires human approval;
 - human review remains mandatory.
 
+
+## Procurement taxonomy
+
+The public information architecture uses three top-level procurement categories:
+
+1. **Packaging Materials**
+2. **Raw Materials**
+3. **Indirect Procurement**
+
+MRO / Industrial Supplies and Logistics & Freight are subcategories of **Indirect Procurement**. Existing engine names are retained internally for backward compatibility; the hierarchy change does not alter calculation, scoring, scenario, negotiation or approval semantics.
 
 ## Logistics & Freight interview evidence
 

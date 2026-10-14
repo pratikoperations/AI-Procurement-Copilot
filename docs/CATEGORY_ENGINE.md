@@ -4,25 +4,33 @@
 
 The Category Engine separates shared procurement decision logic from category-specific commercial logic.
 
-## Active Registry
+## User-Facing Procurement Taxonomy
 
-- Packaging Procurement — Active production engine
-- Raw Material Procurement — Active production engine
-- MRO / Industrial Supplies — Foundation Preview (MRO-0)
-- Logistics & Freight — Foundation Preview (LOGISTICS-0 + LOGISTICS-1 normalization + LOGISTICS-2 carrier evaluation + LOGISTICS-3 scenario analysis + LOGISTICS-4 negotiation intelligence)
+The application presents three top-level procurement categories:
+
+- **Packaging Materials**
+- **Raw Materials**
+- **Indirect Procurement**
+  - MRO / Industrial Supplies — Foundation Preview (MRO-0)
+  - Logistics & Freight — Foundation Preview (LOGISTICS-0 through LOGISTICS-5)
+
+The existing engine identifiers `Packaging Procurement`, `Raw Material Procurement`, `MRO / Industrial Supplies`, and `Logistics & Freight` remain internal/backward-compatible routing contracts. The taxonomy layer changes information architecture, not procurement calculation semantics.
 
 ## Architecture
 
 ```text
-Category Engine Router
-├── Packaging Engine
-│   └── Packaging commodity metadata
-├── Raw Material Engine
-│   └── Raw-material commodity metadata
-├── MRO / Industrial Supplies Engine
-│   └── Industrial Bearings foundation contracts and synthetic metadata
-└── Logistics & Freight Engine
-    └── Domestic Road Transportation — FTL lane, rate-normalization, carrier-performance, allocation-scenario, negotiation, evidence, and risk contracts
+Procurement Taxonomy
+├── Packaging Materials
+│   └── Packaging Engine
+│       └── Packaging commodity metadata
+├── Raw Materials
+│   └── Raw Material Engine
+│       └── Raw-material commodity metadata
+└── Indirect Procurement
+    ├── MRO / Industrial Supplies Engine
+    │   └── Industrial Bearings foundation contracts and synthetic metadata
+    └── Logistics & Freight Engine
+        └── Domestic Road Transportation — FTL lane, rate-normalization, carrier-performance, allocation-scenario, negotiation, evidence, and risk contracts
 ```
 
 ## Common Category Contract
