@@ -114,7 +114,16 @@ COMMODITIES = {
             ],
             "assumption_profile_version": "LOGISTICS-0",
             "freight_normalization_contract_version": "LOGISTICS-1",
+            "carrier_evaluation_contract_version": "LOGISTICS-2",
             "comparison_units": ["INR/trip", "INR/tonne", "INR/tonne-km"],
+            "carrier_evaluation_dimensions": [
+                "capacity confirmation",
+                "transit time",
+                "OTIF",
+                "damage / claims",
+                "compliance evidence",
+                "evidence quality",
+            ],
             "source_label": (
                 "Controlled synthetic LOGISTICS-0 demonstration evidence; "
                 "not live route, fuel-market, telematics, or carrier-certification data"
