@@ -133,6 +133,7 @@ def test_project_registry_covers_authorized_topic_catalogue():
         "supplier recommendations",
         "multi-supplier allocation",
         "scenario analysis",
+        "logistics and freight decision support",
         "RFQ processing",
         "assumptions and precedence",
         "currency and unit governance",
@@ -150,6 +151,7 @@ def test_retrieval_handles_project_examples():
         "What is canonical USD and INR display?": "currency and unit governance",
         "Explain ESG and innovation intelligence": "financial ESG and innovation intelligence",
         "What are project limitations?": "governance limitations and deferred capabilities",
+        "How does FTL carrier allocation and freight negotiation work?": "logistics and freight decision support",
     }
     for question, expected_topic in examples.items():
         matches = search_project_knowledge(question)
@@ -245,3 +247,21 @@ def test_no_prohibited_external_or_action_dependencies_are_introduced():
     assert "vector database" not in service.lower()
     assert '"external_retrieval_used": false' in service.lower()
     assert '"action_executed": false' in service.lower()
+
+
+def test_logistics_knowledge_is_grounded_and_advisory_only():
+    response = answer_question(
+        "Explain FTL freight normalization, carrier performance, allocation scenarios and negotiation",
+        _presentation(),
+    )
+    assert response["intent"] == "project_knowledge"
+    assert "LOGISTICS-1" in response["answer"]
+    assert "LOGISTICS-2" in response["answer"]
+    assert "LOGISTICS-3" in response["answer"]
+    assert "LOGISTICS-4" in response["answer"]
+    assert "does not select carriers or optimize shares" in response["answer"]
+    assert "does not invent targets" in response["answer"]
+    assert "modules/logistics_allocation.py" in response["evidence_references"]
+    assert "modules/logistics_negotiation.py" in response["evidence_references"]
+    assert response["external_retrieval_used"] is False
+    assert response["action_executed"] is False
