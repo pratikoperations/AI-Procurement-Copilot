@@ -16,6 +16,7 @@ from modules.commodity_library import get_commodities, get_commodity_profile
 CATEGORY_NAME = "Logistics & Freight"
 ENGINE_STATUS = "Foundation Preview"
 FOUNDATION_VERSION = "LOGISTICS-0"
+FREIGHT_NORMALIZATION_VERSION = "LOGISTICS-1"
 FIRST_COMMODITY = "Domestic Road Transportation — FTL"
 
 CARRIER_STATUSES = (
@@ -118,6 +119,42 @@ CARRIER_DATA_CONTRACT = {
     ),
     "carrier_statuses": CARRIER_STATUSES,
     "human_approval_required": True,
+}
+
+FREIGHT_NORMALIZATION_CONTRACT = {
+    "contract_version": FREIGHT_NORMALIZATION_VERSION,
+    "supported_quote_currencies": ("INR",),
+    "supported_rate_bases": ("Per Trip", "Per Tonne", "Per Tonne-Km"),
+    "fuel_surcharge_treatments": (
+        "Included",
+        "Fixed Amount Per Trip",
+        "Percent of Base Freight",
+    ),
+    "toll_treatments": (
+        "Included",
+        "Fixed Amount Per Trip",
+    ),
+    "required_inputs": (
+        "base_freight_rate",
+        "rate_basis",
+        "payload_tonnes",
+        "lane_distance_km",
+        "quote_currency",
+        "fuel_surcharge_treatment",
+        "fuel_surcharge_value",
+        "toll_treatment",
+        "toll_amount",
+        "detention_amount",
+        "loading_unloading_amount",
+        "other_accessorial_amount",
+        "evidence_status",
+        "source_label",
+    ),
+    "governance_note": (
+        "LOGISTICS-1 normalizes only explicitly supplied commercial inputs. It does not infer lane distance, "
+        "fuel price, tolls, detention, accessorials, market benchmarks, carrier scores, allocations, routes, "
+        "or award recommendations."
+    ),
 }
 
 RISK_DIMENSIONS = (
@@ -317,3 +354,164 @@ def evaluate_service_compatibility(
 def get_synthetic_demo_carriers() -> list[dict[str, Any]]:
     """Return isolated synthetic LOGISTICS-0 carrier examples."""
     return [deepcopy(item) for item in SYNTHETIC_FTL_CARRIERS]
+
+
+
+def _finite_number(name: str, value: Any, *, positive: bool = False, non_negative: bool = False) -> float:
+    """Return a finite governed numeric input or fail closed."""
+    import math
+
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{name} must be numeric.") from exc
+    if not math.isfinite(numeric):
+        raise ValueError(f"{name} must be finite.")
+    if positive and numeric <= 0:
+        raise ValueError(f"{name} must be greater than zero.")
+    if non_negative and numeric < 0:
+        raise ValueError(f"{name} must be zero or greater.")
+    return numeric
+
+
+def get_freight_normalization_profile() -> dict[str, Any]:
+    """Return the bounded LOGISTICS-1 freight-normalization contract."""
+    return {
+        "category": CATEGORY_NAME,
+        "service": FIRST_COMMODITY,
+        "engine_status": ENGINE_STATUS,
+        "contract_version": FREIGHT_NORMALIZATION_VERSION,
+        "calculation_currency": "INR",
+        "comparison_units": ("INR/trip", "INR/tonne", "INR/tonne-km"),
+        "contract": deepcopy(FREIGHT_NORMALIZATION_CONTRACT),
+        "carrier_scoring_enabled": False,
+        "scenario_engine_enabled": False,
+        "allocation_enabled": False,
+        "route_optimization_enabled": False,
+        "autonomous_award_enabled": False,
+        "human_approval_required": True,
+    }
+
+
+def normalize_ftl_freight_quote(
+    *,
+    base_freight_rate: Any,
+    rate_basis: str,
+    payload_tonnes: Any,
+    lane_distance_km: Any,
+    quote_currency: str = "INR",
+    fuel_surcharge_treatment: str = "Included",
+    fuel_surcharge_value: Any = 0.0,
+    toll_treatment: str = "Included",
+    toll_amount: Any = 0.0,
+    detention_amount: Any = 0.0,
+    loading_unloading_amount: Any = 0.0,
+    other_accessorial_amount: Any = 0.0,
+    evidence_status: str = "Supplied — Unverified",
+    source_label: str = "User-supplied commercial evidence",
+) -> dict[str, Any]:
+    """Normalize an explicitly supplied FTL quote to governed comparable INR units.
+
+    No market data, route distance, fuel rate, toll, detention, or accessorial
+    amount is inferred. Carrier ranking, allocation, optimization, negotiation,
+    and award decisions remain outside LOGISTICS-1.
+    """
+    contract = FREIGHT_NORMALIZATION_CONTRACT
+    if quote_currency not in contract["supported_quote_currencies"]:
+        raise ValueError("LOGISTICS-1 supports INR quotations only; no FX conversion is inferred.")
+    if rate_basis not in contract["supported_rate_bases"]:
+        raise ValueError(f"Unsupported freight rate basis: {rate_basis}")
+    if fuel_surcharge_treatment not in contract["fuel_surcharge_treatments"]:
+        raise ValueError(f"Unsupported fuel surcharge treatment: {fuel_surcharge_treatment}")
+    if toll_treatment not in contract["toll_treatments"]:
+        raise ValueError(f"Unsupported toll treatment: {toll_treatment}")
+    if evidence_status not in EVIDENCE_STATUSES:
+        raise ValueError(f"Unsupported evidence status: {evidence_status}")
+    if not str(source_label or "").strip():
+        raise ValueError("Source label is required for freight normalization provenance.")
+
+    base_rate = _finite_number("Base freight rate", base_freight_rate, non_negative=True)
+    payload = _finite_number("Payload tonnes", payload_tonnes, positive=True)
+    distance = _finite_number("Lane distance km", lane_distance_km, positive=True)
+    fuel_value = _finite_number("Fuel surcharge value", fuel_surcharge_value, non_negative=True)
+    toll = _finite_number("Toll amount", toll_amount, non_negative=True)
+    detention = _finite_number("Detention amount", detention_amount, non_negative=True)
+    loading_unloading = _finite_number(
+        "Loading/unloading amount", loading_unloading_amount, non_negative=True
+    )
+    accessorial = _finite_number(
+        "Other accessorial amount", other_accessorial_amount, non_negative=True
+    )
+
+    if rate_basis == "Per Trip":
+        base_per_trip = base_rate
+    elif rate_basis == "Per Tonne":
+        base_per_trip = base_rate * payload
+    else:
+        base_per_trip = base_rate * payload * distance
+
+    if fuel_surcharge_treatment == "Included":
+        if fuel_value != 0:
+            raise ValueError("Included fuel surcharge requires fuel_surcharge_value to be zero.")
+        fuel_per_trip = 0.0
+    elif fuel_surcharge_treatment == "Fixed Amount Per Trip":
+        fuel_per_trip = fuel_value
+    else:
+        fuel_per_trip = base_per_trip * fuel_value / 100.0
+
+    if toll_treatment == "Included":
+        if toll != 0:
+            raise ValueError("Included toll treatment requires toll_amount to be zero.")
+        toll_per_trip = 0.0
+    else:
+        toll_per_trip = toll
+
+    components = {
+        "Base Freight": base_per_trip,
+        "Fuel Surcharge": fuel_per_trip,
+        "Toll": toll_per_trip,
+        "Detention": detention,
+        "Loading / Unloading": loading_unloading,
+        "Other Accessorial": accessorial,
+    }
+    landed_per_trip = sum(components.values())
+
+    return {
+        "contract_version": FREIGHT_NORMALIZATION_VERSION,
+        "category": CATEGORY_NAME,
+        "service": FIRST_COMMODITY,
+        "calculation_currency": "INR",
+        "quote_currency": quote_currency,
+        "rate_basis": rate_basis,
+        "base_freight_rate_input": base_rate,
+        "payload_tonnes": payload,
+        "lane_distance_km": distance,
+        "fuel_surcharge_treatment": fuel_surcharge_treatment,
+        "fuel_surcharge_value_input": fuel_value,
+        "toll_treatment": toll_treatment,
+        "components_inr_per_trip": components,
+        "normalized_base_freight_inr_per_trip": base_per_trip,
+        "landed_freight_inr_per_trip": landed_per_trip,
+        "landed_freight_inr_per_tonne": landed_per_trip / payload,
+        "landed_freight_inr_per_tonne_km": landed_per_trip / payload / distance,
+        "evidence_status": evidence_status,
+        "source_label": str(source_label).strip(),
+        "external_data_used": False,
+        "market_benchmark_inferred": False,
+        "carrier_scoring_performed": False,
+        "allocation_performed": False,
+        "route_optimization_performed": False,
+        "award_recommendation_created": False,
+        "human_approval_required": True,
+        "calculation_trace": {
+            "base_normalization": (
+                "base rate" if rate_basis == "Per Trip"
+                else "base rate × payload tonnes" if rate_basis == "Per Tonne"
+                else "base rate × payload tonnes × lane distance km"
+            ),
+            "landed_freight": (
+                "normalized base freight + explicit fuel surcharge + explicit toll + "
+                "detention + loading/unloading + other accessorial"
+            ),
+        },
+    }
