@@ -18,6 +18,26 @@ CATEGORY_REGISTRY = {
     LOGISTICS_CATEGORY: get_logistics_profile,
 }
 
+PACKAGING_MATERIALS_CATEGORY = "Packaging Materials"
+RAW_MATERIALS_CATEGORY = "Raw Materials"
+INDIRECT_PROCUREMENT_CATEGORY = "Indirect Procurement"
+
+TOP_LEVEL_PROCUREMENT_CATEGORIES = (
+    PACKAGING_MATERIALS_CATEGORY,
+    RAW_MATERIALS_CATEGORY,
+    INDIRECT_PROCUREMENT_CATEGORY,
+)
+
+INDIRECT_PROCUREMENT_ENGINES = (
+    MRO_CATEGORY,
+    LOGISTICS_CATEGORY,
+)
+
+TOP_LEVEL_ENGINE_MAP = {
+    PACKAGING_MATERIALS_CATEGORY: PACKAGING_CATEGORY,
+    RAW_MATERIALS_CATEGORY: RAW_MATERIAL_CATEGORY,
+}
+
 DEFAULT_CATEGORY_PROFILE = {
     "category": PACKAGING_CATEGORY,
     "category_name": PACKAGING_CATEGORY,
@@ -52,8 +72,54 @@ DEFAULT_CATEGORY_PROFILE = {
 
 
 def get_supported_categories():
-    """Return registered procurement categories."""
+    """Return registered engine categories for backward-compatible routing."""
     return list(CATEGORY_REGISTRY.keys())
+
+
+def get_supported_procurement_categories():
+    """Return the three user-facing top-level procurement categories."""
+    return list(TOP_LEVEL_PROCUREMENT_CATEGORIES)
+
+
+def get_indirect_procurement_categories():
+    """Return engine categories grouped under Indirect Procurement."""
+    return list(INDIRECT_PROCUREMENT_ENGINES)
+
+
+def resolve_category_engine(procurement_category, indirect_category=None):
+    """Resolve a user-facing procurement taxonomy choice to an existing engine."""
+    if procurement_category in TOP_LEVEL_ENGINE_MAP:
+        if indirect_category not in (None, ""):
+            raise ValueError(
+                f"Indirect category is not applicable to '{procurement_category}'."
+            )
+        return TOP_LEVEL_ENGINE_MAP[procurement_category]
+
+    if procurement_category == INDIRECT_PROCUREMENT_CATEGORY:
+        if indirect_category not in INDIRECT_PROCUREMENT_ENGINES:
+            supported = ", ".join(INDIRECT_PROCUREMENT_ENGINES)
+            raise ValueError(
+                "Indirect Procurement requires a valid indirect category. "
+                f"Supported indirect categories: {supported}"
+            )
+        return indirect_category
+
+    supported = ", ".join(TOP_LEVEL_PROCUREMENT_CATEGORIES)
+    raise ValueError(
+        f"Unsupported procurement category '{procurement_category}'. "
+        f"Supported categories: {supported}"
+    )
+
+
+def get_procurement_category_for_engine(engine_category):
+    """Return the user-facing parent category for an existing engine identifier."""
+    if engine_category == PACKAGING_CATEGORY:
+        return PACKAGING_MATERIALS_CATEGORY
+    if engine_category == RAW_MATERIAL_CATEGORY:
+        return RAW_MATERIALS_CATEGORY
+    if engine_category in INDIRECT_PROCUREMENT_ENGINES:
+        return INDIRECT_PROCUREMENT_CATEGORY
+    raise ValueError(f"Unsupported engine category '{engine_category}'.")
 
 
 def get_category_profile(category, commodity=None):
