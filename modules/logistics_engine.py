@@ -270,7 +270,7 @@ def get_engine_profile(commodity: str | None = None) -> dict[str, Any]:
         "commodity_group": profile.get("family", "Logistics & Freight"),
         "commodities": commodities,
         "cost_model": "No freight-cost calculation model in LOGISTICS-0",
-        "risk_model": "Qualitative governed logistics risk dimensions; no unsupported numerical weights",
+        "risk_model": "Governed logistics risk dimensions with buyer-supplied LOGISTICS-2 service thresholds; no unsupported numerical weights",
         "unit": unit,
         "units": [unit],
         "currency": "INR",
@@ -278,16 +278,17 @@ def get_engine_profile(commodity: str | None = None) -> dict[str, Any]:
         "risk_signals": list(RISK_DIMENSIONS),
         "default_weightings": {},
         "default_assumptions": {},
-        "allocation_model": "Not enabled in LOGISTICS-0",
+        "allocation_model": "Not enabled through LOGISTICS-2",
         "lane_service_contract": deepcopy(LANE_SERVICE_CONTRACT),
         "commercial_contract": deepcopy(COMMERCIAL_CONTRACT),
         "performance_contract": deepcopy(PERFORMANCE_CONTRACT),
         "evidence_contract": deepcopy(EVIDENCE_CONTRACT),
         "carrier_data_contract": deepcopy(CARRIER_DATA_CONTRACT),
         "implementation_note": (
-            "Foundation Preview only. Lane/service compatibility is fail-closed and carrier selection requires "
-            "human procurement approval. No freight-cost calculation, carrier scoring, scenario, allocation, "
-            "optimization, negotiation, live route/fuel data, or autonomous award engine is active."
+            "Foundation Preview only. Lane/service compatibility is fail-closed, LOGISTICS-1 provides bounded "
+            "freight normalization, and LOGISTICS-2 evaluates explicit carrier evidence against buyer-supplied "
+            "service thresholds. No composite carrier scoring, ranking, scenario allocation, route optimization, "
+            "negotiation, live route/fuel data, or autonomous award engine is active. Human approval remains mandatory."
         ),
     }
 
