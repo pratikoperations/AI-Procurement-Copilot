@@ -287,9 +287,10 @@ def get_engine_profile(commodity: str | None = None) -> dict[str, Any]:
         "implementation_note": (
             "Foundation Preview only. Lane/service compatibility is fail-closed, LOGISTICS-1 provides bounded "
             "freight normalization, LOGISTICS-2 evaluates explicit carrier evidence against buyer-supplied service "
-            "thresholds, and LOGISTICS-3 evaluates human-proposed allocation scenarios. No composite carrier scoring, "
-            "carrier ranking, automatic share optimization, route optimization, negotiation, live route/fuel data, "
-            "or autonomous award engine is active. Human approval remains mandatory."
+            "thresholds, LOGISTICS-3 evaluates human-proposed allocation scenarios, and LOGISTICS-4 presents explicit "
+            "buyer-entered negotiation positions and commercial deltas. No composite carrier scoring, carrier ranking, "
+            "automatic share optimization, autonomous negotiation, route optimization, live route/fuel data, or "
+            "autonomous award engine is active. Human approval remains mandatory."
         ),
     }
 
