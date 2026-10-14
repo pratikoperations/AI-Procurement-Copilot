@@ -165,7 +165,7 @@ PROJECT_KNOWLEDGE = (
     _entry(
         "category engines",
         ("category engine", "categories", "packaging", "raw material", "steel", "flexible laminate", "kraft", "pet resin", "mro", "logistics", "freight", "ftl"),
-        "The portfolio includes Packaging Procurement, Raw Material Procurement, MRO / Industrial Supplies Foundation Preview, and Logistics & Freight Foundation Preview. Governed category-specific routes include Corrugated Board, Kraft Paper, PET Resin, Flexible Laminates, Steel, Industrial Bearings foundation contracts, and Domestic Road Transportation — FTL. Category routing selects existing deterministic services; SourceMate does not create a new calculation route.",
+        "The portfolio uses three user-facing procurement categories: Packaging Materials, Raw Materials, and Indirect Procurement. Indirect Procurement contains MRO / Industrial Supplies and Logistics & Freight as governed subcategories. Existing engine identifiers remain backward-compatible internal routing contracts. Governed category-specific routes include Corrugated Board, Kraft Paper, PET Resin, Flexible Laminates, Steel, Industrial Bearings foundation contracts, and Domestic Road Transportation — FTL. SourceMate explains the taxonomy and existing deterministic services; it does not create a new calculation route.",
         ("modules/category_engine.py", "modules/category_cost_router.py", "modules/mro_engine.py", "modules/logistics_engine.py", "pages/8_Governed_Calculation_Explorer.py"),
     ),
     _entry(
