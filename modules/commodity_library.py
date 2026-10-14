@@ -117,6 +117,8 @@ COMMODITIES = {
             "carrier_evaluation_contract_version": "LOGISTICS-2",
             "allocation_scenario_contract_version": "LOGISTICS-3",
             "allocation_scenario_basis": "Human-proposed carrier shares",
+            "negotiation_contract_version": "LOGISTICS-4",
+            "negotiation_target_basis": "Explicit buyer-entered positions",
             "comparison_units": ["INR/trip", "INR/tonne", "INR/tonne-km"],
             "carrier_evaluation_dimensions": [
                 "capacity confirmation",
