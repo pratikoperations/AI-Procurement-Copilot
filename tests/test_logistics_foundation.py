@@ -47,7 +47,7 @@ def test_logistics_category_is_registered_as_foundation_preview_only():
 
     assert profile["default_weightings"] == {}
     assert profile["default_assumptions"] == {}
-    assert profile["allocation_model"] == "Not enabled through LOGISTICS-2"
+    assert profile["allocation_model"] == "Human-proposed scenario evaluation enabled in LOGISTICS-3; automatic allocation optimization remains disabled"
     assert profile["cost_model"] == "No freight-cost calculation model in LOGISTICS-0"
 
 
